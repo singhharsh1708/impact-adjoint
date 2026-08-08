@@ -72,10 +72,14 @@ def fd_jacobian(t, base, n_events, h=1e-6):
     return out
 
 
-def check_case(t, base, label, rtol=2e-4, atol=5e-7):
+# atol sits above the FD truncation floor on near-zero entries with
+# bounce-amplified third derivatives; machine-precision claims come from the
+# independent closed-form and cross-implementation oracles, not this FD gate.
+def check_case(t, base, label, rtol=1e-5, atol=1e-7):
     res = t.apply(base)
     nev = int(res["n_events"])
     assert nev >= 2, f"{label}: want a multi-bounce trajectory, got {nev} events"
+    assert int(res["status"]) == 0, f"{label}: unexpected truncation (status={res['status']})"
     print(f"[{label}] n_events={nev}, qf={np.asarray(res['qf']).round(4)}")
 
     jac = t.jacobian(base, jac_inputs=set(DIFF_INPUTS), jac_outputs={"qf", "impact_x"})
@@ -138,13 +142,72 @@ def main():
             lp = float(np.asarray(rp["qf"])[0] + np.asarray(rp["impact_x"])[0])
             lm = float(np.asarray(rm["qf"])[0] + np.asarray(rm["impact_x"])[0])
             fd_g[i] = (lp - lm) / (2 * h)
-        np.testing.assert_allclose(np.asarray(g).reshape(-1), fd_g, rtol=2e-4, atol=5e-7, err_msg=name)
+        np.testing.assert_allclose(np.asarray(g).reshape(-1), fd_g, rtol=1e-4, atol=1e-7, err_msg=name)
     print("[jax.grad] matches FD for all 7 differentiable inputs")
 
     # 4. With drag.
     check_case(t, dict(BASE, drag=0.3), "drag=0.3")
 
+    # 5. Robustness regressions (verifier-derived configs).
+    regressions(t)
+
     print(f"\nALL CONTACT-SIM VALIDATIONS PASSED (multi-bounce n_events={nev})")
+
+
+def terrain_h(x, amp, ctr, wid):
+    x = np.asarray(x)[..., None]
+    return np.sum(np.asarray(amp) * np.exp(-((x - np.asarray(ctr)) ** 2) / (2 * np.asarray(wid) ** 2)), axis=-1)
+
+
+def penetration(res, base):
+    traj = np.asarray(res["traj"])
+    return float(np.min(traj[:, 2] - terrain_h(traj[:, 1], base["amp"], base["ctr"], base["wid"])))
+
+
+def regressions(t):
+    # Dead-bounce chatter must terminate as settled contact, not tunnel.
+    cfg = dict(BASE, e=0.05, n_samples=2000)
+    res = t.apply(cfg)
+    assert int(res["status"]) == 2, f"settle: status={res['status']}"
+    assert float(res["t_end"]) < cfg["t_final"]
+    pen = penetration(res, cfg)
+    assert pen > -1e-9, f"settle: tunneled, min(y - h) = {pen:.3e}"
+    print(f"[settle] e=0.05 stops as settled contact at t={float(res['t_end']):.4f}, no tunneling (min y-h {pen:.1e})")
+
+    # Event-capacity cap must stop at the crossing, not free-fall underground.
+    cfg = dict(BASE, e=0.85, mu=0.0, t_final=6.0, n_samples=2000)
+    res = t.apply(cfg)
+    assert int(res["status"]) == 1, f"cap: status={res['status']}"
+    assert int(res["n_events"]) == 8
+    pen = penetration(res, cfg)
+    assert pen > -1e-9, f"cap: tunneled, min(y - h) = {pen:.3e}"
+    print(f"[cap] 9th crossing stops integration at t={float(res['t_end']):.4f}, no tunneling (min y-h {pen:.1e})")
+
+    # Narrow de-aligned spike must be detected at dt=1e-3 (interior probes).
+    cfg = dict(BASE, v0=np.array([20.0, 0.0]), y0=1.008, amp=np.array([1.0, 0.0, 0.0]),
+               ctr=np.array([1.2137, 30.0, 40.0]), wid=np.array([0.05, 1.0, 1.0]), t_final=0.6)
+    res = t.apply(cfg)
+    res_fine = t.apply(dict(cfg, dt=1e-5))
+    imp = float(np.asarray(res["impact_x"])[0])
+    imp_fine = float(np.asarray(res_fine["impact_x"])[0])
+    assert int(res["n_events"]) >= 1 and 1.0 < imp < 1.3, f"narrow: spike missed, first impact at {imp}"
+    assert abs(imp - imp_fine) < 1e-6, f"narrow: dt=1e-3 vs 1e-5 impact mismatch {abs(imp - imp_fine):.2e}"
+    print(f"[narrow] wid=0.05 spike detected at dt=1e-3 (impact {imp:.6f}, matches dt=1e-5 to {abs(imp - imp_fine):.1e})")
+
+    # Energy conservation at e=1, mu=0, drag=0 (RK4 exact on ballistic arcs).
+    cfg = dict(BASE, e=1.0, mu=0.0, t_final=5.0, n_samples=5000)
+    res = t.apply(cfg)
+    assert int(res["status"]) == 0 and int(res["n_events"]) < 8
+    traj = np.asarray(res["traj"])
+    E = 0.5 * (traj[:, 3] ** 2 + traj[:, 4] ** 2) + 9.81 * traj[:, 2]
+    drift = float(np.max(np.abs(E - E[0])) / E[0])
+    assert drift < 1e-12, f"energy drift {drift:.2e}"
+    print(f"[energy] e=1 mu=0: {int(res['n_events'])} impacts, relative energy drift {drift:.1e}")
+
+    # n_samples=1 must not crash.
+    res = t.apply(dict(BASE, n_samples=1))
+    assert np.asarray(res["traj"]).shape == (1, 5)
+    print("[n_samples=1] ok")
 
 
 if __name__ == "__main__":

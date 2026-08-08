@@ -20,6 +20,24 @@ using ForwardDiff
 # (∂f/∂q, g_q, g_θ, R_q, R_θ) come from ForwardDiff dual numbers; the event
 # structure is handled analytically.
 #
+# Termination (status output):
+#   0  ran to t_final.
+#   1  event capacity: a crossing was located while nev == max_events. The
+#      simulation stops AT that crossing; qf is the pre-impact state there and
+#      Jqf is its total θ-derivative (X⁻ + f⁻ τ_θᵀ, event time included).
+#   2  contact settled: the post-impact normal velocity fell below v_stop
+#      (near-Zeno chatter; sticking/sliding contact is outside this model).
+#      The simulation stops at the impact; qf is the post-impact state and
+#      Jqf its total θ-derivative R_q (X⁻ + f⁻ τ_θᵀ) + R_θ.
+# In both truncated modes qf is measured at the event time (t_end), not at
+# t_final, and the reported Jacobian accounts for the event-time dependence,
+# so gradient-based optimization remains well-posed across the truncation.
+#
+# Event detection: endpoint sign change of the guard per RK4 step, plus two
+# interior probes (dtau/3, 2dtau/3) to catch dips narrower than one step.
+# Terrain features narrower than |vx|·dt/3 can still be stepped over —
+# choose dt ≲ min(wid) / (3 |vx|).
+#
 # Parameter vector θ (length NTH):
 #   1:2  v0 (launch velocity)
 #   3    y0 (launch height, x0 = 0 fixed)
@@ -90,18 +108,36 @@ function step_qX(q, X, dtau, cd, want_sens::Bool)
     return qn, Xn
 end
 
-"""
-    run_solver(θ, cd, t_final, dt, max_events, n_samples, want_sens)
+# Earliest guard crossing within (0, dtau], or NaN. Checks the endpoint and
+# two interior probes so dips narrower than one step are still seen.
+function find_crossing(q, X, dtau, cd, θ)
+    guard(q, θ) > 0 || return NaN
+    qn, _ = step_qX(q, X, dtau, cd, false)
+    guard(qn, θ) < 0 && return dtau
+    for frac in (1 / 3, 2 / 3)
+        sp = frac * dtau
+        qp, _ = step_qX(q, X, sp, cd, false)
+        guard(qp, θ) < 0 && return sp
+    end
+    return NaN
+end
 
-Returns (qf, Jqf, impact_x, Jimp, n_events, traj):
-  qf        final state (4,)
-  Jqf       ∂qf/∂θ (4, NTH)          (zeros when !want_sens)
-  impact_x  x of each impact, NaN-padded (max_events,)
+"""
+    run_solver(θ, cd, t_final, dt, max_events, n_samples, v_stop, want_sens)
+
+Returns (qf, Jqf, impact_x, Jimp, n_events, traj, status, t_end):
+  qf        state at t_end (4,)
+  Jqf       ∂qf/∂θ (4, NTH); at truncation (status != 0) this is the total
+            derivative including event-time dependence (zeros when !want_sens)
+  impact_x  x of each impact, NaN-padded (max_events,); padded rows of Jimp
+            are exactly zero (documented convention)
   Jimp      ∂impact_x/∂θ (max_events, NTH)
   n_events  number of impacts
   traj      (n_samples, 5) rows (t, x, y, vx, vy) evenly sampled from the grid
+  status    0 ok / 1 event capacity / 2 contact settled (see module docs)
+  t_end     time of qf (== t_final iff status == 0)
 """
-function run_solver(θvec, cd, t_final, dt, max_events::Int, n_samples::Int, want_sens::Bool)
+function run_solver(θvec, cd, t_final, dt, max_events::Int, n_samples::Int, v_stop, want_sens::Bool)
     θ = collect(Float64, θvec)
     length(θ) == NTH || error("θ must have length $NTH, got $(length(θ))")
     q = [0.0, θ[3], θ[1], θ[2]]
@@ -112,18 +148,22 @@ function run_solver(θvec, cd, t_final, dt, max_events::Int, n_samples::Int, wan
     impact_x = fill(NaN, max_events)
     Jimp = zeros(max_events, NTH)
     nev = 0
+    status = 0
     t = 0.0
     hist_t = [0.0]
     hist_q = [copy(q)]
 
     guard(q, θ) > 0 || error("initial state must start above the terrain")
 
-    while t < t_final - 1e-12
+    while t < t_final - 1e-12 && status == 0
         dtau = min(dt, t_final - t)
-        qn, Xn = step_qX(q, X, dtau, cd, want_sens)
-        if guard(q, θ) > 0 && guard(qn, θ) < 0 && nev < max_events
-            # Bisect the step size s ∈ (0, dtau) to the crossing.
-            lo, hi = 0.0, dtau
+        s_hit = find_crossing(q, X, dtau, cd, θ)
+        if isnan(s_hit)
+            q, X = step_qX(q, X, dtau, cd, want_sens)
+            t += dtau
+        else
+            # Bisect the step size s ∈ (0, s_hit) to the crossing.
+            lo, hi = 0.0, s_hit
             for _ in 1:80
                 mid = (lo + hi) / 2
                 qm, _ = step_qX(q, X, mid, cd, false)
@@ -138,28 +178,51 @@ function run_solver(θvec, cd, t_final, dt, max_events::Int, n_samples::Int, wan
             fminus = flow(qminus, cd)
             gq = ForwardDiff.gradient(z -> guard(z, θ), qminus)
             denom = dot(gq, fminus)
-            if abs(denom) < 1e-8 * (1 + norm(fminus))
-                error("grazing impact at t=$(t + s): event sensitivity undefined")
-            end
+            abs(denom) > 1e-12 || error("degenerate guard crossing at t=$(t + s)")
             denom < 0 || error("guard crossing with non-approaching velocity at t=$(t + s)")
-            qplus = reset_map(qminus, θ)
-            nev += 1
-            impact_x[nev] = qminus[1]
-            if want_sens
-                gθ = ForwardDiff.gradient(z -> guard(qminus, z), θ)
-                τθ = -(Xminus' * gq .+ gθ) ./ denom
-                Jimp[nev, :] .= Xminus[1, :] .+ fminus[1] .* τθ
-                fplus = flow(qplus, cd)
-                Rq = ForwardDiff.jacobian(z -> reset_map(z, θ), qminus)
-                Rθ = ForwardDiff.jacobian(z -> reset_map(qminus, z), θ)
-                X = Rq * Xminus .- (fplus .- Rq * fminus) * τθ' .+ Rθ
-            end
-            q = qplus
+            τθ = want_sens ?
+                -(Xminus' * gq .+ ForwardDiff.gradient(z -> guard(qminus, z), θ)) ./ denom :
+                zeros(NTH)
             t += s
-        else
-            q = qn
-            X = Xn
-            t += dtau
+
+            if nev >= max_events
+                # Capacity reached: stop at the pre-impact state, total derivative.
+                q = qminus
+                want_sens && (X = Xminus .+ fminus * τθ')
+                status = 1
+            else
+                qplus = reset_map(qminus, θ)
+                # Land a hair ABOVE the guard so detection re-arms even for
+                # sub-dt hops (guard(q+) > 0 strictly). The lift is far below
+                # every validation tolerance and is applied outside reset_map,
+                # so the sensitivity propagation is unaffected: the propagated
+                # tangent lies in the event manifold, where the lifted and
+                # unlifted reset maps agree to first order.
+                amp, ctr, wid = unpack_terrain(θ)
+                qplus[2] = terrain_h(qplus[1], amp, ctr, wid) + 1e-13 * (1 + abs(qplus[2]))
+                fplus = flow(qplus, cd)
+                nev += 1
+                impact_x[nev] = qminus[1]
+                want_sens && (Jimp[nev, :] .= Xminus[1, :] .+ fminus[1] .* τθ)
+                vn_plus = dot(gq, fplus) / norm(gq)
+                if vn_plus < v_stop
+                    # Chatter accumulation: model validity ends, stop at the event.
+                    if want_sens
+                        Rq = ForwardDiff.jacobian(z -> reset_map(z, θ), qminus)
+                        Rθ = ForwardDiff.jacobian(z -> reset_map(qminus, z), θ)
+                        X = Rq * (Xminus .+ fminus * τθ') .+ Rθ
+                    end
+                    q = qplus
+                    status = 2
+                else
+                    if want_sens
+                        Rq = ForwardDiff.jacobian(z -> reset_map(z, θ), qminus)
+                        Rθ = ForwardDiff.jacobian(z -> reset_map(qminus, z), θ)
+                        X = Rq * Xminus .- (fplus .- Rq * fminus) * τθ' .+ Rθ
+                    end
+                    q = qplus
+                end
+            end
         end
         push!(hist_t, t)
         push!(hist_q, copy(q))
@@ -168,13 +231,14 @@ function run_solver(θvec, cd, t_final, dt, max_events::Int, n_samples::Int, wan
     traj = zeros(n_samples, 5)
     if n_samples > 0
         m = length(hist_t)
-        for (r, idx) in enumerate(round.(Int, range(1, m; length=n_samples)))
+        idxs = n_samples == 1 ? [m] : round.(Int, range(1, m; length=n_samples))
+        for (r, idx) in enumerate(idxs)
             traj[r, 1] = hist_t[idx]
             traj[r, 2:5] .= hist_q[idx]
         end
     end
 
-    return q, X, impact_x, Jimp, nev, traj
+    return q, X, impact_x, Jimp, nev, traj, status, t
 end
 
 end # module
