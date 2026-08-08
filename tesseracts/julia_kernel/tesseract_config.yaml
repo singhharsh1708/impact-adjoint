@@ -1,0 +1,33 @@
+name: "julia-kernel"
+version: "0.1.0"
+description: |
+  Boundary proof: a Julia kernel with a hand-written analytic adjoint,
+  exposed as a differentiable Tesseract and driven by jax.grad through
+  tesseract-jax.
+
+build_config:
+  base_image: "debian:bookworm-slim"
+
+  extra_packages:
+    - wget
+    - ca-certificates
+
+  package_data:
+    - ["julia/kernel.jl", "julia/kernel.jl"]
+
+  custom_build_steps:
+    - 'RUN wget -q https://julialang-s3.julialang.org/bin/linux/aarch64/1.11/julia-1.11.3-linux-aarch64.tar.gz -O /tmp/julia.tar.gz && mkdir -p /tesseract/julia && tar -xzf /tmp/julia.tar.gz -C /tesseract/julia --strip-components=1 && rm /tmp/julia.tar.gz'
+    - 'ENV PATH="${PATH}:/tesseract/julia/bin"'
+    - 'ENV JULIA_CPU_TARGET="generic"'
+    - 'ENV PYTHON_JULIACALL_EXE="/tesseract/julia/bin/julia"'
+    - 'ENV PYTHON_JULIACALL_PROJECT="/tesseract/julia_env"'
+    - 'ENV JULIA_DEPOT_PATH="/tesseract/.julia"'
+    - 'RUN julia --project=/tesseract/julia_env -e ''using Pkg; Pkg.add(Pkg.PackageSpec(name="PythonCall", version="0.9.31")); Pkg.precompile()'''
+    - 'RUN python -c "import juliacall"'
+    - 'RUN chmod -R 777 /tesseract/.julia /tesseract/julia_env'
+
+env:
+  JULIA_CPU_TARGET: "generic"
+  PYTHON_JULIACALL_EXE: "/tesseract/julia/bin/julia"
+  PYTHON_JULIACALL_PROJECT: "/tesseract/julia_env"
+  JULIA_DEPOT_PATH: "/tesseract/.julia"

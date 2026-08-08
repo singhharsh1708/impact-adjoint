@@ -1,0 +1,35 @@
+name: "contact-sim"
+version: "0.1.0"
+description: |
+  Differentiable 2D ballistic flight over smooth terrain with impact events
+  (normal restitution + tangential loss), implemented in Julia. Gradients via
+  forward variational equations with analytic saltation-matrix updates at
+  events — the event-time sensitivity that naive autodiff through a
+  time-stepping integrator misses.
+
+build_config:
+  base_image: "debian:bookworm-slim"
+
+  extra_packages:
+    - wget
+    - ca-certificates
+
+  package_data:
+    - ["julia/contact_solver.jl", "julia/contact_solver.jl"]
+
+  custom_build_steps:
+    - 'RUN wget -q https://julialang-s3.julialang.org/bin/linux/aarch64/1.11/julia-1.11.3-linux-aarch64.tar.gz -O /tmp/julia.tar.gz && mkdir -p /tesseract/julia-dist && tar -xzf /tmp/julia.tar.gz -C /tesseract/julia-dist --strip-components=1 && rm /tmp/julia.tar.gz'
+    - 'ENV PATH="${PATH}:/tesseract/julia-dist/bin"'
+    - 'ENV JULIA_CPU_TARGET="generic"'
+    - 'ENV PYTHON_JULIACALL_EXE="/tesseract/julia-dist/bin/julia"'
+    - 'ENV PYTHON_JULIACALL_PROJECT="/tesseract/julia_env"'
+    - 'ENV JULIA_DEPOT_PATH="/tesseract/.julia"'
+    - 'RUN julia --project=/tesseract/julia_env -e ''using Pkg; Pkg.add([Pkg.PackageSpec(name="PythonCall", version="0.9.31"), Pkg.PackageSpec(name="ForwardDiff")]); Pkg.precompile()'''
+    - 'RUN python -c "import juliacall"'
+    - 'RUN chmod -R 777 /tesseract/.julia /tesseract/julia_env'
+
+env:
+  JULIA_CPU_TARGET: "generic"
+  PYTHON_JULIACALL_EXE: "/tesseract/julia-dist/bin/julia"
+  PYTHON_JULIACALL_PROJECT: "/tesseract/julia_env"
+  JULIA_DEPOT_PATH: "/tesseract/.julia"

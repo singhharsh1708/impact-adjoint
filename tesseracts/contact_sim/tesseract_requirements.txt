@@ -1,0 +1,2 @@
+juliacall==0.9.31
+numpy
