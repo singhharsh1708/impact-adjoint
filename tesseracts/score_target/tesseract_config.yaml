@@ -1,0 +1,8 @@
+name: "score-target"
+version: "0.1.0"
+description: |
+  Differentiable scoring of a contact-solver trajectory against a target cup:
+  quadratic landing loss plus kinetic penalty, implemented in JAX. Composes
+  with the Julia contact-sim Tesseract into one end-to-end differentiable
+  pipeline whose two halves use different differentiation strategies
+  (JAX reverse-mode autodiff vs analytic saltation sensitivities).
