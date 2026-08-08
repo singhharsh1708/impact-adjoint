@@ -1,0 +1,28 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install "tesseract-core[runtime]" tesseract-jax jax optax equinox \
+                      juliacall numpy scipy sympy pytest
+      - name: Golden regression tests
+        run: pytest tests/ -v
+      - name: FD validation + robustness regressions
+        run: python scripts/validate_contact.py
+      - name: Independent closed-form oracle
+        run: python scripts/validate_closed_form.py
+      - name: Cross-implementation reference
+        run: python scripts/validate_reference.py

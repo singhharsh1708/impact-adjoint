@@ -63,9 +63,11 @@ def main():
 
     n_iters = 150
     history = []
+    params_hist = []
     for it in range(n_iters):
         (loss, (miss, nev)), grads = grad_fn(params)
         history.append((it, float(loss), float(miss), int(nev)))
+        params_hist.append([*np.asarray(params["v0"]), float(params["e"])])
         if it % 15 == 0 or it == n_iters - 1:
             print(f"iter {it:3d}  loss {float(loss):10.6f}  miss {float(miss):8.5f} m  bounces {int(nev)}")
         updates, state = opt.update(grads, state)
@@ -79,6 +81,7 @@ def main():
     assert final_miss < 0.05, f"did not land in cup: miss {final_miss:.4f} m"
     assert history[-1][3] >= 2, "want a multi-bounce solution"
     np.save(ROOT / "experiments" / "e1_history.npy", np.array([(h[1], h[2]) for h in history]))
+    np.save(ROOT / "experiments" / "e1_params_history.npy", np.array(params_hist))
     print("E1 PASSED: gradient descent through both Tesseracts lands the ball in the cup")
 
 

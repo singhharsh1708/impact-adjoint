@@ -23,7 +23,7 @@ The boundary the pipeline crosses is not just language: the two components
 *disagree about how to differentiate* (dual-number forward AD + analytic event
 handling vs. reverse-mode autodiff), and `tesseract-jax` composes them anyway.
 
-![E1 trajectory](docs/figures/e1_trajectory.png)
+![E1 optimization](docs/figures/e1_optimization.gif)
 
 ## Results
 
