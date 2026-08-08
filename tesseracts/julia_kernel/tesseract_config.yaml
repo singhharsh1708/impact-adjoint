@@ -16,7 +16,7 @@ build_config:
     - ["julia/kernel.jl", "julia/kernel.jl"]
 
   custom_build_steps:
-    - 'RUN wget -q https://julialang-s3.julialang.org/bin/linux/aarch64/1.11/julia-1.11.3-linux-aarch64.tar.gz -O /tmp/julia.tar.gz && mkdir -p /tesseract/julia && tar -xzf /tmp/julia.tar.gz -C /tesseract/julia --strip-components=1 && rm /tmp/julia.tar.gz'
+    - 'RUN ARCH=$(uname -m) && case "$ARCH" in aarch64|arm64) JDIR=aarch64; JARCH=aarch64;; x86_64) JDIR=x64; JARCH=x86_64;; *) echo "unsupported arch $ARCH" && exit 1;; esac && wget -q "https://julialang-s3.julialang.org/bin/linux/${JDIR}/1.11/julia-1.11.3-linux-${JARCH}.tar.gz" -O /tmp/julia.tar.gz && mkdir -p /tesseract/julia && tar -xzf /tmp/julia.tar.gz -C /tesseract/julia --strip-components=1 && rm /tmp/julia.tar.gz'
     - 'ENV PATH="${PATH}:/tesseract/julia/bin"'
     - 'ENV JULIA_CPU_TARGET="generic"'
     - 'ENV PYTHON_JULIACALL_EXE="/tesseract/julia/bin/julia"'
