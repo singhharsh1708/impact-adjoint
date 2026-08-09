@@ -112,6 +112,15 @@ exists only because of events — there is no smooth surrogate for "where it
 hit". Gradient descent through the solver's VJP recovers `e` to 0.002 and `μ`
 to 0.009 (noise-limited) from a distant start `(0.5, 0.3)`.
 
+**E2b — Bayesian calibration (Track 4 proper).** The same inverse problem as a
+posterior: NumPyro's NUTS sampler, whose Hamiltonian dynamics require a
+JAX-differentiable log-density, runs directly against the *containerized*
+solver — every leapfrog step calls the Tesseract's apply and saltation-VJP
+endpoints over HTTP. Posterior: `e = 0.697 ± 0.008`, `μ = 0.096 ± 0.010`;
+the truth lies within one standard deviation of both marginals. This is the
+composition Track 4 asks for: an expensive event-driven solver dropped into a
+probabilistic workflow unchanged.
+
 ## 4. Correctness: independent oracles, not self-agreement
 
 FD-vs-analytic agreement through the same solver proves consistency, not

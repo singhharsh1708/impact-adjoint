@@ -32,6 +32,7 @@ handling vs. reverse-mode autodiff), and `tesseract-jax` composes them anyway.
 | **E3** — naive autodiff vs saltation | naive gradient is exactly **0.0 at every dt** (event-index staircase); true value **+0.0904**, confirmed by two independent witnesses. O(1) bias, does not vanish as dt→0. |
 | **E1** — inverse design | Adam over launch velocity + restitution through both Tesseracts: miss **1.12 m → 2.7 cm**, through 5 bounces, surviving bounce-count changes (4→6→5) during descent. |
 | **E2** — calibration | `(e, mu)` recovered from 3 noisy impact positions (σ = 5 mm) to errors **0.002 / 0.009**. |
+| **E2b** — Bayesian | NumPyro NUTS sampling through the containerized solver's VJP: posterior `e = 0.697 ± 0.008`, `mu = 0.096 ± 0.010` — truth within 1σ. |
 
 ## Correctness
 

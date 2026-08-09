@@ -10,10 +10,6 @@ from pathlib import Path
 
 import numpy as np
 
-from juliacall import Main as _jl
-
-_jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add("ForwardDiff")')
-
 import jax
 import jax.numpy as jnp
 import numpyro
@@ -39,9 +35,7 @@ NFIT = 3
 SEED = 7
 
 
-def main():
-    sim = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "contact_sim" / "tesseract_api.py")
-
+def run(sim):
     truth = sim.apply({**FIXED, "e": E_TRUE, "mu": MU_TRUE})
     rng = np.random.default_rng(SEED)
     obs = np.asarray(truth["impact_x"])[:NFIT] + rng.normal(0.0, NOISE, NFIT)
@@ -70,6 +64,17 @@ def main():
     assert abs(mu_mean - MU_TRUE) < 3 * max(mu_sd, 1e-3), "posterior misses truth for mu"
     np.savez(ROOT / "experiments" / "e2b_posterior.npz", e=np.asarray(s["e"]), mu=np.asarray(s["mu"]))
     print("E2b PASSED: NUTS posterior through the Tesseract covers the truth")
+
+
+def main():
+    # NumPyro jits the NUTS step, and jitted JAX callbacks may run off the main
+    # thread — which deadlocks the in-process juliacall runtime. The
+    # containerized solver keeps Julia in its own process, so HMC's callbacks
+    # are plain HTTP calls and threading is a non-issue.
+    out = ROOT / ".tessout"
+    out.mkdir(exist_ok=True)
+    with Tesseract.from_image("contact-sim", output_path=out) as sim:
+        run(sim)
 
 
 if __name__ == "__main__":
