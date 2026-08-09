@@ -145,7 +145,7 @@ function run_solver(θvec, cd, t_final, dt, max_events::Int, n_samples::Int, v_s
     X[2, 3] = 1.0
     X[3, 1] = 1.0
     X[4, 2] = 1.0
-    impact_x = fill(NaN, max_events)
+    impact_x = zeros(max_events)
     Jimp = zeros(max_events, NTH)
     nev = 0
     status = 0

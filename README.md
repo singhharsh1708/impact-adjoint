@@ -45,6 +45,8 @@ finite differences through the same code:
   (scipy RK45 + its own event localization): primal agreement 1e-10; analytic
   Jacobian vs finite differences *through the independent implementation*
   **5e-9** — covering the sloped-contact-frame and drag sectors.
+- `tesseract run contact-sim check-gradients` — Tesseract's built-in checker:
+  **0 failures / 1574 checks** per gradient endpoint.
 - `scripts/validate_contact.py` — FD gate (rtol 1e-5) plus robustness
   regressions: chatter/settle termination, event-capacity truncation,
   sub-step-width terrain features, energy conservation at `e=1` (relative

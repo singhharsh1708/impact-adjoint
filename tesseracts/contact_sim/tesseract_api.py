@@ -54,7 +54,7 @@ class OutputSchema(BaseModel):
         description="State (x, y, vx, vy) at t_end. For status != 0 this is the state at the truncating event, and its Jacobian is the total derivative including event-time dependence."
     )
     impact_x: Differentiable[Array[(MAX_EVENTS,), Float64]] = Field(
-        description="x-coordinate of each impact, NaN-padded to MAX_EVENTS. Convention: padded entries are NaN in the value but their Jacobian/VJP/JVP rows are exactly zero — only entries [:n_events] are meaningful."
+        description="x-coordinate of each impact, zero-padded to MAX_EVENTS. Only entries [:n_events] are meaningful; padded entries are exactly 0 with exactly-zero derivative rows, so gradient checks stay coherent — always mask by n_events."
     )
     n_events: Int32 = Field(description="Number of impacts.")
     traj: Array[(None, 5), Float64] = Field(description="Sampled (t, x, y, vx, vy) rows for visualization.")

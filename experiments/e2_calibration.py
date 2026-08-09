@@ -43,8 +43,8 @@ def main():
     nev = int(truth["n_events"])
     # Fit the first NFIT impacts: impact 1 is (e, mu)-independent (launch is
     # fixed), impacts 2-3 constrain both parameters, and every plausible
-    # parameter value produces at least NFIT impacts (padded entries are NaN
-    # and must never enter the residual).
+    # parameter value produces at least NFIT impacts (padded entries are
+    # zeros and must never enter the residual).
     NFIT = 3
     assert nev >= NFIT
     rng = np.random.default_rng(SEED)
