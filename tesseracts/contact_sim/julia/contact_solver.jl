@@ -48,18 +48,23 @@ using ForwardDiff
 #  12:14 wid (bump widths)
 
 const GRAV = 9.81
-const NB = 3
-const NTH = 5 + 3 * NB
+# Number of terrain bumps is derived from the parameter vector length:
+# any nb >= 1 works, so the terrain can be an arbitrary-dimensional height
+# field (θ has length 5 + 3 nb).
+@inline nbumps(θ) = (length(θ) - 5) ÷ 3
 
 @inline function terrain_h(x, amp, ctr, wid)
     h = zero(x) * zero(eltype(amp))
-    @inbounds for i in 1:NB
+    @inbounds for i in eachindex(amp)
         h += amp[i] * exp(-(x - ctr[i])^2 / (2 * wid[i]^2))
     end
     return h
 end
 
-@inline unpack_terrain(θ) = (view(θ, 6:5 + NB), view(θ, 6 + NB:5 + 2NB), view(θ, 6 + 2NB:5 + 3NB))
+@inline function unpack_terrain(θ)
+    nb = nbumps(θ)
+    return (view(θ, 6:5 + nb), view(θ, 6 + nb:5 + 2nb), view(θ, 6 + 2nb:5 + 3nb))
+end
 
 function guard(q, θ)
     amp, ctr, wid = unpack_terrain(θ)
@@ -139,14 +144,15 @@ Returns (qf, Jqf, impact_x, Jimp, n_events, traj, status, t_end):
 """
 function run_solver(θvec, cd, t_final, dt, max_events::Int, n_samples::Int, v_stop, want_sens::Bool)
     θ = collect(Float64, θvec)
-    length(θ) == NTH || error("θ must have length $NTH, got $(length(θ))")
+    nth = length(θ)
+    (nth >= 8 && (nth - 5) % 3 == 0) || error("θ must have length 5 + 3*nb, got $nth")
     q = [0.0, θ[3], θ[1], θ[2]]
-    X = zeros(4, NTH)
+    X = zeros(4, nth)
     X[2, 3] = 1.0
     X[3, 1] = 1.0
     X[4, 2] = 1.0
     impact_x = zeros(max_events)
-    Jimp = zeros(max_events, NTH)
+    Jimp = zeros(max_events, nth)
     nev = 0
     status = 0
     t = 0.0
@@ -182,7 +188,7 @@ function run_solver(θvec, cd, t_final, dt, max_events::Int, n_samples::Int, v_s
             denom < 0 || error("guard crossing with non-approaching velocity at t=$(t + s)")
             τθ = want_sens ?
                 -(Xminus' * gq .+ ForwardDiff.gradient(z -> guard(qminus, z), θ)) ./ denom :
-                zeros(NTH)
+                zeros(nth)
             t += s
 
             if nev >= max_events
