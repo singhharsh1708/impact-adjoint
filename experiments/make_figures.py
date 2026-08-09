@@ -138,11 +138,54 @@ def fig_e3():
     print("wrote e3_bias.png")
 
 
+def fig_e4(t):
+    d = np.load(ROOT / "experiments" / "e4_result.npz")
+    des = {"amp": d["amp"], "ctr": d["ctr"], "wid": d["wid"]}
+
+    def h_des(x):
+        x = np.asarray(x)[..., None]
+        return np.sum(des["amp"] * np.exp(-((x - des["ctr"]) ** 2) / (2 * des["wid"] ** 2)), axis=-1)
+
+    fixed = {"y0": 1.0, "e": 0.7, "mu": 0.1, "drag": 0.0, "t_final": 2.2, "dt": 1e-3, "n_samples": 1200}
+    r_slow = t.apply({**fixed, **des, "v0": np.array([1.6, 0.3])})
+    r_fast = t.apply({**fixed, **des, "v0": np.array([2.6, 0.3])})
+
+    fig, ax = plt.subplots(figsize=(7.0, 3.2), dpi=200)
+    xs = np.linspace(-0.1, 5.4, 600)
+    ax.fill_between(xs, -0.08, h_des(xs), color=TERRAIN, lw=0, zorder=1)
+    ax.plot(xs, h_des(xs), color=BASELINE, lw=1.2, zorder=2)
+    h0 = 0.15 * np.sum(np.exp(-((xs[:, None] - np.array([1.2, 2.4, 3.6])) ** 2) / (2 * 0.5**2)), axis=1)
+    ax.plot(xs, h0, color=MUTED, lw=1.0, ls=(0, (4, 3)), zorder=2)
+    ax.annotate("initial terrain", (0.55, 0.19), color=MUTED, fontsize=8)
+    for r, c, label, cup in ((r_slow, BLUE, "slow inlet (1.6 m/s)", 2.6), (r_fast, ORANGE, "fast inlet (2.6 m/s)", 4.6)):
+        traj = np.asarray(r["traj"])
+        ax.plot(traj[:, 1], traj[:, 2], color=c, lw=2.0, zorder=3)
+        imp = np.asarray(r["impact_x"])[: int(r["n_events"])]
+        ax.scatter(imp, h_des(imp), s=18, color=c, zorder=4, edgecolors=SURFACE, linewidths=0.8)
+        cy = float(h_des(cup))
+        ax.scatter([cup], [cy], marker="v", s=70, color=c, zorder=5)
+        ax.annotate(f"cup {'A' if c == BLUE else 'B'}", (cup, cy), textcoords="offset points",
+                    xytext=(0, -16), ha="center", color=c, fontsize=9)
+    ax.annotate("slow inlet", (1.05, 0.72), color=BLUE, fontsize=9)
+    ax.annotate("fast inlet", (2.30, 0.60), color=ORANGE, fontsize=9)
+    ax.set_xlim(-0.1, 5.4)
+    ax.set_ylim(-0.08, 1.45)
+    ax.set_xlabel("x [m]")
+    ax.set_ylabel("y [m]")
+    ax.set_title("E4 — passive sorter: one designed terrain routes two inlet speeds to two cups", loc="left")
+    ax.grid(axis="y")
+    fig.tight_layout()
+    fig.savefig(FIGS / "e4_sorter.png")
+    plt.close(fig)
+    print("wrote e4_sorter.png  (slow bounces:", int(r_slow["n_events"]), "fast:", int(r_fast["n_events"]), ")")
+
+
 def main():
     t = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "contact_sim" / "tesseract_api.py")
     fig_trajectory(t)
     fig_convergence()
     fig_e3()
+    fig_e4(t)
 
 
 if __name__ == "__main__":
