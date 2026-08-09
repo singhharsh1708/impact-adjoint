@@ -129,7 +129,7 @@ Returns (qf, Jqf, impact_x, Jimp, n_events, traj, status, t_end):
   qf        state at t_end (4,)
   Jqf       ∂qf/∂θ (4, NTH); at truncation (status != 0) this is the total
             derivative including event-time dependence (zeros when !want_sens)
-  impact_x  x of each impact, NaN-padded (max_events,); padded rows of Jimp
+  impact_x  x of each impact, zero-padded (max_events,); padded rows of Jimp
             are exactly zero (documented convention)
   Jimp      ∂impact_x/∂θ (max_events, NTH)
   n_events  number of impacts

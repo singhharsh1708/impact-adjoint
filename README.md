@@ -64,27 +64,35 @@ Requires Python ≥ 3.12, Docker (for containerized runs), and ~2 GB disk for th
 Julia image. Julia itself is bootstrapped automatically by `juliacall`.
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install "tesseract-core[runtime]" tesseract-jax jax optax equinox \
-            juliacall numpy scipy sympy matplotlib
+            juliacall numpy scipy sympy matplotlib numpyro pytest
 
 # validation (dev mode, no Docker needed)
 python scripts/validate_contact.py
 python scripts/validate_closed_form.py
 python scripts/validate_reference.py
+pytest tests/
 
-# experiments
+# experiments (dev mode)
 python experiments/e3_naive_vs_saltation.py
 python experiments/e1_inverse_design.py
 python experiments/e2_calibration.py
+python experiments/e4_terrain_design.py
 python experiments/make_figures.py
+python experiments/make_animation.py   # optional: regenerates the README gif
 
-# containerized (any docker-compatible engine; needs buildx)
+# containerized (any docker-compatible engine; needs buildx; ~10 min for contact-sim)
 tesseract build tesseracts/contact_sim
 tesseract build tesseracts/score_target
+tesseract run contact-sim check-gradients @tesseracts/contact_sim/check_payload.json
+python experiments/e2b_bayesian.py     # NUTS against the contact-sim container
 ```
 
-The first Julia call pays a one-time JIT warmup (~30 s).
+The first Julia call bootstraps a project environment (and Julia itself if
+absent) — expect 1–5 minutes and a wall of `[juliapkg]` output the first time;
+warm runs take seconds. Total reproduction: ~6 min dev-mode, plus ~10 min for
+the contact-sim image.
 
 ## Model and scope (honest limitations)
 

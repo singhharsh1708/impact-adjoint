@@ -180,12 +180,33 @@ def fig_e4(t):
     print("wrote e4_sorter.png  (slow bounces:", int(r_slow["n_events"]), "fast:", int(r_fast["n_events"]), ")")
 
 
+def fig_e2b():
+    d = np.load(ROOT / "experiments" / "e2b_posterior.npz")
+    e_s, mu_s = d["e"], d["mu"]
+    fig, ax = plt.subplots(figsize=(4.6, 3.4), dpi=200)
+    ax.scatter(e_s, mu_s, s=9, color=BLUE, alpha=0.35, lw=0, zorder=3)
+    ax.scatter([0.7], [0.1], marker="x", s=90, color=INK, lw=2.2, zorder=4)
+    ax.annotate("truth", (0.7, 0.1), textcoords="offset points", xytext=(8, 6), color=INK, fontsize=10)
+    ax.annotate(
+        f"posterior\ne = {e_s.mean():.3f} ± {e_s.std():.3f}\nμ = {mu_s.mean():.3f} ± {mu_s.std():.3f}",
+        (0.03, 0.96), xycoords="axes fraction", va="top", color=SECONDARY, fontsize=9,
+    )
+    ax.set_xlabel("restitution e")
+    ax.set_ylabel("tangential loss μ")
+    ax.set_title("E2b — NUTS posterior through the solver", loc="left")
+    fig.tight_layout()
+    fig.savefig(FIGS / "e2b_posterior.png")
+    plt.close(fig)
+    print("wrote e2b_posterior.png")
+
+
 def main():
     t = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "contact_sim" / "tesseract_api.py")
     fig_trajectory(t)
     fig_convergence()
     fig_e3()
     fig_e4(t)
+    fig_e2b()
 
 
 if __name__ == "__main__":
