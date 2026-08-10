@@ -221,6 +221,37 @@ def fig_e2b():
     print("wrote e2b_posterior.png")
 
 
+def fig_e6():
+    d = np.load(ROOT / "experiments" / "e6_result.npz")
+    es, xs, x_mid = d["es"], d["xs"], float(d["x_mid"])
+    fig, ax = plt.subplots(figsize=(5.8, 3.0), dpi=200)
+    ax.axhspan(x_mid, 6.0, color="#f7ede8", lw=0, zorder=0)
+    ax.axhspan(-0.5, x_mid, color="#e9f1fb", lw=0, zorder=0)
+    ax.axhline(x_mid, color=BASELINE, lw=1.0, ls=(0, (4, 3)))
+    in_dom = es <= 0.8751
+    a = xs < x_mid
+    ax.scatter(es[in_dom & a], xs[in_dom & a], s=26, color=BLUE, zorder=3)
+    ax.scatter(es[in_dom & ~a], xs[in_dom & ~a], s=26, color=ORANGE, zorder=3)
+    ax.scatter(es[~in_dom], xs[~in_dom], s=30, facecolors="none", edgecolors=MUTED, linewidths=1.4, zorder=3)
+    for e_t in (0.5, 0.8):
+        i = int(np.argmin(np.abs(es - e_t)))
+        ax.scatter([es[i]], [xs[i]], s=120, facecolors="none", edgecolors=INK, linewidths=1.2, zorder=4)
+        ax.annotate("trained", (es[i], xs[i]), textcoords="offset points", xytext=(0, 10),
+                    ha="center", color=INK, fontsize=8)
+    ax.annotate("bin A side", (0.365, 1.05), color=BLUE, fontsize=9)
+    ax.annotate("bin B side", (0.365, 5.15), color=ORANGE, fontsize=9)
+    ax.annotate("outside validated domain\n(superball rebound)", (0.9, 1.95), ha="center",
+                color=MUTED, fontsize=8)
+    ax.set_xlabel("restitution e  (trained on 0.5 and 0.8 only)")
+    ax.set_ylabel("landing x [m]")
+    ax.set_ylim(-0.3, 6.0)
+    ax.set_title("E6 — zero-shot: one threshold sorts the whole continuum", loc="left")
+    fig.tight_layout()
+    fig.savefig(FIGS / "e6_generalization.png")
+    plt.close(fig)
+    print("wrote e6_generalization.png")
+
+
 def main():
     t = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "contact_sim" / "tesseract_api.py")
     fig_trajectory(t)
@@ -228,6 +259,7 @@ def main():
     fig_e3()
     fig_e4(t)
     fig_e2b()
+    fig_e6()
 
 
 if __name__ == "__main__":

@@ -101,15 +101,13 @@ are*, not *how it got them*, and `tesseract-jax` splices them into JAX's chain
 rule. The solver container is reusable as-is from any other client (PyTorch via
 tesseract-torch, probabilistic stacks for Track 4, CLI).
 
-A deliberate design point: when a trajectory leaves the model's validity region
-— more impacts than the schema's capacity, or chatter toward the Zeno
-accumulation — the solver *terminates at the event with an explicit status*
-and returns the **total derivative at the truncation point** (event-time
-dependence included). Optimizers therefore never consume silently nonphysical
-states, and gradient descent remains well-posed even at the model's edges.
-Robustness here is a gradient-correctness feature: our adversarial testing
-showed that the naive alternative (integrate on, ignore events) produces
-plausible-looking gradients of a ball in free-fall below the terrain.
+A deliberate design point: when a trajectory leaves the model's validity
+region (event capacity, Zeno chatter), the solver *terminates at the event
+with an explicit status* and returns the **total derivative at the truncation
+point**, event-time dependence included — so optimizers never consume
+silently nonphysical states. Our adversarial testing showed the alternative
+(integrate on, ignore events) produces plausible-looking gradients of a ball
+in free-fall below the terrain.
 
 ## 3. Gradients doing real work
 
@@ -140,21 +138,22 @@ is exactly what the posterior in E2b quantifies.
 posterior: NumPyro's NUTS sampler, whose Hamiltonian dynamics require a
 JAX-differentiable log-density, runs directly against the *containerized*
 solver — every leapfrog step calls the Tesseract's apply and saltation-VJP
-endpoints over HTTP. Posterior: `e = 0.697 ± 0.008`, `μ = 0.096 ± 0.010`;
-the truth lies within one standard deviation of both marginals, and the
+endpoints over HTTP — ~10,000 solver calls per chain. Two chains, zero
+divergences, r̂ = 1.01: posterior `e = 0.697 ± 0.007`, `μ = 0.096 ± 0.009`,
+with the truth inside the 68% and 95% credible intervals of both marginals,
+and the
 posterior resolves the physically meaningful e–μ ridge (more bounce traded
 against more tangential loss):
 
 ![E2b](figures/e2b_posterior.png)
 
 This is the composition Track 4 asks for: an expensive event-driven solver
-dropped into a probabilistic workflow unchanged. (One engineering detail makes
-it possible: NumPyro jits its NUTS step, and jitted JAX callbacks may execute
-off the main thread — which an in-process embedded Julia runtime does not
-tolerate. The *container* is what turns that from a threading bug into a
-non-issue: HMC's callbacks are plain HTTP calls. The same solver was also
-driven with nothing but `curl` — `scripts/second_client_curl.sh` — so
-"reusable from any client" is demonstrated, not asserted.)
+dropped into a probabilistic workflow unchanged. The container is
+load-bearing, not packaging: NumPyro's jitted callbacks run off the main
+thread, which an in-process embedded Julia runtime does not tolerate — over
+HTTP the problem does not exist. The same solver is also driven with nothing
+but `curl` (`scripts/second_client_curl.sh`), so "reusable from any client"
+is demonstrated, not asserted.
 
 **E4 — terrain design (shape optimization proper).** The terrain parameters
 are differentiable inputs, so the *structure* can be the design variable. A
@@ -189,6 +188,19 @@ the best tuned CMA tail — and then keeps descending three more orders while
 every gradient-free run is fully plateaued. Either way the conclusion stands:
 in 24 dimensions, exact gradients through the events are the difference
 between solving the design problem and polishing a plateau.
+
+**E6 — zero-shot generalization (the surprise).** The E5 surface was
+optimized for exactly two restitution values. Sweeping the continuum it never
+saw, the designed geometry acts as a *classifier*: every material with
+`e ∈ [0.35, 0.875]` is binned by a single threshold (A up to `e = 0.65`, B
+from `e = 0.675`), the trained points sit comfortably inside their classes,
+and the behavior survives 3 cm/s of inlet-velocity scatter at off-design
+materials. The failure edge is physical and we report it: at `e ≥ 0.9` the
+superball regime rebounds off the designed backstop and exits left. Nothing in
+the objective asked for any of this — the generalization emerged from
+optimizing two point designs through their impact events:
+
+![E6](figures/e6_generalization.png)
 
 ## 4. Correctness: independent oracles, not self-agreement
 

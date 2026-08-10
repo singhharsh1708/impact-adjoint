@@ -28,7 +28,7 @@ The boundary the pipeline crosses is not just language: the two components
 *disagree about how to differentiate* (dual-number forward AD + analytic event
 handling vs. reverse-mode autodiff), and `tesseract-jax` composes them anyway.
 
-![E1 optimization](docs/figures/e1_optimization.gif)
+![The surface learns to sort](docs/figures/e5_learning.gif)
 
 ## Results
 
@@ -37,9 +37,10 @@ handling vs. reverse-mode autodiff), and `tesseract-jax` composes them anyway.
 | **E3** — autodiff vs saltation | Grid-reset autodiff: exactly **0.0 at every dt** (event-index staircase) vs truth **+0.0904**. The pure-JAX repair (interpolated events) recovers a converging-but-erratic gradient — by hand-implementing first-order event sensitivity. Saltation: exact at any dt, no event handling in the client. |
 | **E1** — inverse design | Adam over launch velocity + restitution through both Tesseracts: miss **1.12 m → 2.7 cm**, through 5 bounces, surviving bounce-count changes (4→6→5) during descent. |
 | **E2** — calibration | `(e, mu)` recovered from 3 noisy impact positions (σ = 5 mm); errors 0.002 / 0.009 on the reference seed, noise-floor-limited across seeds. |
-| **E2b** — Bayesian | NumPyro NUTS sampling through the containerized solver's VJP: posterior `e = 0.697 ± 0.008`, `mu = 0.096 ± 0.010` — truth within 1σ. |
+| **E2b** — Bayesian | NumPyro NUTS through the containerized solver's VJP (2 chains, 0 divergences, r-hat 1.01): posterior `e = 0.697 ± 0.007`, `mu = 0.096 ± 0.009` — truth inside both 68% and 95% credible intervals. |
 | **E4** — terrain design | The *structure* as design variable: one terrain routes two inlet speeds to two cups (miss 2.2 / 3.0 cm). |
 | **E5** — bounce separator | 24-dim surface design sorts particles by restitution alone (landing error < 0.5 mm). Head-to-head: Adam on saltation gradients **2e-7** vs CMA-ES 2e-3 vs Nelder-Mead 2e-2 at equal eval budget (~8,800×); under strict wall-clock accounting Adam still ends 3 orders ahead of every gradient-free run. |
+| **E6** — zero-shot generalization | The surface trained on e = {0.5, 0.8} classifies the whole continuum e ∈ [0.35, 0.875] with a **single threshold** (0.65→0.675), tolerates 3 cm/s inlet scatter, and has an honest failure edge (e ≥ 0.9 superball rebounds off the backstop). |
 
 ![E5 separator](docs/figures/e5_separator.png)
 
@@ -89,15 +90,17 @@ python experiments/e1_inverse_design.py
 python experiments/e2_calibration.py
 python experiments/e4_terrain_design.py
 python experiments/e5_separator.py     # ~30 s warm: 3 optimizers x 900 evals
+python experiments/e6_generalization.py
 python experiments/make_figures.py
 python experiments/make_e5_figure.py
-python experiments/make_animation.py   # optional: regenerates the README gif
+python experiments/make_e5_animation.py  # optional: regenerates the README gif
+python experiments/make_animation.py     # optional: E1 animation gif
 
 # containerized (any docker-compatible engine; needs buildx; ~10 min for contact-sim)
 tesseract build tesseracts/contact_sim
 tesseract build tesseracts/score_target
 tesseract run contact-sim check-gradients @tesseracts/contact_sim/check_payload.json
-python experiments/e2b_bayesian.py     # NUTS against the container, ~3-4 min
+python experiments/e2b_bayesian.py     # NUTS, 2 chains: ~15 min
 ```
 
 The first Julia call bootstraps a project environment (and Julia itself if
