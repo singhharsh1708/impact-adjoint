@@ -39,8 +39,8 @@ handling vs. reverse-mode autodiff), and `tesseract-jax` composes them anyway.
 | **E2** — calibration | `(e, mu)` recovered from 3 noisy impact positions (σ = 5 mm); errors 0.002 / 0.009 on the reference seed, noise-floor-limited across seeds. |
 | **E2b** — Bayesian | NumPyro NUTS through the containerized solver's VJP (2 chains, 0 divergences, r-hat 1.01): posterior `e = 0.697 ± 0.007`, `mu = 0.096 ± 0.009` — truth inside both 68% and 95% credible intervals. |
 | **E4** — terrain design | The *structure* as design variable: one terrain routes two inlet speeds to two cups (miss 2.2 / 3.0 cm). |
-| **E5** — bounce separator | 24-dim surface design sorts particles by restitution alone (landing error < 0.5 mm). Head-to-head: Adam on saltation gradients **2e-7** vs CMA-ES 2e-3 vs Nelder-Mead 2e-2 at equal eval budget (~8,800×); under strict wall-clock accounting Adam still ends 3 orders ahead of every gradient-free run. |
-| **E6** — zero-shot generalization | The surface trained on e = {0.5, 0.8} classifies the whole continuum e ∈ [0.35, 0.875] with a **single threshold** (0.65→0.675), tolerates 3 cm/s inlet scatter, and has an honest failure edge (e ≥ 0.9 superball rebounds off the backstop). |
+| **E5** — bounce separator | 24-dim surface design sorts particles by restitution alone (landing error < 0.5 mm). Head-to-head: Adam on saltation gradients **2e-7** vs CMA-ES 2e-3 (~8,800× worse) vs Nelder-Mead 2e-2 at equal eval budget; under strict wall-clock accounting Adam still ends 3 orders ahead of every gradient-free run. |
+| **E6** — zero-shot generalization | The surface trained on e = {0.5, 0.8} classifies the whole continuum e ∈ [0.35, 0.875] with a **single threshold** (0.65→0.675), tolerates 3 cm/s inlet scatter, and has an honest failure edge (at e = 0.9 the superball rebounds off the backstop; beyond, classification is no longer clean). |
 
 ![E5 separator](docs/figures/e5_separator.png)
 

@@ -58,7 +58,8 @@ Tesseract boundary, and JAX never needs to know:
 ```
 
 **contact-sim** (Julia): a 2D point mass under gravity (optional linear drag)
-over smooth terrain `h(x)` (three Gaussian bumps). Guard `g(q) = y − h(x)`;
+over smooth terrain `h(x)` built from configurable Gaussian bumps (3 in
+E1/E4, 24 in E5). Guard `g(q) = y − h(x)`;
 impact reset applies normal restitution `e` and tangential retention `1 − μ`
 in the local terrain frame. Integration is RK4 with bisection-based event
 localization (plus interior guard probes for sub-step terrain features).
@@ -77,12 +78,11 @@ analytically. From the assembled Jacobian, the Tesseract serves `jacobian`,
 `jax.jvp`, and `jax.jacrev` all work through it.
 
 Cost model, stated plainly: the sensitivities are *forward*-variational, so a
-VJP costs O(n_params) — measured ~5–6× a forward solve at 77 parameters, and
-milliseconds either way (apply ≈ 4 ms, full 77-column Jacobian ≈ 21 ms warm).
-That is the right trade at tens of design variables; at thousands, the natural
-extension is a reverse-mode saltation adjoint (backward costate integration
-with `Sᵀ` jumps at events) behind the *same* endpoint — the interface is
-already shaped for it.
+VJP costs O(n_params) — measured ~8× a forward solve at 77 parameters, and
+milliseconds either way (apply 3–5 ms; full 77-column Jacobian 23–45 ms warm,
+dt-dependent). The right trade at tens of design variables; at thousands, the
+natural extension is a reverse-mode saltation adjoint behind the *same*
+endpoint — the interface is already shaped for it.
 
 **score-target** (JAX): a differentiable landing objective (quadratic distance
 to a cup plus kinetic penalty), built with the `tesseract init --recipe jax`
@@ -92,14 +92,12 @@ endpoints.
 
 The two components disagree about how to compute *and* how to differentiate:
 dual-number forward AD plus analytic event handling in a Julia process, versus
-reverse-mode tracing autodiff in JAX. There is no way to express the saltation
-update inside `jax.grad`'s programming model without reimplementing the solver
-as a JAX custom primitive with hand-written VJPs — at which point you have
-written a worse, unshareable Tesseract. The Tesseract contract (typed schemas +
-gradient endpoints) is exactly the seam: Julia publishes *what its derivatives
-are*, not *how it got them*, and `tesseract-jax` splices them into JAX's chain
-rule. The solver container is reusable as-is from any other client (PyTorch via
-tesseract-torch, probabilistic stacks for Track 4, CLI).
+reverse-mode tracing autodiff in JAX. There is no way to express the *exact* saltation
+update natively inside `jax.grad`'s programming model without reimplementing
+the solver as a JAX custom primitive with hand-written VJPs — at which point you have
+written a worse, unshareable Tesseract. The Tesseract contract is exactly the
+seam: Julia publishes *what its derivatives are*, not *how it got them*, and
+`tesseract-jax` splices them into JAX's chain rule.
 
 A deliberate design point: when a trajectory leaves the model's validity
 region (event capacity, Zeno chatter), the solver *terminates at the event
@@ -112,19 +110,20 @@ in free-fall below the terrain.
 ## 3. Gradients doing real work
 
 **E1 — inverse design.** Optimize launch velocity and restitution so the ball
-lands in a cup at `x = 4.3` on bumpy terrain, 1.1 m past where the initial
-guess settles. Adam, lr 0.03, 150 iterations, every step one `jax.grad`
-through both Tesseracts:
+lands in a cup 1.1 m past where the initial guess settles — every Adam step
+one `jax.grad` through both Tesseracts:
 
 ![E1](figures/e1_trajectory.png)
 
 Miss distance falls **1.12 m → 2.7 cm**, through five impacts. Notably, the
-optimizer crosses bounce-count boundaries (4 → 6 → 5 bounces) during descent —
+optimizer crosses bounce-count boundaries repeatedly during descent
+(4 → 6 → 5 early on, with excursions to 8 before settling at 5) —
 the objective is discontinuous there (inherent to contact), and the
 fixed-topology gradients on each side are exact, which is what carries Adam
 through:
 
-![E1 convergence](figures/e1_convergence.png)
+(Convergence curve: `figures/e1_convergence.png`; animation:
+`figures/e1_optimization.gif`.)
 
 **E2 — calibration (Track 4 flavor).** Recover material parameters `(e, μ)`
 from the *positions of three impacts* observed with 5 mm noise. The observable
@@ -176,18 +175,17 @@ amplitudes of the surface; each particle must land in its own bin.
 The designed surface separates the materials from a shared first impact —
 rubber dies into bin A within 8 bounces, PET carries over the designed hills
 into bin B (the optimizer grew a backstop that bounces PET *backward* into its
-bin) — with landing errors of 0.38 mm and 0.33 mm. The right panel makes
-"gradients doing real work" quantitative, and we report it under both
-accountings. Charging a gradient call as two forward solves, Adam reaches
-**2×10⁻⁷** while CMA-ES plateaus at 2×10⁻³ (~8,800× worse; the median over a
-3-seed × 3-σ₀ CMA grid is 1.7×10⁻³, best tail 1.7×10⁻⁴) and Nelder-Mead at
-2×10⁻². Charging by *measured wall-clock* (a VJP here costs ~5–6 forward
-solves — the sensitivities are forward-variational, scaling with the 77
-parameters), Adam at CMA's total wall-clock is at ~2×10⁻⁴ — roughly matching
-the best tuned CMA tail — and then keeps descending three more orders while
-every gradient-free run is fully plateaued. Either way the conclusion stands:
-in 24 dimensions, exact gradients through the events are the difference
-between solving the design problem and polishing a plateau.
+bin) — with landing errors of 0.38 mm and 0.34 mm. The right panel makes
+"gradients doing real work" quantitative, under both accountings.
+Charging a gradient call as two forward solves, Adam reaches **2×10⁻⁷** while
+CMA-ES plateaus at 2×10⁻³ (~8,800× worse) and Nelder-Mead at 2×10⁻²; a
+3-seed × 3-σ₀ CMA tuning grid (`experiments/e5_cma_grid.py`) gives median
+1.7×10⁻³ with a best tail of 1.7×10⁻⁴ — still ~750× above Adam. Charging by *measured wall-clock* (a VJP
+costs ~8 forward solves at 77 parameters), Adam at CMA's total wall-clock sits
+in CMA's own range (~4×10⁻³) — the separation opens beyond it, where every
+gradient-free run is fully plateaued and Adam descends four more orders.
+Either way: in 24 dimensions, exact gradients through the events are the
+difference between solving the design problem and polishing a plateau.
 
 **E6 — zero-shot generalization (the surprise).** The E5 surface was
 optimized for exactly two restitution values. Sweeping the continuum it never
@@ -195,8 +193,9 @@ saw, the designed geometry acts as a *classifier*: every material with
 `e ∈ [0.35, 0.875]` is binned by a single threshold (A up to `e = 0.65`, B
 from `e = 0.675`), the trained points sit comfortably inside their classes,
 and the behavior survives 3 cm/s of inlet-velocity scatter at off-design
-materials. The failure edge is physical and we report it: at `e ≥ 0.9` the
-superball regime rebounds off the designed backstop and exits left. Nothing in
+materials. The failure edge is physical and we report it: beyond `e ≈ 0.9` the design
+leaves its validated domain — at `e = 0.9` the ball rebounds off the backstop
+and exits left; above that, landings scatter far past the bins. Nothing in
 the objective asked for any of this — the generalization emerged from
 optimizing two point designs through their impact events:
 
@@ -232,50 +231,37 @@ rather than returning an unbounded gradient.
 
 ## 5. Related work: how everyone else gets contact gradients
 
-Existing differentiable engines obtain contact gradients in one of three ways:
-**AD through smoothed or penalty-based stepping** (Brax [Freeman et al.,
-NeurIPS 2021], DiffTaichi [Hu et al., ICLR 2020], gradSim [Jatavallabhula et
-al., ICLR 2021]); **implicit differentiation of a relaxed complementarity
-solve** (Dojo [Howell et al., arXiv 2022], Nimble [Werling et al., RSS 2021]);
-or **learned contact models** (Zhong et al., NeurIPS 2021). Each trades
-gradient fidelity at the event for a differentiation strategy its host
-framework can express. The ML community has documented the cost: Suh et al.
-(ICML 2022, "Do Differentiable Simulators Give Better Policy Gradients?") show
-first-order gradients through contact can be biased or high-variance, and
-Antonova et al. (CoRL 2022) show contact-rich loss landscapes defeat naive
-local descent.
-
-The exact alternative is classical: the jump condition for trajectory
-sensitivities at a switching surface — the **saltation matrix** — dates to
-Aizerman & Gantmacher (1958), was given its modern hybrid-systems treatment by
-Hiskens & Pai (IEEE TCAS 2000), and is surveyed for robotics by Kong, Payne,
-Zhu & Johnson (Proc. IEEE, 2024). Our contribution is not the formula; it is
-the *packaging*: the saltation machinery lives in a Julia process and is
-published through Tesseract's gradient endpoints, so any AD framework consumes
-exact event sensitivities without being able to express them natively —
-resolving precisely the mismatch the three engine families work around.
-
-To our knowledge, no prior work optimizes the *environment/structure* through
-contact events (nearest neighbors: contact-aware robot morphology design, Xu
-et al., RSS 2021; differentiable soft-body design, Geilinger et al., TOG
-2020). E4/E5's terrain-as-design-variable problems appear to be new.
+Existing engines obtain contact gradients by AD through smoothed/penalty
+stepping (Brax, NeurIPS 2021; DiffTaichi, ICLR 2020; gradSim, ICLR 2021), by
+implicit differentiation of a relaxed complementarity solve (Dojo, arXiv 2022;
+Nimble, RSS 2021), or from learned contact models (Zhong et al., NeurIPS
+2021) — each trading event-gradient fidelity for what the host framework can
+express; Suh et al. (ICML 2022) document the resulting bias. The exact
+alternative is classical: the **saltation matrix** (Aizerman & Gantmacher
+1958; Hiskens & Pai, IEEE TCAS 2000; surveyed by Kong et al., Proc. IEEE
+2024). Our contribution is not the formula but the *packaging*: exact event
+sensitivities behind Tesseract endpoints, consumable by frameworks that cannot
+express them natively. To our knowledge no prior work optimizes the
+*environment/structure* through contact events (nearest: robot morphology
+design, Xu et al., RSS 2021; soft-body design, Geilinger et al., TOG 2020) —
+the terrain-as-design-variable problems appear new.
 
 ## 6. Limitations
 
-- The impact law is kinematic Newton restitution + tangential retention, not a
-  Coulomb cone; sticking/sliding contact modes are out of scope (explicit
-  `status=2` termination instead of pretending).
-- Gradients are exact at fixed event topology; the objective is discontinuous
-  across bounce-count boundaries (physical, and visible in E1).
-- Event detection resolves terrain features wider than `|vx|·dt/3`; the
-  constraint is documented on the input schema.
-- 2D, single body. The saltation machinery is dimension-agnostic; the scope is
-  a deliberate trade for verified correctness within the hackathon period.
+- Impact law: kinematic Newton restitution + tangential retention, not a
+  Coulomb cone; sticking/sliding modes terminate explicitly (`status=2`).
+- Gradients are exact at fixed event topology; objectives are discontinuous
+  across bounce-count boundaries (physical; visible in E1).
+- Event detection resolves features wider than `|vx|·dt/3` (documented on the
+  schema); 2D single body — a deliberate trade for verified correctness
+  within the hackathon period.
 
 ## 7. Reproducibility
 
-Everything (validation, experiments, figures) reproduces with the commands in
-the README, CPU-only, in minutes. The Docker images build for arm64 and x86_64.
+Everything reproduces with the README commands, CPU-only, in minutes; images
+build for arm64 and x86_64; CI runs the full validation chain on every push.
+An engineering finding from this work is filed upstream
+([tesseract-jax#234](https://github.com/pasteurlabs/tesseract-jax/issues/234)).
 
 ---
 
