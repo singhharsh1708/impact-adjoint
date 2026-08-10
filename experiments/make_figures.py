@@ -106,7 +106,7 @@ def fig_convergence():
     ax.set_yscale("log")
     ax.set_xlabel("Adam iteration")
     ax.set_ylabel("miss distance [m]")
-    ax.set_title("E1 — distance to cup")
+    ax.set_title("E1 — distance to cup", loc="left")
     ax.annotate(f"{hist[-1, 1]*100:.1f} cm", (len(hist) - 1, hist[-1, 1]),
                 textcoords="offset points", xytext=(-8, 10), ha="right", color=BLUE, fontsize=10)
     fig.tight_layout()
@@ -119,13 +119,11 @@ def fig_e3():
     rows = np.load(ROOT / "experiments" / "e3_rows.npy")  # (dt, grid-reset grad, interp grad)
     dts, naive, interp = rows[:, 0], rows[:, 1], rows[:, 2]
     truth = 0.09037774
-    fig, ax = plt.subplots(figsize=(5.8, 3.0), dpi=200)
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(8.6, 3.0), dpi=200)
+
     ax.axhline(truth, color=BLUE, lw=2.0)
-    ax.annotate("saltation (exact at any dt, = FD)", (dts[2], truth),
+    ax.annotate("true gradient (saltation, = FD)", (dts[2], truth),
                 textcoords="offset points", xytext=(0, 7), ha="center", color=BLUE, fontsize=9)
-    ax.plot(dts, interp, color=AQUA, lw=1.6, marker="o", ms=4, markeredgecolor=SURFACE, markeredgewidth=0.7)
-    ax.annotate("hand-interpolated event (converging, erratic)", (dts[2], float(interp[2])),
-                textcoords="offset points", xytext=(0, 12), ha="center", color=AQUA, fontsize=9)
     ax.plot(dts, naive, color=ORANGE, lw=2.0, marker="o", ms=5, markeredgecolor=SURFACE, markeredgewidth=0.8)
     ax.annotate("grid-reset autodiff (exactly 0)", (dts[2], 0.0),
                 textcoords="offset points", xytext=(0, -16), ha="center", color=ORANGE, fontsize=9)
@@ -134,8 +132,28 @@ def fig_e3():
     ax.set_ylim(-0.03, 0.115)
     ax.set_xlabel("integrator step dt  (refining →)")
     ax.set_ylabel(r"d x(T) / d v$_{0y}$")
-    ax.set_title("E3 — what autodiff sees at an impact", loc="left")
-    fig.tight_layout()
+    ax.set_title("what jax.grad returns", loc="left")
+
+    rel_interp = np.abs(interp - truth) / truth
+    ax2.plot(dts, rel_interp, color=AQUA, lw=1.8, marker="o", ms=4, markeredgecolor=SURFACE, markeredgewidth=0.7)
+    ax2.annotate("hand-interpolated event (converging, erratic)", (dts[3], rel_interp[3]),
+                 textcoords="offset points", xytext=(0, -22), ha="center", color=AQUA, fontsize=9)
+    ax2.axhline(1e-15, color=BLUE, lw=2.0)
+    ax2.annotate("saltation (machine precision)", (dts[3], 1e-15),
+                 textcoords="offset points", xytext=(0, 7), ha="center", color=BLUE, fontsize=9)
+    ax2.axhline(1.0, color=ORANGE, lw=2.0)
+    ax2.annotate("grid-reset (100% bias)", (dts[3], 1.0),
+                 textcoords="offset points", xytext=(0, 6), ha="center", color=ORANGE, fontsize=9)
+    ax2.set_xscale("log")
+    ax2.set_yscale("log")
+    ax2.invert_xaxis()
+    ax2.set_ylim(1e-16, 3e1)
+    ax2.set_xlabel("integrator step dt  (refining →)")
+    ax2.set_ylabel("relative gradient error")
+    ax2.set_title("error vs refinement", loc="left")
+
+    fig.suptitle("E3 — what autodiff sees at an impact", x=0.01, ha="left", fontsize=11)
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
     fig.savefig(FIGS / "e3_bias.png")
     plt.close(fig)
     print("wrote e3_bias.png")

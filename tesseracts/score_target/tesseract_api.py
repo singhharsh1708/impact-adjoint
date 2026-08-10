@@ -1,8 +1,11 @@
 from typing import Any
 
 import equinox as eqx
+import jax
 import jax.numpy as jnp
 from pydantic import BaseModel, Field
+
+jax.config.update("jax_enable_x64", True)
 
 from tesseract_core.runtime import Array, Differentiable, Float64
 from tesseract_core.runtime.jax_recipes import (
@@ -39,7 +42,8 @@ def apply_jit(inputs: dict) -> dict:
     ke = qf[2] ** 2 + qf[3] ** 2
     return {
         "loss": w[0] * dx**2 + w[1] * dy**2 + w[2] * ke,
-        "miss_distance": jnp.sqrt(dx**2 + dy**2),
+        # eps keeps the sqrt differentiable at an exact hit (grad of sqrt(0) is nan)
+        "miss_distance": jnp.sqrt(dx**2 + dy**2 + 1e-30),
     }
 
 

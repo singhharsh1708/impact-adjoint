@@ -36,10 +36,12 @@ handling vs. reverse-mode autodiff), and `tesseract-jax` composes them anyway.
 |---|---|
 | **E3** — autodiff vs saltation | Grid-reset autodiff: exactly **0.0 at every dt** (event-index staircase) vs truth **+0.0904**. The pure-JAX repair (interpolated events) recovers a converging-but-erratic gradient — by hand-implementing first-order event sensitivity. Saltation: exact at any dt, no event handling in the client. |
 | **E1** — inverse design | Adam over launch velocity + restitution through both Tesseracts: miss **1.12 m → 2.7 cm**, through 5 bounces, surviving bounce-count changes (4→6→5) during descent. |
-| **E2** — calibration | `(e, mu)` recovered from 3 noisy impact positions (σ = 5 mm) to errors **0.002 / 0.009**. |
+| **E2** — calibration | `(e, mu)` recovered from 3 noisy impact positions (σ = 5 mm); errors 0.002 / 0.009 on the reference seed, noise-floor-limited across seeds. |
 | **E2b** — Bayesian | NumPyro NUTS sampling through the containerized solver's VJP: posterior `e = 0.697 ± 0.008`, `mu = 0.096 ± 0.010` — truth within 1σ. |
 | **E4** — terrain design | The *structure* as design variable: one terrain routes two inlet speeds to two cups (miss 2.2 / 3.0 cm). |
-| **E5** — bounce separator | 24-dim surface design sorts particles by restitution alone (landing error < 0.5 mm). Head-to-head at equal budget: Adam on saltation gradients **2e-7** vs CMA-ES 2e-3 (9,200× worse) vs Nelder-Mead 2e-2. |
+| **E5** — bounce separator | 24-dim surface design sorts particles by restitution alone (landing error < 0.5 mm). Head-to-head: Adam on saltation gradients **2e-7** vs CMA-ES 2e-3 vs Nelder-Mead 2e-2 at equal eval budget (~8,800×); under strict wall-clock accounting Adam still ends 3 orders ahead of every gradient-free run. |
+
+![E5 separator](docs/figures/e5_separator.png)
 
 ## Correctness
 
@@ -67,8 +69,8 @@ consume silently nonphysical states.
 
 ## Reproduce
 
-Requires Python ≥ 3.12, Docker (for containerized runs), and ~2 GB disk for the
-Julia image. Julia itself is bootstrapped automatically by `juliacall`.
+Requires Python ≥ 3.12, Docker (for containerized runs), and ~5 GB disk for the
+Docker images (contact-sim ~3.8 GB, score-target ~1.3 GB). Julia itself is bootstrapped automatically by `juliacall`.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
@@ -86,7 +88,7 @@ python experiments/e3_naive_vs_saltation.py
 python experiments/e1_inverse_design.py
 python experiments/e2_calibration.py
 python experiments/e4_terrain_design.py
-python experiments/e5_separator.py     # ~15 min: 3 optimizers x 900 evals
+python experiments/e5_separator.py     # ~30 s warm: 3 optimizers x 900 evals
 python experiments/make_figures.py
 python experiments/make_e5_figure.py
 python experiments/make_animation.py   # optional: regenerates the README gif
@@ -95,12 +97,12 @@ python experiments/make_animation.py   # optional: regenerates the README gif
 tesseract build tesseracts/contact_sim
 tesseract build tesseracts/score_target
 tesseract run contact-sim check-gradients @tesseracts/contact_sim/check_payload.json
-python experiments/e2b_bayesian.py     # NUTS against the contact-sim container
+python experiments/e2b_bayesian.py     # NUTS against the container, ~3-4 min
 ```
 
 The first Julia call bootstraps a project environment (and Julia itself if
 absent) — expect 1–5 minutes and a wall of `[juliapkg]` output the first time;
-warm runs take seconds. Total reproduction: ~6 min dev-mode, plus ~10 min for
+warm runs take seconds. Total reproduction: ~7 min dev-mode, plus ~10 min for
 the contact-sim image.
 
 ## Model and scope (honest limitations)

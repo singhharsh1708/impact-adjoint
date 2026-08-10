@@ -34,7 +34,7 @@ def _theta_layout(nb: int) -> dict:
 
 class InputSchema(BaseModel):
     v0: Differentiable[Array[(2,), Float64]] = Field(description="Launch velocity (vx, vy). Launch position is (0, y0).")
-    y0: Differentiable[Float64] = Field(description="Launch height.", default=1.0)
+    y0: Differentiable[Float64] = Field(description="Launch height (must start above the terrain).", default=1.0)
     e: Differentiable[Float64] = Field(description="Normal restitution coefficient in (0, 1].", default=0.7)
     mu: Differentiable[Float64] = Field(description="Tangential velocity loss factor in [0, 1).", default=0.1)
     amp: Differentiable[Array[(None,), Float64]] = Field(
@@ -55,10 +55,28 @@ class InputSchema(BaseModel):
     )
 
     @model_validator(mode="after")
-    def validate_terrain_lengths(self) -> Self:
+    def validate_inputs(self) -> Self:
         na, nc, nw = self.amp.shape[0], self.ctr.shape[0], self.wid.shape[0]
         if not (na == nc == nw >= 1):
             raise ValueError(f"amp/ctr/wid must share one length >= 1, got {na}/{nc}/{nw}")
+        if isinstance(self.e, ShapeDType):
+            # abstract evaluation: shapes only, no values to check
+            return self
+        if not (0.0 < float(self.e) <= 1.0):
+            raise ValueError(f"e must be in (0, 1], got {float(self.e)} (e > 1 would gain energy)")
+        if not (0.0 <= float(self.mu) < 1.0):
+            raise ValueError(f"mu must be in [0, 1), got {float(self.mu)}")
+        if not float(self.dt) > 0.0:
+            raise ValueError(f"dt must be > 0, got {float(self.dt)}")
+        if not float(self.t_final) >= 0.0:
+            raise ValueError(f"t_final must be >= 0, got {float(self.t_final)}")
+        if np.any(np.asarray(self.wid) <= 0.0):
+            raise ValueError("all terrain widths must be > 0")
+        if self.n_samples < 0:
+            raise ValueError(f"n_samples must be >= 0, got {self.n_samples}")
+        for name in ("v0", "y0", "e", "mu", "amp", "ctr", "wid", "drag", "t_final", "dt", "v_stop"):
+            if not np.all(np.isfinite(np.asarray(getattr(self, name), dtype=np.float64))):
+                raise ValueError(f"{name} must be finite")
         return self
 
 

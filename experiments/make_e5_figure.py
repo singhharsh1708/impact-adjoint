@@ -85,7 +85,7 @@ def main():
         ax2.plot(tr[:, 0], np.maximum(tr[:, 1], 1e-8), color=c, lw=2.0)
     ax2.annotate("Adam (ours)", (620, 3e-6), color=BLUE, fontsize=9, ha="left")
     ax2.annotate("CMA-ES", (640, 6e-3), color=ORANGE, fontsize=9)
-    ax2.annotate("Nelder-Mead", (500, 6e-2), color=AQUA, fontsize=9)
+    ax2.annotate("Nelder-Mead", (430, 1.7e-1), color=AQUA, fontsize=9)
     ax2.set_yscale("log")
     ax2.set_xlabel("solver evaluations (gradient call = 2)")
     ax2.set_ylabel("best objective")

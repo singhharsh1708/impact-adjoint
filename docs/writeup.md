@@ -76,6 +76,14 @@ analytically. From the assembled Jacobian, the Tesseract serves `jacobian`,
 `jacobian_vector_product`, and `vector_jacobian_product`, so `jax.grad`,
 `jax.jvp`, and `jax.jacrev` all work through it.
 
+Cost model, stated plainly: the sensitivities are *forward*-variational, so a
+VJP costs O(n_params) — measured ~5–6× a forward solve at 77 parameters, and
+milliseconds either way (apply ≈ 4 ms, full 77-column Jacobian ≈ 21 ms warm).
+That is the right trade at tens of design variables; at thousands, the natural
+extension is a reverse-mode saltation adjoint (backward costate integration
+with `Sᵀ` jumps at events) behind the *same* endpoint — the interface is
+already shaped for it.
+
 **score-target** (JAX): a differentiable landing objective (quadratic distance
 to a cup plus kinetic penalty), built with the `tesseract init --recipe jax`
 endpoints.
@@ -124,7 +132,9 @@ through:
 from the *positions of three impacts* observed with 5 mm noise. The observable
 exists only because of events — there is no smooth surrogate for "where it
 hit". Gradient descent through the solver's VJP recovers `e` to 0.002 and `μ`
-to 0.009 (noise-limited) from a distant start `(0.5, 0.3)`.
+to 0.009 on the reference noise seed, from a distant start `(0.5, 0.3)`;
+accuracy across seeds is set by the noise floor of three observations, which
+is exactly what the posterior in E2b quantifies.
 
 **E2b — Bayesian calibration (Track 4 proper).** The same inverse problem as a
 posterior: NumPyro's NUTS sampler, whose Hamiltonian dynamics require a
@@ -152,7 +162,9 @@ single terrain is optimized so that balls entering at 1.6 m/s and 2.6 m/s are
 routed to two different cups: miss distances fall from 2.88 m / 0.48 m to
 **2.2 cm / 3.0 cm**. The optimizer flattens two bumps and keeps one narrow
 deflector that the slow ball cannot clear — the sorting logic ends up encoded
-in the geometry.
+in the geometry:
+
+![E4](figures/e4_sorter.png)
 
 **E5 — bounce separator, 24-dimensional, head-to-head (the headline).**
 Industrial bounce/impact separators sort particles by resilience. We design
@@ -165,13 +177,18 @@ amplitudes of the surface; each particle must land in its own bin.
 The designed surface separates the materials from a shared first impact —
 rubber dies into bin A within 8 bounces, PET carries over the designed hills
 into bin B (the optimizer grew a backstop that bounces PET *backward* into its
-bin) — with landing errors of 0.4 mm and < 0.1 mm. The right panel is the
-"gradients doing real work" claim made quantitative: under one evaluation
-budget (a gradient call charged double), Adam on the saltation gradients
-reaches an objective of **2×10⁻⁷**, while CMA-ES plateaus at 2×10⁻³ (9,200×
-worse) and Nelder-Mead at 2×10⁻² — in 24 dimensions, exact gradients through
-the events are not a convenience but the difference between solving the design
-problem and not solving it.
+bin) — with landing errors of 0.38 mm and 0.33 mm. The right panel makes
+"gradients doing real work" quantitative, and we report it under both
+accountings. Charging a gradient call as two forward solves, Adam reaches
+**2×10⁻⁷** while CMA-ES plateaus at 2×10⁻³ (~8,800× worse; the median over a
+3-seed × 3-σ₀ CMA grid is 1.7×10⁻³, best tail 1.7×10⁻⁴) and Nelder-Mead at
+2×10⁻². Charging by *measured wall-clock* (a VJP here costs ~5–6 forward
+solves — the sensitivities are forward-variational, scaling with the 77
+parameters), Adam at CMA's total wall-clock is at ~2×10⁻⁴ — roughly matching
+the best tuned CMA tail — and then keeps descending three more orders while
+every gradient-free run is fully plateaued. Either way the conclusion stands:
+in 24 dimensions, exact gradients through the events are the difference
+between solving the design problem and polishing a plateau.
 
 ## 4. Correctness: independent oracles, not self-agreement
 
@@ -243,7 +260,7 @@ et al., RSS 2021; differentiable soft-body design, Geilinger et al., TOG
 - 2D, single body. The saltation machinery is dimension-agnostic; the scope is
   a deliberate trade for verified correctness within the hackathon period.
 
-## 6. Reproducibility
+## 7. Reproducibility
 
 Everything (validation, experiments, figures) reproduces with the commands in
 the README, CPU-only, in minutes. The Docker images build for arm64 and x86_64.

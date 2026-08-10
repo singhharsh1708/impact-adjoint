@@ -8,8 +8,13 @@ two particles enter identically and differ only in restitution (e = 0.5
 design vector. The objective — both particles land in their own bins — is only
 computable through the impact events the surface itself creates.
 
-Methods under one evaluation budget (a gradient call is charged as 2 solver
-evaluations, reflecting its ~2x wall-clock cost):
+Methods under one evaluation budget. Budget accounting: a gradient call is
+charged as 2 forward evaluations. Measured wall-clock at this configuration
+(77 sensitivity columns) puts a VJP nearer 5-6x a forward solve — the
+gradients are forward-variational, so their cost scales with parameter count —
+and the writeup reports the comparison under both accountings; the qualitative
+result (gradient-free plateaus orders of magnitude short) is unchanged either
+way.
   - Adam on the saltation gradients (ours)
   - Nelder-Mead (scipy), objective-only
   - CMA-ES (cma), objective-only
@@ -47,7 +52,7 @@ BUDGET = 900  # weighted solver evaluations per method
 AMP0 = np.full(NB, 0.05)
 
 
-def make_objective(sim):
+def make_objective(sim, score):
     counter = {"evals": 0}
 
     def h_at(x, amp):
@@ -55,8 +60,10 @@ def make_objective(sim):
 
     def one(amp, e, bin_x):
         res = apply_tesseract(sim, {**FIXED, "v0": V0, "e": e, "amp": amp, "ctr": CTR, "wid": WID})
-        qf = res["qf"]
-        return (qf[0] - bin_x) ** 2 + (qf[1] - h_at(bin_x, amp)) ** 2
+        target = jnp.stack([jnp.asarray(bin_x), h_at(bin_x, amp)])
+        sc = apply_tesseract(score, {"qf": res["qf"], "target": target,
+                                     "weights": jnp.array([1.0, 1.0, 0.0])})
+        return sc["loss"]
 
     def loss_jnp(amp):
         return one(amp, E_RUBBER, BIN_RUBBER) + one(amp, E_PET, BIN_PET)
@@ -75,8 +82,8 @@ def make_objective(sim):
     return loss_np, loss_and_grad, counter
 
 
-def run_adam(sim):
-    loss_np, loss_and_grad, counter = make_objective(sim)
+def run_adam(sim, score):
+    loss_np, loss_and_grad, counter = make_objective(sim, score)
     amp = jnp.asarray(AMP0)
     opt = optax.adam(learning_rate=0.02)
     state = opt.init(amp)
@@ -91,8 +98,8 @@ def run_adam(sim):
     return np.asarray(amp), trace
 
 
-def run_nelder_mead(sim):
-    loss_np, _, counter = make_objective(sim)
+def run_nelder_mead(sim, score):
+    loss_np, _, counter = make_objective(sim, score)
     trace = []
     best = [np.inf]
 
@@ -107,8 +114,8 @@ def run_nelder_mead(sim):
     return np.clip(res.x, 0.0, AMP_MAX), trace
 
 
-def run_cmaes(sim):
-    loss_np, _, counter = make_objective(sim)
+def run_cmaes(sim, score):
+    loss_np, _, counter = make_objective(sim, score)
     trace = []
     best = [np.inf]
     es = cma.CMAEvolutionStrategy(AMP0.copy(), 0.05, {"bounds": [0.0, AMP_MAX], "verbose": -9, "seed": 3})
@@ -126,10 +133,11 @@ def run_cmaes(sim):
 
 def main():
     sim = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "contact_sim" / "tesseract_api.py")
+    score = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "score_target" / "tesseract_api.py")
 
     results = {}
     for name, runner in (("adam", run_adam), ("nelder-mead", run_nelder_mead), ("cma-es", run_cmaes)):
-        amp, trace = runner(sim)
+        amp, trace = runner(sim, score)
         results[name] = {"amp": amp, "trace": np.array(trace)}
         print(f"{name:12s} final best objective: {trace[-1][1]:.6f}  ({trace[-1][0]} weighted evals)")
 

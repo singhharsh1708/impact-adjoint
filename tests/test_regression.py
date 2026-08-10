@@ -92,6 +92,80 @@ def test_energy_conservation(tess):
     assert float(np.max(np.abs(E - E[0])) / E[0]) < 1e-11
 
 
+def _fd_qf(tess, cfg, name, idx, h=1e-6):
+    def shift(sign):
+        c = {k: (np.array(v, dtype=float) if isinstance(v, np.ndarray) else v) for k, v in cfg.items()}
+        val = np.atleast_1d(np.array(c[name], dtype=float)).copy()
+        val[idx] += sign * h
+        c[name] = val if val.size > 1 else float(val[0])
+        return np.asarray(tess.apply(c)["qf"])
+
+    return (shift(+1) - shift(-1)) / (2 * h)
+
+
+def test_five_bump_jacobian_vs_fd(tess):
+    # pins the dynamic theta-layout index math at a bump count never used elsewhere
+    cfg = dict(BASE, amp=np.array([0.1, 0.05, 0.12, 0.07, 0.09]),
+               ctr=np.array([0.8, 1.6, 2.4, 3.2, 4.0]), wid=np.full(5, 0.4))
+    r = tess.apply(cfg)
+    assert int(r["status"]) == 0 and int(r["n_events"]) >= 2
+    j = tess.jacobian(cfg, jac_inputs={"amp", "e"}, jac_outputs={"qf"})
+    J = np.asarray(j["qf"]["amp"])
+    assert J.shape == (4, 5)
+    for i in (0, 2, 4):
+        fd = _fd_qf(tess, cfg, "amp", i)
+        np.testing.assert_allclose(J[:, i], fd, rtol=1e-4, atol=1e-7)
+
+
+def test_truncation_total_derivatives_vs_fd(tess):
+    # status=2 (settled) and status=1 (event capacity) both report total
+    # derivatives including event-time dependence -- the subtlest solver code
+    settle = dict(BASE, e=0.05)
+    r = tess.apply(settle)
+    assert int(r["status"]) == 2
+    J = np.asarray(tess.jacobian(settle, jac_inputs={"y0"}, jac_outputs={"qf"})["qf"]["y0"])
+    fd = _fd_qf(tess, settle, "y0", 0)
+    np.testing.assert_allclose(J, fd, rtol=1e-4, atol=1e-6)
+
+    cap = dict(BASE, e=0.85, mu=0.0, t_final=6.0)
+    r = tess.apply(cap)
+    assert int(r["status"]) == 1
+    J = np.asarray(tess.jacobian(cap, jac_inputs={"e"}, jac_outputs={"qf"})["qf"]["e"])
+    fd = _fd_qf(tess, cap, "e", 0)
+    np.testing.assert_allclose(J, fd, rtol=1e-4, atol=1e-6)
+
+
+def test_composed_vjp_chain(tess):
+    # contact_sim -> score_target under one jax.grad matches FD of the chain
+    import jax
+    import jax.numpy as jnp
+    from tesseract_core import Tesseract as T
+    from tesseract_jax import apply_tesseract
+
+    jax.config.update("jax_enable_x64", True)
+    score = T.from_tesseract_api(Path(__file__).parent.parent / "tesseracts" / "score_target" / "tesseract_api.py")
+
+    def loss(e):
+        res = apply_tesseract(tess, {**{k: v for k, v in BASE.items()}, "e": e})
+        sc = apply_tesseract(score, {"qf": res["qf"], "target": jnp.array([3.0, 0.1]),
+                                     "weights": jnp.array([1.0, 1.0, 0.01])})
+        return sc["loss"]
+
+    g = float(jax.grad(loss)(jnp.asarray(0.7)))
+    h = 1e-6
+    fd = (float(loss(jnp.asarray(0.7 + h))) - float(loss(jnp.asarray(0.7 - h)))) / (2 * h)
+    assert abs(g - fd) / (abs(fd) + 1.0) < 1e-5
+
+
+def test_input_bounds_rejected(tess):
+    import pytest as _pytest
+
+    for bad in (dict(BASE, e=1.3), dict(BASE, mu=-0.2), dict(BASE, dt=0.0),
+                dict(BASE, wid=np.array([0.5, -0.1, 0.6]))):
+        with _pytest.raises(Exception):
+            tess.apply(bad)
+
+
 def test_vjp_matches_jacobian(tess):
     j = tess.jacobian(BASE, jac_inputs={"e"}, jac_outputs={"qf"})
     v = tess.vector_jacobian_product(

@@ -15,9 +15,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
+        # pinned so an upstream release cannot break CI in the pre-deadline window
         run: |
-          pip install "tesseract-core[runtime]" tesseract-jax jax optax equinox \
-                      juliacall numpy scipy sympy pytest
+          pip install "tesseract-core[runtime]==1.11.0" tesseract-jax==0.4.1 \
+                      "jax==0.11.0" optax equinox juliacall==0.9.31 \
+                      numpy scipy sympy pytest cma
       - name: Golden regression tests
         run: pytest tests/ -v
       - name: FD validation + robustness regressions

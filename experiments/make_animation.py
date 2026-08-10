@@ -102,10 +102,8 @@ def main():
     anim = FuncAnimation(fig, update, frames=len(iters) + hold, interval=110, blit=True)
     out = FIGS / "e1_optimization.gif"
     anim.save(out, writer=PillowWriter(fps=9))
-    update(len(iters) - 1)
-    fig.savefig(FIGS / "e1_optimization_final.png", dpi=150)
     plt.close(fig)
-    print(f"wrote {out} ({out.stat().st_size/1e6:.1f} MB) + final-frame PNG")
+    print(f"wrote {out} ({out.stat().st_size/1e6:.1f} MB)")
 
 
 if __name__ == "__main__":
