@@ -113,13 +113,13 @@ function step_qX(q, X, dtau, cd, want_sens::Bool)
     return qn, Xn
 end
 
-# Earliest guard crossing within (0, dtau], or NaN. Checks the endpoint and
-# two interior probes so dips narrower than one step are still seen.
+# Earliest guard crossing within (0, dtau], or NaN. Probes are tested in
+# ASCENDING order (two interior points, then the endpoint) so the returned
+# bracket contains the earliest crossing — otherwise a dip-and-recross inside
+# one step could make the bisection converge to a later crossing.
 function find_crossing(q, X, dtau, cd, θ)
     guard(q, θ) > 0 || return NaN
-    qn, _ = step_qX(q, X, dtau, cd, false)
-    guard(qn, θ) < 0 && return dtau
-    for frac in (1 / 3, 2 / 3)
+    for frac in (1 / 3, 2 / 3, 1.0)
         sp = frac * dtau
         qp, _ = step_qX(q, X, sp, cd, false)
         guard(qp, θ) < 0 && return sp

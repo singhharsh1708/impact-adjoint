@@ -34,7 +34,7 @@ handling vs. reverse-mode autodiff), and `tesseract-jax` composes them anyway.
 
 | Experiment | Result |
 |---|---|
-| **E3** — naive autodiff vs saltation | naive gradient is exactly **0.0 at every dt** (event-index staircase); true value **+0.0904**, confirmed by two independent witnesses. O(1) bias, does not vanish as dt→0. |
+| **E3** — autodiff vs saltation | Grid-reset autodiff: exactly **0.0 at every dt** (event-index staircase) vs truth **+0.0904**. The pure-JAX repair (interpolated events) recovers a converging-but-erratic gradient — by hand-implementing first-order event sensitivity. Saltation: exact at any dt, no event handling in the client. |
 | **E1** — inverse design | Adam over launch velocity + restitution through both Tesseracts: miss **1.12 m → 2.7 cm**, through 5 bounces, surviving bounce-count changes (4→6→5) during descent. |
 | **E2** — calibration | `(e, mu)` recovered from 3 noisy impact positions (σ = 5 mm) to errors **0.002 / 0.009**. |
 | **E2b** — Bayesian | NumPyro NUTS sampling through the containerized solver's VJP: posterior `e = 0.697 ± 0.008`, `mu = 0.096 ± 0.010` — truth within 1σ. |
@@ -73,7 +73,7 @@ Julia image. Julia itself is bootstrapped automatically by `juliacall`.
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install "tesseract-core[runtime]" tesseract-jax jax optax equinox \
-            juliacall numpy scipy sympy matplotlib numpyro pytest
+            juliacall numpy scipy sympy matplotlib numpyro pytest cma
 
 # validation (dev mode, no Docker needed)
 python scripts/validate_contact.py
@@ -112,7 +112,7 @@ the contact-sim image.
   across bounce-count boundaries the objective is discontinuous (inherent to
   the physics, visible and handled in E1).
 - Event detection resolves terrain features wider than `|vx|·dt/3`
-  (documented per-input); grazing impacts have a `δ^(-1/2)` sensitivity growth
+  (documented per-input); grazing impacts have an inherent `δ^(-1/2)` sensitivity growth
   near tangency.
 
 See `docs/writeup.md` for the technical writeup.

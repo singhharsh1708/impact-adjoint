@@ -31,6 +31,7 @@ GRID = "#e1e0d9"
 BASELINE = "#c3c2b7"
 BLUE = "#2a78d6"
 ORANGE = "#eb6834"
+AQUA = "#1baf7a"
 TERRAIN = "#e1e0d9"
 
 plt.rcParams.update({
@@ -115,23 +116,25 @@ def fig_convergence():
 
 
 def fig_e3():
-    # values from experiments/e3_naive_vs_saltation.py (deterministic)
-    dts = np.array([4e-3, 2e-3, 1e-3, 5e-4, 2.5e-4, 1.25e-4, 6.25e-5])
-    naive = np.zeros_like(dts)
+    rows = np.load(ROOT / "experiments" / "e3_rows.npy")  # (dt, grid-reset grad, interp grad)
+    dts, naive, interp = rows[:, 0], rows[:, 1], rows[:, 2]
     truth = 0.09037774
     fig, ax = plt.subplots(figsize=(5.8, 3.0), dpi=200)
     ax.axhline(truth, color=BLUE, lw=2.0)
-    ax.annotate("true gradient (saltation, = FD)", (dts[2], truth),
+    ax.annotate("saltation (exact at any dt, = FD)", (dts[2], truth),
                 textcoords="offset points", xytext=(0, 7), ha="center", color=BLUE, fontsize=9)
+    ax.plot(dts, interp, color=AQUA, lw=1.6, marker="o", ms=4, markeredgecolor=SURFACE, markeredgewidth=0.7)
+    ax.annotate("hand-interpolated event (converging, erratic)", (dts[2], float(interp[2])),
+                textcoords="offset points", xytext=(0, 12), ha="center", color=AQUA, fontsize=9)
     ax.plot(dts, naive, color=ORANGE, lw=2.0, marker="o", ms=5, markeredgecolor=SURFACE, markeredgewidth=0.8)
-    ax.annotate("naive autodiff through time-stepper", (dts[2], 0.0),
+    ax.annotate("grid-reset autodiff (exactly 0)", (dts[2], 0.0),
                 textcoords="offset points", xytext=(0, -16), ha="center", color=ORANGE, fontsize=9)
     ax.set_xscale("log")
     ax.invert_xaxis()
     ax.set_ylim(-0.03, 0.115)
     ax.set_xlabel("integrator step dt  (refining →)")
     ax.set_ylabel(r"d x(T) / d v$_{0y}$")
-    ax.set_title("E3 — naive gradient never converges (O(1) event bias)", loc="left")
+    ax.set_title("E3 — what autodiff sees at an impact", loc="left")
     fig.tight_layout()
     fig.savefig(FIGS / "e3_bias.png")
     plt.close(fig)

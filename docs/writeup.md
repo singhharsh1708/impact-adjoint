@@ -22,17 +22,22 @@ parameter-dependence of the *event time* contributes a term to the sensitivity
 cannot see: the step at which the event fires is an integer, piecewise-constant
 in the parameters.
 
-Experiment E3 makes this concrete. A pure-JAX simulation of a bouncing ball
-(RK4 scan, reset applied at the grid point via `jnp.where`) converges to the
-correct *trajectory* as `dt → 0` — and reports `d x(T)/d v0y = 0.0` at every
-resolution. The true value is `+0.0904`, confirmed by two independent
-witnesses. The bias is O(1) and refinement-proof:
+Experiment E3 makes this concrete, and includes its own steelman. A pure-JAX
+simulation of a bouncing ball (RK4 scan, reset applied at the grid point via
+`jnp.where`) converges to the correct *trajectory* as `dt → 0` — and reports
+`d x(T)/d v0y = 0.0` at every resolution (an exact zero specific to
+state-independent resets over flat terrain; on curved terrain the same program
+returns nonzero *wrong* values instead). The true value is `+0.0904`,
+confirmed by two independent witnesses. The honest repair inside pure JAX —
+interpolate the crossing time from the guard and reset at the interpolated
+state — recovers a converging gradient, and that is precisely the point: the
+repair *is* first-order event-time sensitivity machinery, hand-implemented,
+with dt-dependent, non-monotone error (2×10⁻³ → 6×10⁻⁵ over our sweep) and a
+new hand derivation owed for every guard/reset pair. The saltation endpoint
+serves the exact value at every `dt` with no event handling in the consuming
+program at all:
 
 ![E3](figures/e3_bias.png)
-
-This is not a strawman implementation; it is what `jax.grad` of the natural
-program does. Fixing it requires event-time sensitivity machinery — a different
-*differentiation semantics*, not a smaller `dt`.
 
 ## 2. What we built
 
@@ -191,9 +196,10 @@ events are localized to machine precision), chatter termination, event-capacity
 truncation, sub-step terrain-feature detection, and `jax.grad` end-to-end
 equality with FD for all seven differentiable inputs.
 
-Near-grazing behavior matches theory: impact sensitivities grow as
-`δ^(−1/2)` approaching tangency, and analytic-vs-FD agreement holds down to
-`δ ≈ 1e-8`, beyond which FD itself is invalid.
+Near tangency the impact sensitivities grow as `δ^(−1/2)` (the saltation
+denominator `g_q · f⁻` vanishes at grazing) — a property of the physics, not
+an artifact; the solver raises an explicit error at degenerate crossings
+rather than returning an unbounded gradient.
 
 ## 5. Related work: how everyone else gets contact gradients
 
