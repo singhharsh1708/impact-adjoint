@@ -16,8 +16,9 @@ impacts.
 impact of both trajectories reshapes the surface until restitution alone
 routes each particle to its own bin.*
 
-**Tesseract Hackathon 2026 — Track 1 (inverse design & shape optimization),
-cross-listed Track 4 (differentiable inference).**
+**Tesseract Hackathon 2026 — Track 1, inverse design & shape optimization.**
+(The Bayesian calibration and design-under-uncertainty experiments also touch
+Track 4, but Track 1 is the entry's track.)
 
 What the gradients design and infer:
 
