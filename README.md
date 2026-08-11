@@ -197,6 +197,21 @@ docs/          technical writeup + all figures
   (documented per-input); grazing impacts have an inherent `δ^(-1/2)`
   sensitivity growth near tangency.
 
+## Future work
+
+- **Reverse-mode saltation adjoint.** The sensitivities here are forward
+  variational, so VJP cost scales with parameter count. A backward costate
+  integration with `Sᵀ` jumps at events would serve thousands of design
+  variables behind the same endpoint, with no change for the client.
+- **Coulomb friction cone.** The impulse-ratio (Routh) reset is a ~4-line
+  change to `reset_map`, at the cost of re-deriving the closed-form oracle;
+  it would extend the model into sticking and sliding contact.
+- **3D and multi-body.** The saltation machinery is dimension-agnostic; the
+  work is in guard geometry and event bookkeeping, not the sensitivities.
+- **Upstream.** Test the tesseract-jax fix for
+  [#234](https://github.com/pasteurlabs/tesseract-jax/issues/234) against this
+  solver once it lands.
+
 See [docs/writeup.md](docs/writeup.md) for the technical writeup.
 
 ## References

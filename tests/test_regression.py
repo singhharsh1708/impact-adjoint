@@ -16,8 +16,14 @@ from juliacall import Main as _jl
 _jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add(Pkg.PackageSpec(name="ForwardDiff", version="1.4.5"))')
 
 from tesseract_core import Tesseract
+from tesseract_core.runtime.core import load_module_from_path
 
 API_PATH = Path(__file__).parent.parent / "tesseracts" / "contact_sim" / "tesseract_api.py"
+
+# import the module once so the tests reference the API's own constants rather
+# than duplicating them (and so Julia is included exactly once)
+_api = load_module_from_path(API_PATH)
+MAX_EVENTS = _api.MAX_EVENTS
 
 BASE = {
     "v0": np.array([2.0, 0.5]),
@@ -36,7 +42,7 @@ BASE = {
 
 @pytest.fixture(scope="session")
 def tess():
-    return Tesseract.from_tesseract_api(API_PATH)
+    return Tesseract.from_tesseract_api(_api)
 
 
 def test_base_trajectory(tess):
@@ -78,7 +84,7 @@ def test_settle_termination(tess):
 def test_event_capacity_termination(tess):
     r = tess.apply(dict(BASE, e=0.85, mu=0.0, t_final=6.0, n_samples=500))
     assert int(r["status"]) == 1
-    assert int(r["n_events"]) == 8
+    assert int(r["n_events"]) == MAX_EVENTS
     traj = np.asarray(r["traj"])
     amp, ctr, wid = BASE["amp"], BASE["ctr"], BASE["wid"]
     h = np.sum(amp * np.exp(-((traj[:, 1:2] - ctr) ** 2) / (2 * wid**2)), axis=1)
