@@ -1,0 +1,9 @@
+impact-adjoint
+Copyright 2026 Harsh Singh
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this work except in compliance with the License. A copy of the License is
+included as LICENSE in this repository.
+
+Built on Tesseract Core and Tesseract-JAX (Pasteur Labs, Apache-2.0).
+Tesseract is a registered trademark of Pasteur Labs, Inc.

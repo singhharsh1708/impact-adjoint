@@ -1,7 +1,8 @@
 # impact-adjoint: end-to-end gradients through impact events
 
-**Track 1 — Inverse design & shape optimization** (cross-listed: Track 4,
-differentiable inference). Solo entry.
+**Track: 1 — Inverse design & shape optimization.** Solo entry. (Experiments
+E2b and E5b also speak to Track 4, differentiable inference and UQ, but the
+headline result is a designed structure and Track 1 is the entry's track.)
 
 **In one sentence:** we differentiate *through impacts* — exactly, not by
 smoothing — and use it to design passive structures whose function only
