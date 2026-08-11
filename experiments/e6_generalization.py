@@ -69,7 +69,10 @@ def main():
     rng = np.random.default_rng(11)
     jitter_ok = {}
     for e in (0.45, 0.65, 0.85):
-        want = "A" if e < 0.65 else "B"  # 0.65 sits near the threshold; record only
+        # the sweep's own threshold is A up to e=0.65, B from e=0.675, so
+        # e=0.65 belongs to A; it is the threshold-adjacent probe and the
+        # assertion below only gates the two clearly-classed materials
+        want = "A" if e <= thr_lo else "B"
         results = []
         for _ in range(12):
             v0 = V0 + rng.normal(0.0, 0.03, 2)  # 3 cm/s scatter
@@ -80,7 +83,9 @@ def main():
         print(f"velocity jitter (sd 0.03 m/s) at e={e}: {results.count('A')}A/{results.count('B')}B")
 
     np.savez(ROOT / "experiments" / "e6_result.npz", es=es, xs=xs, x_mid=X_MID,
-             thr_lo=thr_lo, thr_hi=thr_hi)
+             thr_lo=thr_lo, thr_hi=thr_hi, statuses=np.array(statuses),
+             jitter_e=np.array(sorted(jitter_ok)),
+             jitter_frac=np.array([jitter_ok[k][1] for k in sorted(jitter_ok)]))
 
     assert clean, "expected a single A->B threshold on the validated domain"
     assert cls[list(es).index(0.5)] == "A" and cls[list(es).index(0.8)] == "B"

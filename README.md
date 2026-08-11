@@ -3,7 +3,8 @@
 [![CI](https://github.com/singhharsh1708/impact-adjoint/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/singhharsh1708/impact-adjoint/actions/workflows/test.yaml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-**Differentiate a bouncing ball with standard autodiff and `jax.grad` returns
+**Simulate a bouncing ball in JAX the natural way, applying the impact at the
+integrator step where it is detected, and `jax.grad` returns
 `d x(T)/d v0y = 0.0` exactly, when the truth is `+0.09`.** impact-adjoint fixes this
 — classical saltation-matrix event sensitivities served from a Julia solver
 through a Tesseract boundary — and uses the gradients to design passive
@@ -112,7 +113,7 @@ adds ~10 ms HTTP overhead per call):
 |---|---|---|
 | `apply` | 2.0 ms | 4.9 ms |
 | `vector_jacobian_product` | 12.1 ms | 41.6 ms |
-| ratio | 6.0× | 8.6× |
+| ratio | 6.0× | 8.5× |
 
 Gradients are forward-variational, so VJP cost grows with parameter count.
 HMC through the container sustains roughly 10,000 endpoint calls (apply plus

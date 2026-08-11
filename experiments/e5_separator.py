@@ -10,7 +10,7 @@ computable through the impact events the surface itself creates.
 
 Methods under one evaluation budget. Budget accounting: a gradient call is
 charged as 2 forward evaluations. Measured wall-clock at this configuration
-(77 sensitivity columns) measures a VJP at 8.6x a forward solve — the gradients
+(77 sensitivity columns) measures a VJP at 8.5x a forward solve — the gradients
 are forward-variational, so their cost scales with parameter count — and the
 writeup reports the comparison under both accountings; the qualitative result
 (gradient-free plateaus orders of magnitude short) is unchanged either way.

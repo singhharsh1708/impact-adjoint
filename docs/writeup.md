@@ -45,18 +45,18 @@ A two-Tesseract pipeline in which the event-aware machinery lives behind a
 Tesseract boundary, and JAX never needs to know:
 
 ```
-  ┌───────────────────────── one jax.grad, via tesseract-jax ─────────────────┐
-  │                                                                          │
-  ▼                                                                          │
-(v0, e, mu, terrain θ)                                            optax Adam ┘
+  ┌──────────────────────── one jax.grad, via tesseract-jax ────────────────┐
+  │                                                                         │
+  ▼                                                                         │
+(v0, e, mu, terrain θ)                                           optax Adam ┘
       │                                                                ▲
       ▼                                                                │
-┌─────────────────────┐  qf, impact_x   ┌───────────────────┐   loss   │
-│ contact-sim         │ ──────────────▶ │ score-target      │ ─────────┘
-│ Julia · RK4 + events│                 │ JAX · autodiff    │
-│ variational X +     │                 │ (landing          │
-│ saltation jumps     │                 │  objective)       │
-└─────────────────────┘                 └───────────────────┘
+┌──────────────────────┐  qf, impact_x  ┌───────────────────┐   loss   │
+│ contact-sim          │ ─────────────▶ │ score-target      │ ─────────┘
+│ Julia · RK4 + events │                │ JAX · autodiff    │
+│ variational X +      │                │ (landing          │
+│ saltation jumps      │                │  objective)       │
+└──────────────────────┘                └───────────────────┘
 ```
 
 **contact-sim** (Julia): a 2D point mass under gravity (optional linear drag)
@@ -81,7 +81,7 @@ analytically. From the assembled Jacobian, the Tesseract serves `jacobian`,
 
 Cost model, stated plainly: the sensitivities are *forward*-variational, so a
 VJP costs O(n_params): measured 6.0× a forward solve at 14 parameters and
-8.6× at 77, milliseconds either way (apply 2.0 / 4.9 ms, VJP 12.1 / 41.6 ms
+8.5× at 77, milliseconds either way (apply 2.0 / 4.9 ms, VJP 12.1 / 41.6 ms
 warm). The right trade at tens of design variables; at thousands, the
 natural extension is a reverse-mode saltation adjoint behind the *same*
 endpoint — the interface is already shaped for it.
@@ -160,12 +160,13 @@ amplitudes of the surface; each particle must land in its own bin.
 The designed surface separates the materials from a shared first impact —
 rubber dies into bin A within 8 bounces, PET carries over the designed hills
 into bin B (the optimizer grew a backstop that bounces PET *backward* into its
-bin) — with landing errors of 0.38 mm and 0.34 mm. The right panel makes
-"gradients doing real work" quantitative, under both accountings.
+bin) — with landing errors of 0.38 mm and 0.34 mm. The right panel plots the race
+under the evaluation-count accounting; the wall-clock accounting follows in
+the text, and we report both.
 Charging a gradient call as two forward solves, Adam reaches **2×10⁻⁷** while
 CMA-ES plateaus at 2×10⁻³ (~8,800× worse) and Nelder-Mead at 2×10⁻²; a
 3-seed × 3-σ₀ CMA tuning grid (`experiments/e5_cma_grid.py`) gives median
-1.7×10⁻³ with a best tail of 1.7×10⁻⁴ — still ~750× above Adam. Charging by *measured wall-clock* (a VJP costs 8.6
+1.7×10⁻³ with a best tail of 1.7×10⁻⁴ — still ~750× above Adam. Charging by *measured wall-clock* (a VJP costs 8.5
 forward solves at these 77 parameters), Adam at CMA's total wall-clock sits in
 CMA's own range (~4×10⁻³); the separation opens beyond that point, where Adam
 descends four further orders. The gradient-free runs are not equally stuck:
