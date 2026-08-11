@@ -117,7 +117,13 @@ def fig_convergence():
 
 
 def fig_e3():
-    rows = np.load(ROOT / "experiments" / "e3_rows.npy")  # (dt, grid-reset grad, interp grad)
+    # wider two-panel figure: scale fonts so rendered text matches the set
+    with plt.rc_context({"font.size": 11, "axes.titlesize": 12, "axes.labelsize": 11}):
+        return _fig_e3_inner()
+
+
+def _fig_e3_inner():
+    rows = np.load(ROOT / "experiments" / "e3_rows.npy")
     dts, naive, interp = rows[:, 0], rows[:, 1], rows[:, 2]
     truth = 0.09037774
     fig, (ax, ax2) = plt.subplots(1, 2, figsize=(8.6, 3.0), dpi=200)

@@ -63,7 +63,7 @@ def main():
         "axes.labelcolor": SECONDARY, "xtick.color": MUTED, "ytick.color": MUTED,
         "axes.spines.top": False, "axes.spines.right": False, "font.size": 9,
     })
-    fig, ax = plt.subplots(figsize=(7.0, 3.2), dpi=110)
+    fig, ax = plt.subplots(figsize=(7.2, 3.3), dpi=124)
     xs = np.linspace(-0.1, 5.2, 500)
     ax.fill_between(xs, -0.08, h_of(xs), color=TERRAIN, lw=0, zorder=1)
     ax.plot(xs, h_of(xs), color=BASELINE, lw=1.2, zorder=2)
@@ -74,7 +74,7 @@ def main():
     ax.set_ylim(-0.08, 1.45)
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
-    ax.set_title("Inverse design by gradient descent through two Tesseracts", loc="left")
+    ax.set_title("E1 — inverse design by gradient descent through two Tesseracts", loc="left")
 
     fig.tight_layout()
 

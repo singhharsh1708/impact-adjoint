@@ -1,49 +1,83 @@
 # impact-adjoint
 
-**End-to-end gradients through impact events, across a Julia↔JAX Tesseract
-boundary.** Tesseract Hackathon 2026 — Track 1 (inverse design & shape
-optimization), cross-listed Track 4 (differentiable inference).
+[![CI](https://github.com/singhharsh1708/impact-adjoint/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/singhharsh1708/impact-adjoint/actions/workflows/test.yaml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-Naive automatic differentiation through a time-stepping simulator is *silently
-wrong* the moment the dynamics have events: the gradient of an impact time with
-respect to parameters (the saltation term) is structurally absent from the
-program autodiff sees. This repo gets it right — exactly, not by smoothing —
-and uses it to **design passive structures whose function only exists because
-of impacts**: a 24-parameter bounce separator that sorts particles by material
-(the industrial cousin sorts PET from rubber by resilience), terrain that
-routes different inlet speeds to different bins, and Bayesian recovery of
-material parameters from where things actually hit. Two composed Tesseracts,
-one `jax.grad`:
-
-- **`tesseracts/contact_sim`** — Julia. 2D ballistic flight over smooth bumpy
-  terrain with impact events (normal restitution `e`, tangential loss `mu`).
-  RK4 with event bisection; gradients from forward variational equations with
-  analytic **saltation-matrix** updates at every impact. Exposes
-  `apply` / `jacobian` / `jacobian_vector_product` / `vector_jacobian_product`
-  / `abstract_eval`.
-- **`tesseracts/score_target`** — JAX. Differentiable scoring of the final
-  state against a target cup.
-
-The boundary the pipeline crosses is not just language: the two components
-*disagree about how to differentiate* (dual-number forward AD + analytic event
-handling vs. reverse-mode autodiff), and `tesseract-jax` composes them anyway.
+**Differentiate through an impact with standard autodiff and you get a gradient
+of exactly `0.0` when the truth is `+0.09`.** impact-adjoint fixes this exactly
+— classical saltation-matrix event sensitivities served from a Julia solver
+through a Tesseract boundary — and uses the gradients to design passive
+structures whose function only exists because of impacts.
 
 ![The surface learns to sort](docs/figures/e5_learning.gif)
+*One terrain, two materials, same inlet: gradient descent through every impact
+of both trajectories reshapes the surface until restitution alone routes each
+particle to its own bin.*
+
+**Tesseract Hackathon 2026 — Track 1 (inverse design & shape optimization),
+cross-listed Track 4 (differentiable inference).**
+
+What the gradients design and infer:
+
+- a **24-parameter bounce separator** that sorts particles by material
+  (industrial cousin: resilience-based PET/rubber sorting in recycling),
+- **terrain** that routes different inlet speeds to different bins,
+- **Bayesian recovery of material parameters** from where things actually hit.
+
+## Contents
+
+- [Architecture](#architecture) · [Results](#results) · [Correctness](#correctness)
+- [Performance envelope](#performance-envelope) · [Reproduce](#reproduce) · [Troubleshooting](#troubleshooting)
+- [Repository structure](#repository-structure) · [Limitations](#model-and-scope-honest-limitations) · [References](#references)
+
+## Architecture
+
+```mermaid
+flowchart LR
+    P["design / material<br/>parameters θ"] --> A
+    subgraph A["contact-sim · Julia Tesseract"]
+        direction TB
+        S["RK4 + event bisection"] --> V["forward variational X<br/>+ saltation jumps at impacts"]
+    end
+    A -- "qf, impact_x + VJP/JVP/Jacobian" --> B["score-target · JAX Tesseract<br/>(landing objective)"]
+    B -- "loss" --> O["optax Adam / NumPyro NUTS"]
+    O -- "one jax.grad via tesseract-jax" --> P
+```
+
+The two components *disagree about how to differentiate* — dual-number forward
+AD plus analytic event handling in a Julia process vs. reverse-mode tracing in
+JAX — and `tesseract-jax` composes them into a single `jax.grad` anyway. The
+same solver container also serves NumPyro's HMC over HTTP and a raw `curl`
+client, unchanged.
+
+- **`tesseracts/contact_sim`** — Julia. 2D ballistic flight over configurable
+  Gaussian-bump terrain with impact events (restitution `e`, tangential loss
+  `mu`); all differentiable Tesseract endpoints, gradients from forward
+  variational equations with analytic **saltation-matrix** updates at events.
+- **`tesseracts/score_target`** — JAX. Differentiable landing objective.
+- (`tesseracts/julia_kernel` is the minimal Day-1 boundary proof, driven by
+  `scripts/proof_local.py` / `scripts/proof_container.py`.)
 
 ## Results
 
-| Experiment | Result |
+| Experiment | Headline |
 |---|---|
-| **E3** — autodiff vs saltation | Grid-reset autodiff: exactly **0.0 at every dt** (event-index staircase) vs truth **+0.0904**. The pure-JAX repair (interpolated events) recovers a converging-but-erratic gradient — by hand-implementing first-order event sensitivity. Saltation: exact at any dt, no event handling in the client. |
-| **E1** — inverse design | Adam over launch velocity + restitution through both Tesseracts: miss **1.12 m → 2.7 cm**, through 5 bounces, surviving bounce-count changes (4→6→5) during descent. |
-| **E2** — calibration | `(e, mu)` recovered from 3 noisy impact positions (σ = 5 mm); errors 0.002 / 0.009 on the reference seed, noise-floor-limited across seeds. |
-| **E2b** — Bayesian | NumPyro NUTS through the containerized solver's VJP (2 chains, 0 divergences, r-hat 1.01): posterior `e = 0.697 ± 0.007`, `mu = 0.096 ± 0.009` — truth inside both 68% and 95% credible intervals. |
-| **E4** — terrain design | The *structure* as design variable: one terrain routes two inlet speeds to two cups (miss 2.2 / 3.0 cm). |
-| **E5** — bounce separator | 24-dim surface design sorts particles by restitution alone (landing error < 0.5 mm). Head-to-head: Adam on saltation gradients **2e-7** vs CMA-ES 2e-3 (~8,800× worse) vs Nelder-Mead 2e-2 at equal eval budget; under strict wall-clock accounting Adam still ends 3 orders ahead of every gradient-free run. |
-| **E5b** — design under uncertainty | Ensemble objective over inlet + restitution scatter: point design already scores **99.5%** held-out sorting purity (200 particles); robust refinement reaches **100%** and opens a clean separation margin around the bin midline. |
-| **E6** — zero-shot generalization | The surface trained on e = {0.5, 0.8} classifies the whole continuum e ∈ [0.35, 0.875] with a **single threshold** (0.65→0.675), tolerates 3 cm/s inlet scatter, and has an honest failure edge (at e = 0.9 the superball rebounds off the backstop; beyond, classification is no longer clean). |
+| **E3** — the failure, measured | Grid-reset autodiff: **exactly 0.0 at every dt** (truth +0.0904). Interpolated-event repair converges only by hand-implementing event sensitivity. |
+| **E5** — 24-dim separator | Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ (~8,800× worse) vs Nelder-Mead 2×10⁻² at equal budget. |
+| **E5b** — design under uncertainty | **100%** held-out sorting purity (200 scattered particles); point design already 99.5%. |
+| **E6** — zero-shot generalization | Trained on two materials, sorts the whole continuum e ∈ [0.35, 0.875] with **one threshold**. |
+| **E1** — inverse design | Miss **1.12 m → 2.7 cm** through 5 bounces, across bounce-count changes. |
+| **E2/E2b** — calibration | NUTS posterior `e = 0.697 ± 0.007`, `mu = 0.096 ± 0.009`; truth inside both 95% CIs, 0 divergences. |
+| **E4** — terrain design | One terrain routes two inlet speeds to two cups (miss 2.2 / 3.0 cm). |
+
+![E3](docs/figures/e3_bias.png)
+*The thesis in one figure: the natural autodiff program returns exactly zero at
+every step size (left); the pure-JAX repair converges erratically, and only the
+saltation endpoint is exact at any dt (right).*
 
 ![E5 separator](docs/figures/e5_separator.png)
+*The designed separator (left) and the 24-dimensional head-to-head (right):
+gradient-free methods plateau orders of magnitude short.*
 
 ## Correctness
 
@@ -64,10 +98,10 @@ finite differences through the same code:
   sub-step-width terrain features, energy conservation at `e=1` (relative
   drift 5e-13), and `jax.grad` end-to-end.
 
-Trajectories that leave the model's validity region **terminate with an explicit
-status** (event capacity / settled contact) and still return well-defined
-total-derivative Jacobians at the truncation point, so optimization loops never
-consume silently nonphysical states.
+Trajectories that leave the model's validity region **terminate with an
+explicit status** (event capacity / settled contact) and still return
+well-defined total-derivative Jacobians at the truncation point, so
+optimization loops never consume silently nonphysical states.
 
 ## Performance envelope
 
@@ -85,15 +119,24 @@ Gradients are forward-variational: VJP cost scales with parameter count
 
 ## Reproduce
 
-Requires Python ≥ 3.12, Docker (for containerized runs), and ~5 GB disk for the
-Docker images (contact-sim ~3.8 GB, score-target ~1.3 GB). Julia itself is bootstrapped automatically by `juliacall`.
+> [!TIP]
+> **Figures in one minute:** all experiment results are committed as
+> `experiments/*.npz` / `*.npy`, so
+> `python experiments/make_figures.py && python experiments/make_e5_figure.py && python experiments/make_e5b_figure.py`
+> regenerates every figure without rerunning any optimization (after the
+> one-time Julia bootstrap).
+
+Requires Python ≥ 3.12, Docker (for containerized runs), and ~5 GB disk for
+the Docker images (contact-sim ~3.8 GB, score-target ~1.3 GB). Julia itself is
+bootstrapped automatically by `juliacall`.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
-pip install "tesseract-core[runtime]" tesseract-jax jax optax equinox \
-            juliacall numpy scipy sympy matplotlib numpyro pytest cma
+pip install "tesseract-core[runtime]==1.11.0" tesseract-jax==0.4.1 "jax==0.11.0" \
+            optax equinox juliacall==0.9.31 numpy scipy sympy matplotlib numpyro pytest cma
 
 # validation (dev mode, no Docker needed)
+python scripts/proof_local.py              # 5 s boundary proof
 python scripts/validate_contact.py
 python scripts/validate_closed_form.py
 python scripts/validate_reference.py
@@ -104,26 +147,43 @@ python experiments/e3_naive_vs_saltation.py
 python experiments/e1_inverse_design.py
 python experiments/e2_calibration.py
 python experiments/e4_terrain_design.py
-python experiments/e5_separator.py     # ~30 s warm: 3 optimizers x 900 evals
+python experiments/e5_separator.py          # ~30 s warm: 3 optimizers x 900 evals
 python experiments/e5b_robust_separator.py  # ~10 min: ensemble design + purity eval
 python experiments/e6_generalization.py
-python experiments/make_figures.py
-python experiments/make_e5_figure.py
-python experiments/make_e5_animation.py  # optional: regenerates the README gif
-python experiments/make_animation.py     # optional: E1 animation gif
 
 # containerized (any docker-compatible engine; needs buildx; ~10 min for contact-sim)
 tesseract build tesseracts/contact_sim
 tesseract build tesseracts/score_target
 tesseract run contact-sim check-gradients @tesseracts/contact_sim/check_payload.json
-python experiments/e2b_bayesian.py     # NUTS, 2 chains: ~15 min
-python experiments/e1_inverse_design.py --container  # same optimization via the served images, identical numbers
+python experiments/e2b_bayesian.py                   # NUTS, 2 chains: ~15 min
+python experiments/e1_inverse_design.py --container  # identical numbers via served images
+./scripts/second_client_curl.sh                      # gradients with nothing but curl
 ```
 
-The first Julia call bootstraps a project environment (and Julia itself if
-absent) — expect 1–5 minutes and a wall of `[juliapkg]` output the first time;
-warm runs take seconds. Total reproduction: ~7 min dev-mode, plus ~10 min for
-the contact-sim image.
+> [!NOTE]
+> The first Julia call bootstraps a project environment (and Julia itself if
+> absent) — expect 1–5 minutes and a wall of `[juliapkg]` output the first
+> time; warm runs take seconds. Total reproduction: ~7 min dev-mode, plus
+> ~10 min for the contact-sim image.
+
+## Troubleshooting
+
+| Symptom | Cause / fix |
+|---|---|
+| `tesseract` runs an OCR tool | PATH collision with Tesseract-OCR; use the venv's `tesseract` binary. |
+| Wall of `[juliapkg] Installing...` output | One-time Julia bootstrap; subsequent runs are warm. |
+| `docker build` fails with `unknown flag: --load` | Docker buildx plugin missing (common with colima/podman setups). |
+| Container cannot write outputs (colima/VM setups) | Pass an `output_path` under your home directory; VM file sharing may not cover system temp dirs. |
+
+## Repository structure
+
+```
+tesseracts/    contact_sim (Julia solver) · score_target (JAX objective) · julia_kernel (Day-1 proof)
+experiments/   e1–e6, e5b + figure/animation generators + committed result artifacts
+scripts/       three validation oracles · boundary proofs · curl client
+tests/         12 golden regression tests (run in CI)
+docs/          technical writeup + all figures
+```
 
 ## Model and scope (honest limitations)
 
@@ -134,10 +194,27 @@ the contact-sim image.
   across bounce-count boundaries the objective is discontinuous (inherent to
   the physics, visible and handled in E1).
 - Event detection resolves terrain features wider than `|vx|·dt/3`
-  (documented per-input); grazing impacts have an inherent `δ^(-1/2)` sensitivity growth
-  near tangency.
+  (documented per-input); grazing impacts have an inherent `δ^(-1/2)`
+  sensitivity growth near tangency.
 
-See `docs/writeup.md` for the technical writeup.
+See [docs/writeup.md](docs/writeup.md) for the technical writeup.
+
+## References
+
+- Aizerman & Gantmacher (1958); Hiskens & Pai, *IEEE TCAS* (2000); Kong,
+  Payne, Zhu & Johnson, *Proc. IEEE* (2024) — the saltation-matrix lineage.
+- Suh, Simchowitz, Zhang & Tedrake, *ICML* (2022) — bias of simulator
+  gradients through contact.
+- [Tesseract Core](https://github.com/pasteurlabs/tesseract-core) ·
+  [Tesseract-JAX](https://github.com/pasteurlabs/tesseract-jax) — the
+  component boundary this entry is built on. An engineering finding from this
+  work is filed upstream as
+  [tesseract-jax#234](https://github.com/pasteurlabs/tesseract-jax/issues/234).
+
+## Author
+
+Harsh Singh ([@singhharsh1708](https://github.com/singhharsh1708)) — solo
+entry. Questions: open an issue on this repository.
 
 ## License
 

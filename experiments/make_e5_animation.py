@@ -85,7 +85,7 @@ def main():
         "axes.labelcolor": SECONDARY, "xtick.color": MUTED, "ytick.color": MUTED,
         "axes.spines.top": False, "axes.spines.right": False, "font.size": 9,
     })
-    fig, ax = plt.subplots(figsize=(7.2, 3.3), dpi=110)
+    fig, ax = plt.subplots(figsize=(7.2, 3.3), dpi=124)
     xs = np.linspace(-0.1, 5.6, 500)
     fill = [ax.fill_between(xs, -0.16, h_of(xs, frames[0][0]), color=TERRAIN, lw=0, zorder=1)]
     (tline,) = ax.plot(xs, h_of(xs, frames[0][0]), color=BASELINE, lw=1.2, zorder=2)
@@ -101,7 +101,7 @@ def main():
     ax.set_ylim(-0.16, 1.3)
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
-    ax.set_title("The surface learns to sort — one terrain, two materials, same inlet", loc="left")
+    ax.set_title("E5 — the surface learns to sort: one terrain, two materials, same inlet", loc="left")
     fig.tight_layout()
 
     hold = 12

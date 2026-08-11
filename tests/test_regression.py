@@ -166,6 +166,17 @@ def test_input_bounds_rejected(tess):
             tess.apply(bad)
 
 
+def test_jvp_matches_jacobian(tess):
+    # the jvp endpoint's scalar-tangent packing branch is exercised nowhere else
+    j = tess.jacobian(BASE, jac_inputs={"v0", "e"}, jac_outputs={"qf"})
+    tv = {"v0": np.array([0.3, -0.2]), "e": 0.5}
+    out = tess.jacobian_vector_product(
+        BASE, jvp_inputs={"v0", "e"}, jvp_outputs={"qf"}, tangent_vector=tv
+    )
+    expect = np.asarray(j["qf"]["v0"]) @ tv["v0"] + np.asarray(j["qf"]["e"]) * tv["e"]
+    np.testing.assert_allclose(np.asarray(out["qf"]), expect, rtol=1e-12, atol=1e-12)
+
+
 def test_vjp_matches_jacobian(tess):
     j = tess.jacobian(BASE, jac_inputs={"e"}, jac_outputs={"qf"})
     v = tess.vector_jacobian_product(

@@ -1,4 +1,4 @@
-name: test
+name: CI
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
-        # pinned so an upstream release cannot break CI in the pre-deadline window
+        # pinned for reproducibility
         run: |
           pip install "tesseract-core[runtime]==1.11.0" tesseract-jax==0.4.1 \
                       "jax==0.11.0" optax equinox juliacall==0.9.31 \
