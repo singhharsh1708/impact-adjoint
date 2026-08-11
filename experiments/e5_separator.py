@@ -10,11 +10,10 @@ computable through the impact events the surface itself creates.
 
 Methods under one evaluation budget. Budget accounting: a gradient call is
 charged as 2 forward evaluations. Measured wall-clock at this configuration
-(77 sensitivity columns) puts a VJP nearer 5-6x a forward solve — the
-gradients are forward-variational, so their cost scales with parameter count —
-and the writeup reports the comparison under both accountings; the qualitative
-result (gradient-free plateaus orders of magnitude short) is unchanged either
-way.
+(77 sensitivity columns) puts a VJP nearer 8x a forward solve — the gradients
+are forward-variational, so their cost scales with parameter count — and the
+writeup reports the comparison under both accountings; the qualitative result
+(gradient-free plateaus orders of magnitude short) is unchanged either way.
   - Adam on the saltation gradients (ours)
   - Nelder-Mead (scipy), objective-only
   - CMA-ES (cma), objective-only
@@ -26,7 +25,7 @@ import numpy as np
 
 from juliacall import Main as _jl
 
-_jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add("ForwardDiff")')
+_jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add(Pkg.PackageSpec(name="ForwardDiff", version="1.4.5"))')
 
 import jax
 import jax.numpy as jnp

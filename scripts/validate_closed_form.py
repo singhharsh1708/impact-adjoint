@@ -17,7 +17,7 @@ from pathlib import Path
 
 from juliacall import Main as _jl  # boot Julia before anything else, like validate_contact.py
 
-_jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add("ForwardDiff")')
+_jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add(Pkg.PackageSpec(name="ForwardDiff", version="1.4.5"))')
 
 import sympy as sp
 from tesseract_core import Tesseract

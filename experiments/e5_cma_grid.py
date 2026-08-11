@@ -8,7 +8,7 @@ import numpy as np
 
 from juliacall import Main as _jl
 
-_jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add("ForwardDiff")')
+_jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add(Pkg.PackageSpec(name="ForwardDiff", version="1.4.5"))')
 
 import cma
 from tesseract_core import Tesseract

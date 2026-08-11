@@ -40,6 +40,7 @@ handling vs. reverse-mode autodiff), and `tesseract-jax` composes them anyway.
 | **E2b** — Bayesian | NumPyro NUTS through the containerized solver's VJP (2 chains, 0 divergences, r-hat 1.01): posterior `e = 0.697 ± 0.007`, `mu = 0.096 ± 0.009` — truth inside both 68% and 95% credible intervals. |
 | **E4** — terrain design | The *structure* as design variable: one terrain routes two inlet speeds to two cups (miss 2.2 / 3.0 cm). |
 | **E5** — bounce separator | 24-dim surface design sorts particles by restitution alone (landing error < 0.5 mm). Head-to-head: Adam on saltation gradients **2e-7** vs CMA-ES 2e-3 (~8,800× worse) vs Nelder-Mead 2e-2 at equal eval budget; under strict wall-clock accounting Adam still ends 3 orders ahead of every gradient-free run. |
+| **E5b** — design under uncertainty | Ensemble objective over inlet + restitution scatter: point design already scores **99.5%** held-out sorting purity (200 particles); robust refinement reaches **100%** and opens a clean separation margin around the bin midline. |
 | **E6** — zero-shot generalization | The surface trained on e = {0.5, 0.8} classifies the whole continuum e ∈ [0.35, 0.875] with a **single threshold** (0.65→0.675), tolerates 3 cm/s inlet scatter, and has an honest failure edge (at e = 0.9 the superball rebounds off the backstop; beyond, classification is no longer clean). |
 
 ![E5 separator](docs/figures/e5_separator.png)
@@ -68,6 +69,20 @@ status** (event capacity / settled contact) and still return well-defined
 total-derivative Jacobians at the truncation point, so optimization loops never
 consume silently nonphysical states.
 
+## Performance envelope
+
+Warm per-call cost of the solver component (M-series CPU, dev mode; container
+adds ~10 ms HTTP overhead per call):
+
+| call | 3 bumps (14 params) | 24 bumps (77 params) |
+|---|---|---|
+| `apply` (dt 1e-3, t 2 s) | ~2 ms | ~2 ms |
+| full Jacobian / VJP | ~14 ms | ~24 ms |
+
+Gradients are forward-variational: VJP cost scales with parameter count
+(~8× a forward solve at 77 parameters). HMC through the container sustains
+~10,000 endpoint calls in ~2.5 minutes.
+
 ## Reproduce
 
 Requires Python ≥ 3.12, Docker (for containerized runs), and ~5 GB disk for the
@@ -90,6 +105,7 @@ python experiments/e1_inverse_design.py
 python experiments/e2_calibration.py
 python experiments/e4_terrain_design.py
 python experiments/e5_separator.py     # ~30 s warm: 3 optimizers x 900 evals
+python experiments/e5b_robust_separator.py  # ~10 min: ensemble design + purity eval
 python experiments/e6_generalization.py
 python experiments/make_figures.py
 python experiments/make_e5_figure.py
@@ -101,6 +117,7 @@ tesseract build tesseracts/contact_sim
 tesseract build tesseracts/score_target
 tesseract run contact-sim check-gradients @tesseracts/contact_sim/check_payload.json
 python experiments/e2b_bayesian.py     # NUTS, 2 chains: ~15 min
+python experiments/e1_inverse_design.py --container  # same optimization via the served images, identical numbers
 ```
 
 The first Julia call bootstraps a project environment (and Julia itself if

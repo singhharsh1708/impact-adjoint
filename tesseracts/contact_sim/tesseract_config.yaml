@@ -24,7 +24,7 @@ build_config:
     - 'ENV PYTHON_JULIACALL_EXE="/tesseract/julia-dist/bin/julia"'
     - 'ENV PYTHON_JULIACALL_PROJECT="/tesseract/julia_env"'
     - 'ENV JULIA_DEPOT_PATH="/tesseract/.julia"'
-    - 'RUN julia --project=/tesseract/julia_env -e ''using Pkg; Pkg.add([Pkg.PackageSpec(name="PythonCall", version="0.9.31"), Pkg.PackageSpec(name="ForwardDiff")]); Pkg.precompile()'''
+    - 'RUN julia --project=/tesseract/julia_env -e ''using Pkg; Pkg.add([Pkg.PackageSpec(name="PythonCall", version="0.9.31"), Pkg.PackageSpec(name="ForwardDiff", version="1.4.5")]); Pkg.precompile()'''
     - 'RUN python -c "import juliacall"'
     - 'RUN chmod -R 777 /tesseract/.julia /tesseract/julia_env'
 

@@ -13,7 +13,7 @@ import numpy as np
 
 from juliacall import Main as _jl
 
-_jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add("ForwardDiff")')
+_jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add(Pkg.PackageSpec(name="ForwardDiff", version="1.4.5"))')
 
 import jax
 import jax.numpy as jnp
@@ -41,8 +41,25 @@ WEIGHTS = np.array([1.0, 1.0, 0.005])
 
 
 def main():
-    sim = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "contact_sim" / "tesseract_api.py")
-    score = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "score_target" / "tesseract_api.py")
+    # --container runs the identical optimization against the served Docker
+    # images instead of in-process dev mode (same numbers, different transport)
+    import contextlib
+    import sys
+
+    use_container = "--container" in sys.argv
+    with contextlib.ExitStack() as stack:
+        if use_container:
+            out = ROOT / ".tessout"
+            out.mkdir(exist_ok=True)
+            sim = stack.enter_context(Tesseract.from_image("contact-sim", output_path=out))
+            score = stack.enter_context(Tesseract.from_image("score-target", output_path=out))
+        else:
+            sim = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "contact_sim" / "tesseract_api.py")
+            score = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "score_target" / "tesseract_api.py")
+        run(sim, score)
+
+
+def run(sim, score):
 
     def loss_fn(params):
         res = apply_tesseract(

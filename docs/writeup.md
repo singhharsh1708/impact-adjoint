@@ -125,15 +125,10 @@ through:
 (Convergence curve: `figures/e1_convergence.png`; animation:
 `figures/e1_optimization.gif`.)
 
-**E2 — calibration (Track 4 flavor).** Recover material parameters `(e, μ)`
-from the *positions of three impacts* observed with 5 mm noise. The observable
-exists only because of events — there is no smooth surrogate for "where it
-hit". Gradient descent through the solver's VJP recovers `e` to 0.002 and `μ`
-to 0.009 on the reference noise seed, from a distant start `(0.5, 0.3)`;
-accuracy across seeds is set by the noise floor of three observations, which
-is exactly what the posterior in E2b quantifies.
-
-**E2b — Bayesian calibration (Track 4 proper).** The same inverse problem as a
+**E2/E2b — calibration (Track 4).** Recover material parameters `(e, μ)`
+from the *positions of three impacts* observed with 5 mm noise — an observable
+that exists only because of events. Point estimation via the solver's VJP
+recovers `e` to 0.002 and `μ` to 0.009 from a distant start; the full
 posterior: NumPyro's NUTS sampler, whose Hamiltonian dynamics require a
 JAX-differentiable log-density, runs directly against the *containerized*
 solver — every leapfrog step calls the Tesseract's apply and saltation-VJP
@@ -154,15 +149,11 @@ HTTP the problem does not exist. The same solver is also driven with nothing
 but `curl` (`scripts/second_client_curl.sh`), so "reusable from any client"
 is demonstrated, not asserted.
 
-**E4 — terrain design (shape optimization proper).** The terrain parameters
-are differentiable inputs, so the *structure* can be the design variable. A
-single terrain is optimized so that balls entering at 1.6 m/s and 2.6 m/s are
-routed to two different cups: miss distances fall from 2.88 m / 0.48 m to
-**2.2 cm / 3.0 cm**. The optimizer flattens two bumps and keeps one narrow
-deflector that the slow ball cannot clear — the sorting logic ends up encoded
-in the geometry:
-
-![E4](figures/e4_sorter.png)
+**E4 — terrain design.** The terrain parameters are differentiable inputs, so
+the *structure* can be the design variable: one terrain routes balls entering
+at 1.6 and 2.6 m/s to two different cups (miss 2.88 m / 0.48 m falling to
+**2.2 / 3.0 cm**); the optimizer flattens two bumps and keeps one narrow
+deflector the slow ball cannot clear (figure: `figures/e4_sorter.png`).
 
 **E5 — bounce separator, 24-dimensional, head-to-head (the headline).**
 Industrial bounce/impact separators sort particles by resilience. We design
@@ -186,6 +177,17 @@ in CMA's own range (~4×10⁻³) — the separation opens beyond it, where every
 gradient-free run is fully plateaued and Adam descends four more orders.
 Either way: in 24 dimensions, exact gradients through the events are the
 difference between solving the design problem and polishing a plateau.
+
+**E5b — design under uncertainty.** Real separators process streams with
+scatter, so we make the expected loss over a particle ensemble (inlet velocity
+sd 5 cm/s, per-particle restitution sd 0.03, fixed common random numbers — the
+ensemble gradient is exact) the design objective. Two results: the E5 point
+design is already robust, scoring **99.5%** sorting purity on 200 held-out
+particles; and warm-started ensemble refinement reaches **100%** held-out
+purity while visibly widening the separation margin between the two materials'
+landing distributions:
+
+![E5b](figures/e5b_purity.png)
 
 **E6 — zero-shot generalization (the surprise).** The E5 surface was
 optimized for exactly two restitution values. Sweeping the continuum it never

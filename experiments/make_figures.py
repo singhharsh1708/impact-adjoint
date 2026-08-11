@@ -10,7 +10,7 @@ import numpy as np
 
 from juliacall import Main as _jl
 
-_jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add("ForwardDiff")')
+_jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add(Pkg.PackageSpec(name="ForwardDiff", version="1.4.5"))')
 
 import matplotlib
 
@@ -57,7 +57,8 @@ plt.rcParams.update({
 TERRAIN_P = {"amp": np.array([0.2, 0.1, 0.15]), "ctr": np.array([1.0, 2.5, 4.0]), "wid": np.array([0.5, 0.4, 0.6])}
 FIXED = {**TERRAIN_P, "y0": 1.0, "mu": 0.1, "drag": 0.0, "t_final": 2.0, "dt": 1e-3, "n_samples": 1200, "v_stop": 1e-4}
 V0_INIT, E_INIT = np.array([2.0, 0.5]), 0.7
-V0_OPT, E_OPT = np.array([2.40641, 0.47038]), 0.68051
+_E1P = np.load(ROOT / "experiments" / "e1_params_history.npy")[-1]
+V0_OPT, E_OPT = _E1P[:2], float(_E1P[2])
 TARGET_X = 4.3
 
 
