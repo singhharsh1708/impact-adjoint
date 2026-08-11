@@ -3,17 +3,18 @@
 [![CI](https://github.com/singhharsh1708/impact-adjoint/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/singhharsh1708/impact-adjoint/actions/workflows/test.yaml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-**Simulate a bouncing ball in JAX the natural way, applying the impact at the
-integrator step where it is detected, and `jax.grad` returns
-`d x(T)/d v0y = 0.0` exactly, when the truth is `+0.09`.** impact-adjoint fixes this
-— classical saltation-matrix event sensitivities served from a Julia solver
-through a Tesseract boundary — and uses the gradients to design passive
-structures whose function only exists because of impacts.
+**Simulate a bouncing ball in JAX the natural way, applying the impact at
+the integrator step where it is detected, and `jax.grad` returns `d x(T)/d
+v0y = 0.0` exactly on flat terrain, when the truth is `+0.09`.**
+impact-adjoint fixes this — classical saltation-matrix event sensitivities
+served from a Julia solver through a Tesseract boundary — and uses the
+gradients to design passive structures whose function only exists because of
+impacts.
 
 ![The surface learns to sort](docs/figures/e5_learning.gif)
-*One terrain, two materials, same inlet: gradient descent through every impact
-of both trajectories reshapes the surface until restitution alone routes each
-particle to its own bin.*
+*One terrain, two materials, same inlet: gradient descent through every
+impact of both trajectories reshapes the surface until restitution alone
+routes each particle to its own bin.*
 
 **Tesseract Hackathon 2026 — Track 1 (inverse design & shape optimization),
 cross-listed Track 4 (differentiable inference).**
@@ -45,11 +46,11 @@ flowchart LR
     O -- "one jax.grad via tesseract-jax" --> P
 ```
 
-The two components *disagree about how to differentiate* — dual-number forward
-AD plus analytic event handling in a Julia process vs. reverse-mode tracing in
-JAX — and `tesseract-jax` composes them into a single `jax.grad` anyway. The
-same solver container also serves NumPyro's HMC over HTTP and a raw `curl`
-client, unchanged.
+The two components *disagree about how to differentiate* — dual-number
+forward AD plus analytic event handling in a Julia process vs. reverse-mode
+tracing in JAX — and `tesseract-jax` composes them into a single `jax.grad`
+anyway. The same solver container also serves NumPyro's HMC over HTTP and a
+raw `curl` client, unchanged.
 
 - **`tesseracts/contact_sim`** — Julia. 2D ballistic flight over configurable
   Gaussian-bump terrain with impact events (restitution `e`, tangential loss
@@ -64,7 +65,7 @@ client, unchanged.
 | Experiment | Headline |
 |---|---|
 | **E3** — the failure, measured | Grid-reset autodiff gives `d x(T)/d v0y` = **exactly 0.0 at every dt** (truth +0.0904; the exact zero is specific to this flat-terrain case, on curved terrain it is nonzero and wrong). The pure-JAX repair converges only by hand-implementing event sensitivity. |
-| **E5** — 24-dim separator | At equal budget (900 forward-solve units, a gradient call charged as 2): Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ (~8,800×) vs Nelder-Mead 2×10⁻². Under measured wall-clock the gap narrows but Adam still ends orders below; see the writeup. |
+| **E5** — 24-dim separator | At a shared budget of 900 forward-solve units, a gradient call charged as 2 (CMA-ES uses 884, one generation short of the cap): Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ (~8,800× worse) vs Nelder-Mead 2×10⁻². Under measured wall-clock the gap narrows but Adam still ends orders below; see the writeup. |
 | **E5b** — design under uncertainty | **100%** held-out sorting purity (200 scattered particles); point design already 99.5%. |
 | **E6** — zero-shot generalization | Trained on two materials, sorts the whole continuum e ∈ [0.35, 0.875] with **one threshold**. |
 | **E1** — inverse design | Miss **1.12 m → 2.7 cm** through 5 bounces, across bounce-count changes. |
@@ -72,18 +73,18 @@ client, unchanged.
 | **E4** — terrain design | One terrain routes two inlet speeds to two cups (miss 2.2 / 3.0 cm). |
 
 ![E3](docs/figures/e3_bias.png)
-*The thesis in one figure: the natural autodiff program returns exactly zero at
-every step size (left); the pure-JAX repair converges erratically, and only the
-saltation endpoint is exact at any dt (right).*
+*The thesis in one figure: the natural autodiff program returns exactly zero
+at every step size (left); the pure-JAX repair converges erratically, and
+only the saltation endpoint is exact at any dt (right).*
 
 ![E5 separator](docs/figures/e5_separator.png)
 *The designed separator (left) and the 24-dimensional head-to-head (right):
-gradient-free methods plateau orders of magnitude short.*
+at equal budget the gradient-free runs end three to five orders above Adam.*
 
 ## Correctness
 
-The gradients are validated against **solver-independent oracles**, not just
-finite differences through the same code:
+The gradients are validated against **solver-independent oracles** as well
+as finite-difference gates through the solver itself:
 
 - `scripts/validate_closed_form.py` — full multi-bounce closed form on flat
   terrain, derived in sympy rational arithmetic (including hand-differentiated
@@ -106,8 +107,8 @@ optimization loops never consume silently nonphysical states.
 
 ## Performance envelope
 
-Warm per-call cost of the solver component (M-series CPU, dev mode; container
-adds ~10 ms HTTP overhead per call):
+Warm per-call cost of the solver component (M-series CPU, dev mode;
+container adds ~10 ms HTTP overhead per call):
 
 | call | 3 bumps, 14 params (dt 1e-3, t 2.0 s) | 24 bumps, 77 params (dt 5e-4, t 2.2 s) |
 |---|---|---|
@@ -130,8 +131,8 @@ VJP pairs) in about 2.5 minutes of sampling.
 > `make_animation.py` / `make_e5_animation.py`, which do re-run their loops.
 
 Requires Python ≥ 3.12, Docker (for containerized runs), and ~5 GB disk for
-the Docker images (contact-sim ~3.8 GB, score-target ~1.3 GB). Julia itself is
-bootstrapped automatically by `juliacall`.
+the Docker images (contact-sim ~3.8 GB, score-target ~1.3 GB). Julia itself
+is bootstrapped automatically by `juliacall`.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
