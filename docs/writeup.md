@@ -6,7 +6,7 @@ differentiable inference). Solo entry.
 **In one sentence:** we differentiate *through impacts* — exactly, not by
 smoothing — and use it to design passive structures whose function only exists
 because of those impacts: a bounce separator that sorts particles by material,
-a terrain that routes different inlet speeds to different bins, and Bayesian
+a terrain that routes different inlet speeds to different cups, and Bayesian
 recovery of material parameters from where things actually hit. Impact-driven
 sorting is real machinery (bounce/impact separators sort PET from rubber by
 resilience); simulating it differentiably is exactly where standard autodiff
@@ -27,8 +27,8 @@ simulation of a bouncing ball (RK4 scan, reset applied at the grid point via
 `jnp.where`) converges to the correct *trajectory* as `dt → 0` — and reports
 `d x(T)/d v0y = 0.0` at every resolution (an exact zero specific to
 state-independent resets over flat terrain; on curved terrain the same program
-returns nonzero *wrong* values instead). The true value is `+0.0904`,
-confirmed by two independent witnesses. The honest repair inside pure JAX —
+returns nonzero *wrong* values instead). The true value is `+0.0904`, which
+the closed-form oracle of Section 4 pins independently of this solver. The honest repair inside pure JAX —
 interpolate the crossing time from the guard and reset at the interpolated
 state — recovers a converging gradient, and that is precisely the point: the
 repair *is* first-order event-time sensitivity machinery, hand-implemented,
@@ -45,16 +45,18 @@ A two-Tesseract pipeline in which the event-aware machinery lives behind a
 Tesseract boundary, and JAX never needs to know:
 
 ```
-(v0, e, mu, terrain θ)                                            optax Adam
+  ┌───────────────────────── one jax.grad, via tesseract-jax ─────────────────┐
+  │                                                                          │
+  ▼                                                                          │
+(v0, e, mu, terrain θ)                                            optax Adam ┘
       │                                                                ▲
       ▼                                                                │
-┌────────────────────┐   qf, impact_x   ┌───────────────────┐   loss   │
-│ contact-sim        │ ───────────────▶ │ score-target      │ ─────────┘
-│ Julia · RK4+events │                  │ JAX · autodiff    │
-│ variational + salt-│                  │ (cup objective)   │
-│ ation sensitivities│                  └───────────────────┘
-└────────────────────┘
-        one jax.grad, via tesseract-jax
+┌─────────────────────┐  qf, impact_x   ┌───────────────────┐   loss   │
+│ contact-sim         │ ──────────────▶ │ score-target      │ ─────────┘
+│ Julia · RK4 + events│                 │ JAX · autodiff    │
+│ variational X +     │                 │ (landing          │
+│ saltation jumps     │                 │  objective)       │
+└─────────────────────┘                 └───────────────────┘
 ```
 
 **contact-sim** (Julia): a 2D point mass under gravity (optional linear drag)
@@ -78,9 +80,9 @@ analytically. From the assembled Jacobian, the Tesseract serves `jacobian`,
 `jax.jvp`, and `jax.jacrev` all work through it.
 
 Cost model, stated plainly: the sensitivities are *forward*-variational, so a
-VJP costs O(n_params) — measured ~8× a forward solve at 77 parameters, and
-milliseconds either way (apply 3–5 ms; full 77-column Jacobian 23–45 ms warm,
-dt-dependent). The right trade at tens of design variables; at thousands, the
+VJP costs O(n_params): measured 6.0× a forward solve at 14 parameters and
+8.6× at 77, milliseconds either way (apply 2.0 / 4.9 ms, VJP 12.1 / 41.6 ms
+warm). The right trade at tens of design variables; at thousands, the
 natural extension is a reverse-mode saltation adjoint behind the *same*
 endpoint — the interface is already shaped for it.
 
@@ -91,13 +93,12 @@ endpoints.
 ### Why this needs Tesseract
 
 The two components disagree about how to compute *and* how to differentiate:
-dual-number forward AD plus analytic event handling in a Julia process, versus
-reverse-mode tracing autodiff in JAX. There is no way to express the *exact* saltation
-update natively inside `jax.grad`'s programming model without reimplementing
-the solver as a JAX custom primitive with hand-written VJPs — at which point you have
-written a worse, unshareable Tesseract. The Tesseract contract is exactly the
-seam: Julia publishes *what its derivatives are*, not *how it got them*, and
-`tesseract-jax` splices them into JAX's chain rule.
+dual-number forward AD plus analytic event handling in Julia, versus
+reverse-mode tracing in JAX. Expressing the exact saltation update natively
+inside `jax.grad` would mean reimplementing the solver as a custom primitive
+with hand-written VJPs, which is a worse, unshareable Tesseract. The contract
+is the seam: Julia publishes *what its derivatives are*, not *how it got
+them*, and `tesseract-jax` splices them into JAX's chain rule.
 
 A deliberate design point: when a trajectory leaves the model's validity
 region (event capacity, Zeno chatter), the solver *terminates at the event
@@ -110,20 +111,15 @@ in free-fall below the terrain.
 ## 3. Gradients doing real work
 
 **E1 — inverse design.** Optimize launch velocity and restitution so the ball
-lands in a cup 1.1 m past where the initial guess settles — every Adam step
-one `jax.grad` through both Tesseracts:
-
-![E1](figures/e1_trajectory.png)
-
-Miss distance falls **1.12 m → 2.7 cm**, through five impacts. Notably, the
-optimizer crosses bounce-count boundaries repeatedly during descent
-(4 → 6 → 5 early on, with excursions to 8 before settling at 5) —
-the objective is discontinuous there (inherent to contact), and the
-fixed-topology gradients on each side are exact, which is what carries Adam
-through:
-
-(Convergence curve: `figures/e1_convergence.png`; animation:
-`figures/e1_optimization.gif`.)
+lands in a cup 1.1 m past where the initial guess settles, every Adam step one
+`jax.grad` through both Tesseracts ([trajectory](figures/e1_trajectory.png),
+[convergence](figures/e1_convergence.png),
+[animation](figures/e1_optimization.gif)). Miss distance falls **1.12 m →
+2.7 cm** through five impacts, with the optimizer repeatedly crossing
+bounce-count boundaries on the way (4 → 6 → 5, with excursions to 8). The
+objective is discontinuous at those crossings, which is inherent to contact;
+the fixed-topology gradients on each side are exact, and that is what carries
+Adam through.
 
 **E2/E2b — calibration (Track 4).** Recover material parameters `(e, μ)`
 from the *positions of three impacts* observed with 5 mm noise — an observable
@@ -136,24 +132,22 @@ endpoints over HTTP — ~10,000 solver calls per chain. Two chains, zero
 divergences, r̂ = 1.01: posterior `e = 0.697 ± 0.007`, `μ = 0.096 ± 0.009`,
 with the truth inside the 68% and 95% credible intervals of both marginals,
 and the
-posterior resolves the physically meaningful e–μ ridge (more bounce traded
-against more tangential loss):
-
-![E2b](figures/e2b_posterior.png)
+posterior resolves the physically meaningful e–μ ridge, more bounce traded
+against more tangential loss ([figure](figures/e2b_posterior.png)).
 
 This is the composition Track 4 asks for: an expensive event-driven solver
-dropped into a probabilistic workflow unchanged. The container is
-load-bearing, not packaging: NumPyro's jitted callbacks run off the main
-thread, which an in-process embedded Julia runtime does not tolerate — over
-HTTP the problem does not exist. The same solver is also driven with nothing
-but `curl` (`scripts/second_client_curl.sh`), so "reusable from any client"
-is demonstrated, not asserted.
+dropped into a probabilistic workflow unchanged. The container is load-bearing
+rather than packaging, since NumPyro's jitted callbacks run off the main thread
+and an in-process embedded Julia runtime does not tolerate that, while over
+HTTP the problem does not arise (reported upstream as tesseract-jax#234). The
+same solver is also driven with nothing but `curl`
+(`scripts/second_client_curl.sh`).
 
 **E4 — terrain design.** The terrain parameters are differentiable inputs, so
 the *structure* can be the design variable: one terrain routes balls entering
 at 1.6 and 2.6 m/s to two different cups (miss 2.88 m / 0.48 m falling to
 **2.2 / 3.0 cm**); the optimizer flattens two bumps and keeps one narrow
-deflector the slow ball cannot clear (figure: `figures/e4_sorter.png`).
+deflector the slow ball cannot clear ([figure](figures/e4_sorter.png)).
 
 **E5 — bounce separator, 24-dimensional, head-to-head (the headline).**
 Industrial bounce/impact separators sort particles by resilience. We design
@@ -171,12 +165,15 @@ bin) — with landing errors of 0.38 mm and 0.34 mm. The right panel makes
 Charging a gradient call as two forward solves, Adam reaches **2×10⁻⁷** while
 CMA-ES plateaus at 2×10⁻³ (~8,800× worse) and Nelder-Mead at 2×10⁻²; a
 3-seed × 3-σ₀ CMA tuning grid (`experiments/e5_cma_grid.py`) gives median
-1.7×10⁻³ with a best tail of 1.7×10⁻⁴ — still ~750× above Adam. Charging by *measured wall-clock* (a VJP
-costs ~8 forward solves at 77 parameters), Adam at CMA's total wall-clock sits
-in CMA's own range (~4×10⁻³) — the separation opens beyond it, where every
-gradient-free run is fully plateaued and Adam descends four more orders.
-Either way: in 24 dimensions, exact gradients through the events are the
-difference between solving the design problem and polishing a plateau.
+1.7×10⁻³ with a best tail of 1.7×10⁻⁴ — still ~750× above Adam. Charging by *measured wall-clock* (a VJP costs 8.6
+forward solves at these 77 parameters), Adam at CMA's total wall-clock sits in
+CMA's own range (~4×10⁻³); the separation opens beyond that point, where Adam
+descends four further orders. The gradient-free runs are not equally stuck:
+CMA-ES is flat over its last third, while Nelder-Mead is still improving when
+the budget ends (its last gain lands at evaluation 896 of 900), so its 2×10⁻²
+is a budget limit rather than a converged value. Neither is within three
+orders of the gradient result. In 24 dimensions, exact gradients through the
+events are the difference between solving this design problem and not.
 
 **E5b — design under uncertainty.** Real separators process streams with
 scatter, so we make the expected loss over a particle ensemble (inlet velocity
@@ -185,19 +182,21 @@ ensemble gradient is exact) the design objective. Two results: the E5 point
 design is already robust, scoring **99.5%** sorting purity on 200 held-out
 particles; and warm-started ensemble refinement reaches **100%** held-out
 purity while visibly widening the separation margin between the two materials'
-landing distributions:
-
-![E5b](figures/e5b_purity.png)
+landing distributions ([figure](figures/e5b_purity.png)).
 
 **E6 — zero-shot generalization (the surprise).** The E5 surface was
 optimized for exactly two restitution values. Sweeping the continuum it never
 saw, the designed geometry acts as a *classifier*: every material with
 `e ∈ [0.35, 0.875]` is binned by a single threshold (A up to `e = 0.65`, B
-from `e = 0.675`), the trained points sit comfortably inside their classes,
-and the behavior survives 3 cm/s of inlet-velocity scatter at off-design
-materials. The failure edge is physical and we report it: beyond `e ≈ 0.9` the design
-leaves its validated domain — at `e = 0.9` the ball rebounds off the backstop
-and exits left; above that, landings scatter far past the bins. Nothing in
+from `e = 0.675`). Margins are asymmetric and worth stating: the trained
+`e = 0.5` point lands 0.80 m clear of the decision boundary, the trained
+`e = 0.8` point only 0.13 m. Under 3 cm/s of inlet-velocity scatter at
+off-design materials, `e = 0.45` classifies 12 of 12 correctly and `e = 0.85`
+10 of 12. The failure edge is physical and we report it: beyond `e ≈ 0.9` classification
+stops being clean. At `e = 0.9` the ball rebounds off the backstop and exits
+left into the wrong bin; at `e = 0.925` it overshoots 1.2 m past bin B; at
+`e = 0.95` it lands between the bins on a capacity-truncated trajectory.
+Nothing in
 the objective asked for any of this — the generalization emerged from
 optimizing two point designs through their impact events:
 
@@ -243,7 +242,10 @@ alternative is classical: the **saltation matrix** (Aizerman & Gantmacher
 1958; Hiskens & Pai, IEEE TCAS 2000; surveyed by Kong et al., Proc. IEEE
 2024). Our contribution is not the formula but the *packaging*: exact event
 sensitivities behind Tesseract endpoints, consumable by frameworks that cannot
-express them natively. To our knowledge no prior work optimizes the
+express them natively. The closest JAX-native alternative is Diffrax (Kidger,
+2021), which localizes events by root finding; the difference is where the
+event sensitivity is authored, and for a solver that already exists in another
+language the component boundary avoids porting it at all. To our knowledge no prior work optimizes the
 *environment/structure* through contact events (nearest: robot morphology
 design, Xu et al., RSS 2021; soft-body design, Geilinger et al., TOG 2020) —
 the terrain-as-design-variable problems appear new.

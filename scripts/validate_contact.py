@@ -24,6 +24,10 @@ jax.config.update("jax_enable_x64", True)
 
 API_PATH = Path(__file__).parent.parent / "tesseracts" / "contact_sim" / "tesseract_api.py"
 
+from tesseract_core.runtime.core import load_module_from_path
+
+MAX_EVENTS = load_module_from_path(API_PATH).MAX_EVENTS
+
 BASE = {
     "v0": np.array([2.0, 0.5]),
     "y0": 1.0,
@@ -88,7 +92,7 @@ def check_case(t, base, label, rtol=1e-5, atol=1e-7):
     worst = 0.0
     for name in DIFF_INPUTS:
         a_q = np.atleast_2d(np.asarray(jac["qf"][name]).reshape(4, -1))
-        a_i = np.asarray(jac["impact_x"][name]).reshape(8, -1)[:nev]
+        a_i = np.asarray(jac["impact_x"][name]).reshape(MAX_EVENTS, -1)[:nev]
         analytic = np.concatenate([a_q, a_i], axis=0)
         err = np.max(np.abs(analytic - fd[name]) / (np.abs(fd[name]) + 1.0))
         worst = max(worst, err)
@@ -178,7 +182,7 @@ def regressions(t):
     cfg = dict(BASE, e=0.85, mu=0.0, t_final=6.0, n_samples=2000)
     res = t.apply(cfg)
     assert int(res["status"]) == 1, f"cap: status={res['status']}"
-    assert int(res["n_events"]) == 8
+    assert int(res["n_events"]) == MAX_EVENTS
     pen = penetration(res, cfg)
     assert pen > -1e-9, f"cap: tunneled, min(y - h) = {pen:.3e}"
     print(f"[cap] 9th crossing stops integration at t={float(res['t_end']):.4f}, no tunneling (min y-h {pen:.1e})")

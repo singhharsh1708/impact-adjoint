@@ -3,8 +3,8 @@
 [![CI](https://github.com/singhharsh1708/impact-adjoint/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/singhharsh1708/impact-adjoint/actions/workflows/test.yaml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-**Differentiate through an impact with standard autodiff and you get a gradient
-of exactly `0.0` when the truth is `+0.09`.** impact-adjoint fixes this exactly
+**Differentiate a bouncing ball with standard autodiff and `jax.grad` returns
+`d x(T)/d v0y = 0.0` exactly, when the truth is `+0.09`.** impact-adjoint fixes this
 — classical saltation-matrix event sensitivities served from a Julia solver
 through a Tesseract boundary — and uses the gradients to design passive
 structures whose function only exists because of impacts.
@@ -21,14 +21,14 @@ What the gradients design and infer:
 
 - a **24-parameter bounce separator** that sorts particles by material
   (industrial cousin: resilience-based PET/rubber sorting in recycling),
-- **terrain** that routes different inlet speeds to different bins,
+- **terrain** that routes different inlet speeds to different cups,
 - **Bayesian recovery of material parameters** from where things actually hit.
 
 ## Contents
 
 - [Architecture](#architecture) · [Results](#results) · [Correctness](#correctness)
 - [Performance envelope](#performance-envelope) · [Reproduce](#reproduce) · [Troubleshooting](#troubleshooting)
-- [Repository structure](#repository-structure) · [Limitations](#model-and-scope-honest-limitations) · [References](#references)
+- [Repository structure](#repository-structure) · [Limitations](#model-and-scope-honest-limitations) · [Future work](#future-work) · [References](#references)
 
 ## Architecture
 
@@ -62,8 +62,8 @@ client, unchanged.
 
 | Experiment | Headline |
 |---|---|
-| **E3** — the failure, measured | Grid-reset autodiff: **exactly 0.0 at every dt** (truth +0.0904). Interpolated-event repair converges only by hand-implementing event sensitivity. |
-| **E5** — 24-dim separator | Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ (~8,800× worse) vs Nelder-Mead 2×10⁻² at equal budget. |
+| **E3** — the failure, measured | Grid-reset autodiff gives `d x(T)/d v0y` = **exactly 0.0 at every dt** (truth +0.0904; the exact zero is specific to this flat-terrain case, on curved terrain it is nonzero and wrong). The pure-JAX repair converges only by hand-implementing event sensitivity. |
+| **E5** — 24-dim separator | At equal budget (900 forward-solve units, a gradient call charged as 2): Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ (~8,800×) vs Nelder-Mead 2×10⁻². Under measured wall-clock the gap narrows but Adam still ends orders below; see the writeup. |
 | **E5b** — design under uncertainty | **100%** held-out sorting purity (200 scattered particles); point design already 99.5%. |
 | **E6** — zero-shot generalization | Trained on two materials, sorts the whole continuum e ∈ [0.35, 0.875] with **one threshold**. |
 | **E1** — inverse design | Miss **1.12 m → 2.7 cm** through 5 bounces, across bounce-count changes. |
@@ -108,14 +108,15 @@ optimization loops never consume silently nonphysical states.
 Warm per-call cost of the solver component (M-series CPU, dev mode; container
 adds ~10 ms HTTP overhead per call):
 
-| call | 3 bumps (14 params) | 24 bumps (77 params) |
+| call | 3 bumps, 14 params (dt 1e-3, t 2.0 s) | 24 bumps, 77 params (dt 5e-4, t 2.2 s) |
 |---|---|---|
-| `apply` (dt 1e-3, t 2 s) | ~2 ms | ~2 ms |
-| full Jacobian / VJP | ~14 ms | ~24 ms |
+| `apply` | 2.0 ms | 4.9 ms |
+| `vector_jacobian_product` | 12.1 ms | 41.6 ms |
+| ratio | 6.0× | 8.6× |
 
-Gradients are forward-variational: VJP cost scales with parameter count
-(~8× a forward solve at 77 parameters). HMC through the container sustains
-~10,000 endpoint calls in ~2.5 minutes.
+Gradients are forward-variational, so VJP cost grows with parameter count.
+HMC through the container sustains roughly 10,000 endpoint calls (apply plus
+VJP pairs) in about 2.5 minutes of sampling.
 
 ## Reproduce
 
@@ -123,8 +124,9 @@ Gradients are forward-variational: VJP cost scales with parameter count
 > **Figures in one minute:** all experiment results are committed as
 > `experiments/*.npz` / `*.npy`, so
 > `python experiments/make_figures.py && python experiments/make_e5_figure.py && python experiments/make_e5b_figure.py`
-> regenerates every figure without rerunning any optimization (after the
-> one-time Julia bootstrap).
+> regenerates all eight static figures without rerunning any optimization
+> (after the one-time Julia bootstrap). The two GIFs come from
+> `make_animation.py` / `make_e5_animation.py`, which do re-run their loops.
 
 Requires Python ≥ 3.12, Docker (for containerized runs), and ~5 GB disk for
 the Docker images (contact-sim ~3.8 GB, score-target ~1.3 GB). Julia itself is
@@ -156,15 +158,17 @@ tesseract build tesseracts/contact_sim
 tesseract build tesseracts/score_target
 tesseract run contact-sim check-gradients @tesseracts/contact_sim/check_payload.json
 python experiments/e2b_bayesian.py                   # NUTS, 2 chains: ~15 min
-python experiments/e1_inverse_design.py --container  # identical numbers via served images
+python experiments/e1_inverse_design.py --container  # same optimization via the served images
 ./scripts/second_client_curl.sh                      # gradients with nothing but curl
 ```
 
 > [!NOTE]
 > The first Julia call bootstraps a project environment (and Julia itself if
 > absent) — expect 1–5 minutes and a wall of `[juliapkg]` output the first
-> time; warm runs take seconds. Total reproduction: ~7 min dev-mode, plus
-> ~10 min for the contact-sim image.
+> time; warm runs take seconds. Measured budget: about 5 minutes for the
+> validation block and experiments E1 to E6, plus ~10 minutes for
+> `e5b_robust_separator.py`, plus ~10 minutes to build the contact-sim image
+> and ~15 minutes for the two NUTS chains.
 
 ## Troubleshooting
 

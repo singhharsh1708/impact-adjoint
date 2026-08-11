@@ -56,9 +56,11 @@ def main():
     opt = optax.adam(learning_rate=0.02)
     state = opt.init(amp)
     amps, losses = [np.asarray(amp)], []
+    best = np.inf
     for _ in range(150):
         val, g = loss_and_grad(np.asarray(amp))
-        losses.append(val)
+        best = min(best, val)   # report best-so-far, matching the headline number
+        losses.append(best)
         updates, state = opt.update(jnp.asarray(g), state)
         amp = jnp.clip(optax.apply_updates(amp, updates), 0.0, AMP_MAX)
         amps.append(np.asarray(amp))
@@ -115,7 +117,7 @@ def main():
         l_rub.set_data(trajs[0][:, 0], trajs[0][:, 1])
         l_pet.set_data(trajs[1][:, 0], trajs[1][:, 1])
         it = idxs[k]
-        info.set_text(f"Adam iteration {it:3d}    objective {losses[it]:.2e}")
+        info.set_text(f"Adam iteration {it:3d}    best objective {losses[it]:.2e}")
         return [fill[0], tline, l_rub, l_pet, info]
 
     anim = FuncAnimation(fig, update, frames=len(idxs) + hold, interval=120, blit=False)

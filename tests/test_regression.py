@@ -145,14 +145,13 @@ def test_composed_vjp_chain(tess):
     # contact_sim -> score_target under one jax.grad matches FD of the chain
     import jax
     import jax.numpy as jnp
-    from tesseract_core import Tesseract as T
     from tesseract_jax import apply_tesseract
 
     jax.config.update("jax_enable_x64", True)
-    score = T.from_tesseract_api(Path(__file__).parent.parent / "tesseracts" / "score_target" / "tesseract_api.py")
+    score = Tesseract.from_tesseract_api(Path(__file__).parent.parent / "tesseracts" / "score_target" / "tesseract_api.py")
 
     def loss(e):
-        res = apply_tesseract(tess, {**{k: v for k, v in BASE.items()}, "e": e})
+        res = apply_tesseract(tess, {**BASE, "e": e})
         sc = apply_tesseract(score, {"qf": res["qf"], "target": jnp.array([3.0, 0.1]),
                                      "weights": jnp.array([1.0, 1.0, 0.01])})
         return sc["loss"]
@@ -164,11 +163,9 @@ def test_composed_vjp_chain(tess):
 
 
 def test_input_bounds_rejected(tess):
-    import pytest as _pytest
-
     for bad in (dict(BASE, e=1.3), dict(BASE, mu=-0.2), dict(BASE, dt=0.0),
                 dict(BASE, wid=np.array([0.5, -0.1, 0.6]))):
-        with _pytest.raises(Exception):
+        with pytest.raises(Exception):
             tess.apply(bad)
 
 

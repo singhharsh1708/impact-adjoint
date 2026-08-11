@@ -20,6 +20,10 @@ from tesseract_core import Tesseract
 
 API_PATH = Path(__file__).parent.parent / "tesseracts" / "contact_sim" / "tesseract_api.py"
 
+from tesseract_core.runtime.core import load_module_from_path
+
+MAX_EVENTS = load_module_from_path(API_PATH).MAX_EVENTS
+
 G = 9.81
 
 
@@ -124,7 +128,7 @@ def check(t, base, label):
     worst = 0.0
     for name in DIFF_INPUTS:
         a_q = np.asarray(jac["qf"][name]).reshape(4, -1)
-        a_i = np.asarray(jac["impact_x"][name]).reshape(8, -1)[:nev]
+        a_i = np.asarray(jac["impact_x"][name]).reshape(MAX_EVENTS, -1)[:nev]
         analytic = np.concatenate([a_q, a_i], axis=0)
         err = np.max(np.abs(analytic - fd[name]) / (np.abs(fd[name]) + 1.0))
         worst = max(worst, err)

@@ -38,14 +38,15 @@ using ForwardDiff
 # Terrain features narrower than |vx|·dt/3 can still be stepped over —
 # choose dt ≲ min(wid) / (3 |vx|).
 #
-# Parameter vector θ (length NTH):
-#   1:2  v0 (launch velocity)
-#   3    y0 (launch height, x0 = 0 fixed)
-#   4    e  (normal restitution)
-#   5    μ  (tangential loss factor)
-#   6:8  amp (Gaussian bump amplitudes)
-#   9:11 ctr (bump centers)
-#  12:14 wid (bump widths)
+# Parameter vector θ (length 5 + 3nb for nb terrain bumps):
+#   1:2                v0 (launch velocity)
+#   3                  y0 (launch height, x0 = 0 fixed)
+#   4                  e  (normal restitution)
+#   5                  μ  (tangential loss factor)
+#   6      : 5+nb      amp (Gaussian bump amplitudes)
+#   6+nb   : 5+2nb     ctr (bump centers)
+#   6+2nb  : 5+3nb     wid (bump widths)
+# e.g. nb=3 gives θ of length 14; the E5 separator uses nb=24, length 77.
 
 const GRAV = 9.81
 # Number of terrain bumps is derived from the parameter vector length:
