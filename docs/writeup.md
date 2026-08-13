@@ -6,12 +6,12 @@ headline result is a designed structure and Track 1 is the entry's track.)
 
 This entry differentiates *through impacts* exactly, rather than by
 smoothing them, and uses the result to design passive structures whose
-function only exists because of those impacts: a bounce separator that sorts particles by
-material, a terrain that routes different inlet speeds to different cups,
-and Bayesian recovery of material parameters from where things actually hit.
-Impact-driven sorting is real machinery (bounce/impact separators sort PET
-from rubber by resilience); simulating it differentiably is exactly where
-standard autodiff fails silently.
+function only exists because of those impacts. Sorting by resilience is real
+machinery: USDA Agriculture Handbook 354 (1968) describes a resilience
+separator as "a long inclined plane interrupted with several bounce plates",
+and bounce rollers are sold today to separate potatoes from stones.
+Simulating that class of machine differentiably is exactly where standard
+autodiff fails silently.
 
 ## 1. The problem: gradients die at events, quietly
 
@@ -75,18 +75,22 @@ on smooth segments; at each event, `X` jumps:
 X⁺ = R_q X⁻ + R_θ − (f⁺ − R_q f⁻) τ_θᵀ,     τ_θ = −(X⁻ᵀ g_q + g_θ) / (g_q · f⁻)
 ```
 
-This is the saltation update. Local partials (`∂f/∂q`, `g_q`, `g_θ`, `R_q`, `R_θ`)
-come from ForwardDiff dual numbers; the event structure is handled
-analytically. From the assembled Jacobian, the Tesseract serves `jacobian`,
+This is the saltation jump condition applied to the θ-augmented system
+(θ̇ = 0), which is the form Hiskens & Pai give (eqs. 57 to 59 with the
+parameter augmentation of 62 to 63). One detail worth flagging, since the
+most-cited statements of the saltation matrix are for time-varying guards:
+because parameters are constant along the flow, `∂g/∂θ` enters the
+event-time *numerator*, not the denominator where an explicit `∂g/∂t` would
+sit. Local partials (`∂f/∂q`, `g_q`, `g_θ`, `R_q`, `R_θ`) come from
+ForwardDiff dual numbers; the event structure is handled analytically. From the assembled Jacobian, the Tesseract serves `jacobian`,
 `jacobian_vector_product`, and `vector_jacobian_product`, so `jax.grad`,
 `jax.jvp`, and `jax.jacrev` all work through it.
 
-On cost: the sensitivities are *forward*-variational, so
-a VJP costs O(n_params): measured 6.0× a forward solve at 14 parameters and
-8.5× at 77, milliseconds either way (apply 2.0 / 4.9 ms, VJP 12.1 / 41.6 ms
-warm). The right trade at tens of design variables; at thousands, the
-natural extension is a reverse-mode saltation adjoint behind the *same*
-endpoint, and the interface is already shaped for it.
+On cost: the sensitivities are *forward*-variational, so a VJP costs
+O(n_params), measured at 6.0× a forward solve for 14 parameters and 8.5× for
+77 (apply 2.0 / 4.9 ms, VJP 12.1 / 41.6 ms warm). That is the right trade at
+tens of design variables. At thousands, the natural extension is a
+reverse-mode saltation adjoint behind the same endpoint.
 
 **score-target** (JAX): a differentiable landing objective (quadratic
 distance to a cup plus kinetic penalty), built with the `tesseract init
@@ -96,19 +100,27 @@ distance to a cup plus kinetic penalty), built with the `tesseract init
 
 The two components disagree about how to compute *and* how to differentiate:
 dual-number forward AD plus analytic event handling in Julia, versus
-reverse-mode tracing in JAX. Expressing the exact saltation update natively
-inside `jax.grad` would mean reimplementing the solver as a custom primitive
-with hand-written VJPs, which is a worse, unshareable Tesseract. The
-contract is the seam: Julia publishes *what its derivatives are*, not *how
-it got them*, and `tesseract-jax` splices them into JAX's chain rule.
+reverse-mode tracing in JAX. To be precise about what JAX already does here:
+Diffrax has differentiated event times since v0.6.0, by implicit
+differentiation through an Optimistix root find, so a single event is handled
+natively and correctly. What is missing is the rest of a hybrid trajectory.
+`diffrax.Event` terminates a solve and has no reset map, so a multi-impact
+chain must be assembled by restarting the solver after each event and
+applying the reset in user code. That route is expressible, and it is
+currently unreliable: Diffrax issue #729 reports exactly this pattern
+returning solver-dependent wrong gradients (0.50 with Heun, -1.42 with Tsit5,
+0.78 with Bosh3, against a true value of 1.0), and the maintainer's fix
+branch is unmerged. Rather than build on that, the event-aware machinery
+sits behind the component contract: Julia publishes *what its derivatives
+are*, not *how it got them*, and `tesseract-jax` splices them into JAX's
+chain rule.
 
-A deliberate design point: when a trajectory leaves the model's validity
-region (event capacity, Zeno chatter), the solver *terminates at the event
-with an explicit status* and returns the **total derivative at the
-truncation point**, event-time dependence included, so optimizers never
-consume silently nonphysical states. Our adversarial testing showed the
-alternative (integrate on, ignore events) produces plausible-looking
-gradients of a ball in free-fall below the terrain.
+When a trajectory leaves the model's validity region (event capacity, Zeno
+chatter), the solver terminates at the event with an explicit status and
+returns the total derivative at that point, event-time dependence included,
+so optimizers never consume silently nonphysical states. The alternative,
+integrating on and ignoring events, produces plausible-looking gradients of
+a ball in free-fall below the terrain.
 
 ## 3. Gradients doing real work
 
@@ -126,11 +138,10 @@ carries Adam through.
 
 **E2 and E2b, calibration (Track 4).** Recover material parameters `(e, μ)`
 from the *positions of three impacts* observed with 5 mm noise, an
-observable that exists only because of events. Point estimation via the
-solver's VJP recovers `e` to 0.002 and `μ` to 0.009 from a distant start;
-the full posterior: NumPyro's NUTS sampler, whose Hamiltonian dynamics
-require a JAX-differentiable log-density, runs directly against the
-*containerized* solver. Every leapfrog step calls the Tesseract's apply and
+observable that exists only because of events. Point estimation via the solver's
+VJP recovers `e` to 0.002 and `μ` to 0.009 from a distant start. For the
+posterior, NumPyro's NUTS sampler runs directly against the *containerized*
+solver. Every leapfrog step calls the Tesseract's apply and
 saltation-VJP endpoints over HTTP, roughly 10,000 solver calls per chain. Two
 chains, zero divergences, r̂ = 1.01: posterior `e = 0.697 ± 0.007`, `μ =
 0.096 ± 0.009`, with the truth inside the 68% and 95% credible intervals of
@@ -153,28 +164,39 @@ falling to **2.2 / 3.0 cm**); the optimizer flattens two bumps and keeps one
 narrow deflector the slow ball cannot clear
 ([figure](figures/e4_sorter.png)).
 
-**E5, the headline: a 24-dimensional bounce separator, head to head.**
-Industrial bounce/impact separators sort particles by resilience. We design
-one: two particles enter *identically* and differ only in restitution (`e =
-0.5` "rubber" vs `e = 0.8` "PET"); the design vector is the 24 bump
-amplitudes of the surface; each particle must land in its own bin.
+**E5, the headline: a 24-dimensional resilience separator, head to head.**
+Resilience separators sort particles by how far they bounce off a profiled
+hard surface. We design one: two particles enter *identically* and differ
+only in restitution (`e = 0.5` and `e = 0.8`); the design vector is the 24
+bump amplitudes of the surface; each particle must land in its own bin.
 
 ![E5](figures/e5_separator.png)
 
 The designed surface separates the materials from a shared first impact.
-rubber is still over bin A when its eighth impact exhausts the event budget,
-while PET carries over the designed hills into bin B (the optimizer grew a
-backstop that bounces PET *backward* into its bin), with landing errors of
-0.38 mm and 0.34 mm. The right panel plots the race under the
+the low-restitution particle is still over bin A when its eighth impact
+exhausts the event budget, while the high-restitution one carries over the
+designed hills into bin B (the optimizer grew a backstop that bounces it
+*backward* into that bin), with landing errors of
+0.
+One caveat this design shares with any fixed-length chute: the
+low-restitution particle is stopped by the solver's event budget
+(`MAX_EVENTS = 8`) rather than by coming to rest, so the separation surface
+is "position after eight impacts", not "position at rest". A chute of fixed
+length imposes an analogous cut, though not the identical one.38 mm and 0.34 mm. The right panel plots the race under the
 evaluation-count accounting; the wall-clock accounting follows in the text,
 and we report both. Charging a gradient call as two forward solves, Adam
 reaches **2×10⁻⁷** while CMA-ES plateaus at 2×10⁻³ (~8,800× worse) and
 Nelder-Mead at 2×10⁻²; a 3-seed × 3-σ₀ CMA tuning grid
 (`experiments/e5_cma_grid.py`) gives median 1.7×10⁻³ with a best tail of
-1.7×10⁻⁴, still ~730× above Adam. Charging by *measured wall-clock* (a VJP
-costs 8.5 forward solves at these 77 parameters), Adam at CMA's total
-wall-clock sits in CMA's own range (~4×10⁻³); the separation opens beyond
-that point, where Adam descends four further orders. The gradient-free runs
+1.7×10⁻⁴, still ~730× above Adam. The eval-count accounting is generous to
+us, and the honest version is worth stating. Charged by *measured
+wall-clock* (a VJP costs 8.5 forward solves at these 77 parameters, not the 2
+the script charges), Adam consumes about 3.2× CMA's wall-clock over the run.
+Cut at CMA's own wall-clock budget, Adam sits at 3.8×10⁻³ against CMA's
+converged 1.98×10⁻³, so at that cut it loses, and the best tuned CMA grid run
+(1.7×10⁻⁴) is better still. The gradient advantage is not that it wins a
+fixed short budget. It is that it keeps descending four further orders after
+every gradient-free run has stopped moving. The gradient-free runs
 are not equally stuck: CMA-ES is flat over its last third, while Nelder-Mead
 is still improving when the budget ends (its last gain lands at evaluation
 896 of 900), so its 2×10⁻² is a budget limit rather than a converged value.
@@ -186,11 +208,12 @@ design problem and not.
 scatter, so we make the expected loss over a particle ensemble (inlet
 velocity sd 5 cm/s, per-particle restitution sd 0.03, fixed common random
 numbers, so the ensemble gradient is exact) the design objective. Two results:
-the E5 point design is already robust, scoring **99.5%** sorting purity on
-200 held-out particles; and warm-started ensemble refinement reaches
-**100%** held-out purity while visibly widening the separation margin
-between the two materials' landing distributions
-([figure](figures/e5b_purity.png)).
+the E5 point design is already robust, scoring 199 of 200 on the held-out
+ensemble, and ensemble refinement scores 200 of 200. That last step is a
+one-particle difference and should not be read as a significant gain. The
+result worth reporting is the margin: refinement widens the gap between the
+two landing distributions at the decision boundary, which is what would
+matter on a real machine ([figure](figures/e5b_purity.png)).
 
 **E6, zero-shot generalization.** The E5 surface was
 optimized for exactly two restitution values. Sweeping the continuum it
@@ -255,13 +278,22 @@ Gantmacher 1958; Hiskens & Pai, IEEE TCAS 2000; surveyed by Kong et al.,
 Proc. IEEE 2024). Our contribution is not the formula but the *packaging*:
 exact event sensitivities behind Tesseract endpoints, consumable by
 frameworks that cannot express them natively. The closest JAX-native
-alternative is Diffrax (Kidger, 2021), which localizes events by root
-finding; the difference is where the event sensitivity is authored, and for
-a solver that already exists in another language the component boundary
-avoids porting it at all. To our knowledge no prior work optimizes the
-*environment/structure* through contact events (nearest: robot morphology
-design, Xu et al., RSS 2021; soft-body design, Geilinger et al., TOG 2020), so
-the terrain-as-design-variable problems appear new.
+alternative is Diffrax (Kidger, 2021), which does differentiate event times
+correctly, by implicit differentiation of a root find, and tests that
+derivative against a hand-derived reference. The gap is not the event time
+but the reset: `diffrax.Event` only terminates a solve, so no saltation
+matrix arises there by construction, and hybrid support is still an open
+request (issue #423).
+
+Designing fixed environment geometry through contact-driven simulation is not
+itself new. Choi & Kumar (2024) optimize baffle placement by AD through a
+differentiable granular simulator, Liu et al. (AIChE J., 2025) optimize
+hopper shape the same way, and non-gradient scene and part-feeder design goes
+back further (Roussel et al., SIGGRAPH 2019; Berkowitz & Canny, ICRA 1996).
+Those works differentiate a smoothed or learned model of contact and target a
+bulk flow statistic. What we could not find in the literature is design that
+uses *exact event-time sensitivities* and targets *per-impact routing* of
+individual trajectories, which is the combination E4 and E5 exercise.
 
 ## 6. Limitations
 

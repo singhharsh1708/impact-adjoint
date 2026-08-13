@@ -22,8 +22,9 @@ Track 4, but Track 1 is the entry's track.)
 
 What the gradients design and infer:
 
-- a **24-parameter bounce separator** that sorts particles by material
-  (industrial cousin: resilience-based PET/rubber sorting in recycling),
+- a **24-parameter resilience separator** that sorts particles by how far
+  they bounce (the documented industrial cousins are seed resilience
+  separators and potato/stone bounce rollers),
 - **terrain** that routes different inlet speeds to different cups,
 - **Bayesian recovery of material parameters** from where things actually hit.
 
@@ -67,8 +68,8 @@ raw `curl` client, unchanged.
 | Experiment | Headline |
 |---|---|
 | **E3**, the failure measured | Grid-reset autodiff gives `d x(T)/d v0y` = **exactly 0.0 at every dt** (truth +0.0904; the exact zero is specific to this flat-terrain case, on curved terrain it is nonzero and wrong). The pure-JAX repair converges only by hand-implementing event sensitivity. |
-| **E5**, 24-dim separator | At a shared budget of 900 forward-solve units, a gradient call charged as 2 (CMA-ES uses 884, one generation short of the cap): Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ (~8,800× worse) vs Nelder-Mead 2×10⁻². Under measured wall-clock the gap narrows but Adam still ends orders below; see the writeup. |
-| **E5b**, design under uncertainty | **100%** held-out sorting purity (200 scattered particles); point design already 99.5%. |
+| **E5**, 24-dim resilience separator | At a shared budget of 900 forward-solve units with a gradient charged as 2: Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ vs Nelder-Mead 2×10⁻². Charged by measured wall-clock instead, Adam loses at CMA's own budget and wins only by continuing four orders further; the writeup gives both accountings in full. |
+| **E5b**, design under uncertainty | Ensemble objective over inlet and restitution scatter. Held-out sorting purity 199/200 for the point design, 200/200 after refinement, with a visibly wider margin at the decision boundary. |
 | **E6**, zero-shot generalization | Trained on two materials, sorts the whole continuum e ∈ [0.35, 0.875] with **one threshold**. |
 | **E1**, inverse design | Miss **1.12 m → 2.7 cm** through 5 bounces, across bounce-count changes. |
 | **E2/E2b**, calibration | NUTS posterior `e = 0.697 ± 0.007`, `mu = 0.096 ± 0.009`; truth inside both 95% CIs, 0 divergences. |
