@@ -5,13 +5,13 @@ Industrial framing: bounce separators sort particles by resilience (e.g. PET
 flake vs rubber contaminant) by letting them impact a profiled surface. Here
 two particles enter identically and differ only in restitution (e = 0.5
 "rubber" vs e = 0.8 "PET"); the 24 bump amplitudes of the surface are the
-design vector. The objective — both particles land in their own bins — is only
+design vector. The objective, both particles landing in their own bins, is only
 computable through the impact events the surface itself creates.
 
 Methods under one evaluation budget. Budget accounting: a gradient call is
 charged as 2 forward evaluations. Measured wall-clock at this configuration
-(77 sensitivity columns) measures a VJP at 8.5x a forward solve — the gradients
-are forward-variational, so their cost scales with parameter count — and the
+(77 sensitivity columns) measures a VJP at 8.5x a forward solve. The gradients
+are forward-variational, so their cost scales with parameter count, and the
 writeup reports the comparison under both accountings; the qualitative result
 (gradient-free plateaus orders of magnitude short) is unchanged either way.
   - Adam on the saltation gradients (ours)

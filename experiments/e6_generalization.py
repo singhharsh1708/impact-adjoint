@@ -4,7 +4,7 @@ The E5 surface was optimized for exactly two restitution values (0.5, 0.8).
 Here we ask what it does to materials it never saw: a dense sweep of
 restitution over [0.35, 0.95] plus an inlet-velocity jitter grid. The designed
 geometry turns out to encode a *classifier*: a single threshold in e separates
-the continuum into bin-A-like and bin-B-like landings — behavior the optimizer
+the continuum into bin-A-like and bin-B-like landings, behavior the optimizer
 was never asked for.
 
 Metric: landing x at t_end (settled or final state) against the bin midpoint

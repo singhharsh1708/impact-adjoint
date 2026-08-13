@@ -103,7 +103,7 @@ def main():
     ax.set_ylim(-0.16, 1.3)
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
-    ax.set_title("E5 — the surface learns to sort: one terrain, two materials, same inlet", loc="left")
+    ax.set_title("E5: the surface learns to sort: one terrain, two materials, same inlet", loc="left")
     fig.tight_layout()
 
     hold = 12

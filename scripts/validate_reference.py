@@ -1,7 +1,7 @@
 """Cross-implementation reference check for contact-sim.
 
 Re-implements the SPEC (not the Julia code) with scipy's adaptive RK45 and its
-own event localization, then compares on the bumpy-terrain and drag configs —
+own event localization, then compares on the bumpy-terrain and drag configs,
 exactly the sector (sloped contact frame, drag) the flat-terrain closed-form
 oracle cannot reach. The solver's ANALYTIC Jacobian is compared against central
 finite differences through THIS independent implementation.

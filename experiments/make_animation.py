@@ -74,7 +74,7 @@ def main():
     ax.set_ylim(-0.08, 1.45)
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
-    ax.set_title("E1 — inverse design by gradient descent through two Tesseracts", loc="left")
+    ax.set_title("E1: inverse design by gradient descent through two Tesseracts", loc="left")
 
     fig.tight_layout()
 

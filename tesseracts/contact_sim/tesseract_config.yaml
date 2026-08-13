@@ -4,7 +4,7 @@ description: |
   Differentiable 2D ballistic flight over smooth terrain with impact events
   (normal restitution + tangential loss), implemented in Julia. Gradients via
   forward variational equations with analytic saltation-matrix updates at
-  events — the event-time sensitivity that naive autodiff through a
+  events. This is the event-time sensitivity that naive autodiff through a
   time-stepping integrator misses.
 
 build_config:

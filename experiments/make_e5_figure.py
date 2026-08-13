@@ -91,7 +91,7 @@ def main():
     ax2.set_ylabel("best objective")
     ax2.set_title("24-dim head-to-head", loc="left", fontsize=12)
 
-    fig.suptitle("E5 — bounce separator: same inlet, sorted by restitution", x=0.01, ha="left", fontsize=13)
+    fig.suptitle("E5: bounce separator: same inlet, sorted by restitution", x=0.01, ha="left", fontsize=13)
     fig.tight_layout(rect=(0, 0, 1, 0.90))
     fig.savefig(FIGS / "e5_separator.png")
     plt.close(fig)

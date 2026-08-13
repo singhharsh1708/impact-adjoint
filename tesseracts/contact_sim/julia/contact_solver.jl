@@ -35,7 +35,7 @@ using ForwardDiff
 #
 # Event detection: endpoint sign change of the guard per RK4 step, plus two
 # interior probes (dtau/3, 2dtau/3) to catch dips narrower than one step.
-# Terrain features narrower than |vx|·dt/3 can still be stepped over —
+# Terrain features narrower than |vx|·dt/3 can still be stepped over, so
 # choose dt ≲ min(wid) / (3 |vx|).
 #
 # Parameter vector θ (length 5 + 3nb for nb terrain bumps):
@@ -116,7 +116,7 @@ end
 
 # Earliest guard crossing within (0, dtau], or NaN. Probes are tested in
 # ASCENDING order (two interior points, then the endpoint) so the returned
-# bracket contains the earliest crossing — otherwise a dip-and-recross inside
+# bracket contains the earliest crossing. Otherwise a dip-and-recross inside
 # one step could make the bisection converge to a later crossing.
 function find_crossing(q, X, dtau, cd, θ)
     guard(q, θ) > 0 || return NaN

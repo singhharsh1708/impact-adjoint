@@ -1,4 +1,4 @@
-"""E4: passive sorter — terrain shape design through contact events.
+"""E4: passive sorter. Terrain shape design through contact events.
 
 Design problem: one fixed terrain must passively route balls entering at two
 different speeds to two different cups. The nine terrain parameters (bump

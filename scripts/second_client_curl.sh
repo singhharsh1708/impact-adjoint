@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Second-client demo: the solver's saltation gradients consumed with NOTHING
-# but curl — no Python, no JAX, no Julia on the client side. This is the
+# but curl: no Python, no JAX, no Julia on the client side. This is the
 # "reusable from any client" claim, demonstrated.
 #
 # Usage: tesseract serve -p 8123 contact-sim   (in another shell), then:

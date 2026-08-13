@@ -65,13 +65,13 @@ def main():
         ax.axvline(X_MID, color=BASELINE, lw=1.0, ls=(0, (4, 3)))
         ax.set_yticks([0.5, -0.5], ["rubber", "PET"])
         ax.set_ylim(-1.1, 1.1)
-        ax.set_title(f"{label} — held-out purity {purity:.1%}", loc="left", fontsize=10)
+        ax.set_title(f"{label}: held-out purity {purity:.1%}", loc="left", fontsize=10)
         n_wrong = int(np.sum((xs < X_MID) != is_rub))
         if n_wrong:
             ax.annotate(f"{n_wrong} misclassified", (X_MID, 0.0), textcoords="offset points",
                         xytext=(8, 0), color=SECONDARY, fontsize=8)
     axes[1].set_xlabel("landing x [m]  (200 held-out particles, v sd 5 cm/s, e sd 0.03)")
-    fig.suptitle("E5b — design under uncertainty: sorting purity on held-out scatter", x=0.01, ha="left", fontsize=11)
+    fig.suptitle("E5b: design under uncertainty: sorting purity on held-out scatter", x=0.01, ha="left", fontsize=11)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
     fig.savefig(FIGS / "e5b_purity.png")
     plt.close(fig)

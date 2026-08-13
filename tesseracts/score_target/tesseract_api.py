@@ -27,7 +27,7 @@ class InputSchema(BaseModel):
 
 class OutputSchema(BaseModel):
     loss: Differentiable[Float64] = Field(
-        description="w1 (x - x*)^2 + w2 (y - y*)^2 + w3 |v|^2 — land in the cup, gently."
+        description="w1 (x - x*)^2 + w2 (y - y*)^2 + w3 |v|^2. Land in the cup, gently."
     )
     miss_distance: Differentiable[Float64] = Field(description="Euclidean distance from (x, y) to the cup.")
 

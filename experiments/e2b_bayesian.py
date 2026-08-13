@@ -1,4 +1,4 @@
-"""E2b: Bayesian calibration — NUTS posterior over (e, mu) through the Tesseract.
+"""E2b: Bayesian calibration. NUTS posterior over (e, mu) through the Tesseract.
 
 NumPyro's NUTS sampler needs a JAX-differentiable log-density; the contact
 solver sits inside it as a Tesseract, its saltation VJP feeding HMC's momentum
@@ -80,7 +80,7 @@ def run(sim):
 
 def main():
     # NumPyro jits the NUTS step, and jitted JAX callbacks may run off the main
-    # thread — which deadlocks the in-process juliacall runtime. The
+    # thread, which deadlocks the in-process juliacall runtime. The
     # containerized solver keeps Julia in its own process, so HMC's callbacks
     # are plain HTTP calls and threading is a non-issue.
     out = ROOT / ".tessout"

@@ -12,13 +12,13 @@ Three ways to differentiate the same bouncing-ball program:
 
 2. INTERPOLATED-EVENT (the repair): locate the crossing time by a linear root
    of the guard inside the step, reset at the interpolated state, integrate
-   the remainder. This recovers a converging gradient — and that is the
+   the remainder. This recovers a converging gradient, and that is the
    point: the fix IS event-time sensitivity machinery, hand-implemented. Its
    accuracy is tied to the interpolation order and step size, and every new
    guard/reset pair needs its own hand treatment inside the autodiff program.
 
 3. SALTATION (the Tesseract): the analytic event sensitivity, exact at any
-   dt, served through the component boundary — no event handling in the JAX
+   dt, served through the component boundary, with no event handling in the JAX
    program at all.
 
 Truth is known in closed form on this configuration (independently validated
@@ -90,7 +90,7 @@ def naive_final_x(v0y, n_steps):
 
 @partial(jax.jit, static_argnames=("n_steps",))
 def interp_final_x(v0y, n_steps):
-    """Interpolated-event repair: linear guard root inside the crossing step —
+    """Interpolated-event repair: linear guard root inside the crossing step,
     i.e. hand-implemented first-order event-time sensitivity."""
     dt = CFG["t_final"] / n_steps
 
