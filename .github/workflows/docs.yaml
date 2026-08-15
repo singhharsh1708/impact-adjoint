@@ -26,7 +26,7 @@ jobs:
       - name: Install docs dependencies
         run: |
           pip install sphinx furo myst-parser sphinx_copybutton sphinx_design \
-                      sphinxext-opengraph sphinxcontrib-mermaid matplotlib
+                      sphinxext-opengraph sphinxcontrib-mermaid matplotlib pillow
       - name: Build site
         run: python -m sphinx -b html docs/site docs/site/build -W --keep-going -n 2>&1 | tee build.log
       - name: Upload artifact

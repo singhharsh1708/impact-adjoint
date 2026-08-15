@@ -4,10 +4,12 @@ Stack chosen to match the Tesseract projects' own docs (Sphinx + Furo + MyST)
 so the pages sit naturally alongside docs.pasteurlabs.ai.
 """
 
+import sys
 from datetime import date
 from pathlib import Path
 
 here = Path(__file__).parent.resolve()
+sys.path.insert(0, str(here / "_ext"))
 
 project = "impact-adjoint"
 copyright = f"{date.today().year}, Harsh Singh"
@@ -26,6 +28,7 @@ extensions = [
     "sphinx_design",
     "sphinxext.opengraph",
     "sphinxcontrib.mermaid",
+    "optimize_images",
 ]
 
 myst_enable_extensions = ["dollarmath", "colon_fence", "deflist", "attrs_inline"]
