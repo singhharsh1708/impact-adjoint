@@ -132,6 +132,26 @@ The saltation matrix supplies the missing term at each impact. Exact at any
 </dl>
 ```
 
+## Reproduce in five minutes
+
+CPU only, no Docker, no GPU. This is the `~5 min` in the strip above.
+
+```bash
+git clone https://github.com/singhharsh1708/impact-adjoint
+cd impact-adjoint
+pip install -r docs/requirements-repro.txt
+
+python scripts/proof_local.py          # boundary proof
+python scripts/validate_closed_form.py # symbolic oracle
+python scripts/validate_reference.py   # scipy oracle
+python experiments/e3_naive_vs_saltation.py
+```
+
+The last command is the claim at the top of this page: it prints the
+grid-reset gradient as exactly `0.0` at every step size, next to the
+saltation gradient. Full instructions are in
+[getting started](getting-started.md).
+
 ## Where to start
 
 ::::{grid} 3

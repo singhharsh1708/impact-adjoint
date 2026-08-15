@@ -22,8 +22,7 @@ disk for the images. Julia itself is bootstrapped automatically by
 git clone https://github.com/singhharsh1708/impact-adjoint
 cd impact-adjoint
 python3 -m venv .venv && source .venv/bin/activate
-pip install "tesseract-core[runtime]==1.11.0" tesseract-jax==0.4.1 "jax==0.11.0" \
-            optax equinox juliacall==0.9.31 numpy scipy sympy matplotlib numpyro pytest cma
+pip install -r docs/requirements-repro.txt
 ```
 
 :::{note}
@@ -38,9 +37,9 @@ No Docker needed for any of this.
 
 ```bash
 python scripts/proof_local.py         # 5 s boundary proof
-python scripts/validate_contact.py    # FD gate plus robustness regressions
+python scripts/validate_contact.py    # FD gate, robustness
 python scripts/validate_closed_form.py  # symbolic oracle
-python scripts/validate_reference.py    # independent scipy reimplementation
+python scripts/validate_reference.py  # independent scipy impl
 pytest tests/                          # 12 golden tests
 ```
 
@@ -61,10 +60,11 @@ python experiments/e6_generalization.py
 ```bash
 tesseract build tesseracts/contact_sim
 tesseract build tesseracts/score_target
-tesseract run contact-sim check-gradients @tesseracts/contact_sim/check_payload.json
+tesseract run contact-sim check-gradients \
+    @tesseracts/contact_sim/check_payload.json
 python experiments/e2b_bayesian.py                   # NUTS, 2 chains
-python experiments/e1_inverse_design.py --container  # same run via served images
-./scripts/second_client_curl.sh                      # gradients with only curl
+python experiments/e1_inverse_design.py --container  # served
+./scripts/second_client_curl.sh                      # curl only
 ```
 
 ## Troubleshooting

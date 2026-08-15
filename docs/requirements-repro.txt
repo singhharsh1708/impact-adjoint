@@ -1,0 +1,16 @@
+# Pinned environment for reproducing the results in this repository.
+# Julia itself is bootstrapped by juliacall on first call; nothing to install
+# by hand. The CI workflow installs this same set.
+tesseract-core[runtime]==1.11.0
+tesseract-jax==0.4.1
+jax==0.11.0
+juliacall==0.9.31
+optax
+equinox
+numpy
+scipy
+sympy
+matplotlib
+numpyro
+pytest
+cma
