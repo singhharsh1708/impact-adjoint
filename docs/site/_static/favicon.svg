@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- Redrawn for 16px rather than scaled: one bounce dropped, strokes
+       proportionally heavier so the arc survives at tab size. -->
+  <style>
+    :root { --ink: #0b0b0b; --dot: #2a78d6; }
+    @media (prefers-color-scheme: dark) { :root { --ink: #e8e6e3; --dot: #6aa8f5; } }
+  </style>
+  <path d="M0.8 13H15.2" fill="none" stroke="var(--ink)" stroke-width="1.7"
+        stroke-linecap="round" opacity=".45"/>
+  <path d="M1 11 Q4.9 -4.5 8.8 13 Q11.9 2.8 15 13" fill="none" stroke="var(--ink)"
+        stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="8.8" cy="13" r="1.5" fill="var(--dot)"/>
+</svg>

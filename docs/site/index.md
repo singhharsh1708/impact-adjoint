@@ -1,24 +1,48 @@
 # impact-adjoint
 
-**Exact gradients through impact events, across a Julia and JAX Tesseract
-boundary.**
+Exact gradients through impact events, across a Julia and JAX Tesseract
+boundary.
 
+```{raw} html
+<div class="ia-claim">
 Simulate a bouncing ball in JAX the natural way, applying the impact at the
-integrator step where it is detected, and `jax.grad` returns
-`d x(T)/d v0y = 0.0` exactly on flat terrain, when the truth is `+0.09`.
-impact-adjoint fixes this exactly, using classical saltation-matrix event
-sensitivities served from a Julia solver through a Tesseract boundary, and
-uses the gradients to design passive structures whose function only exists
-because of impacts.
-
-```{image} ../figures/e5_learning.gif
-:alt: the designed surface learns to sort two materials
-:width: 100%
+integrator step where it is detected, and <code>jax.grad</code> returns
+<strong class="ia-zero">d x(T)/d v0y = 0.0</strong> exactly on flat terrain.
+The true value is <strong class="ia-zero">+0.09</strong>.
+</div>
 ```
 
-*One terrain, two materials, same inlet. Gradient descent through every impact
+The gradient is not noisy or approximate. It is confidently, silently wrong,
+and refining the step size does not help, because the step at which the event
+fires is an integer and autodiff cannot differentiate it. impact-adjoint
+computes the missing term exactly, using the classical saltation matrix, and
+serves it from a Julia solver through a Tesseract boundary so that JAX can
+consume it without knowing any of this.
+
+The gradients then design passive structures whose function only exists
+because of impacts.
+
+```{figure} ../figures/e5_learning.gif
+:alt: a designed surface learning to sort two materials by restitution
+:width: 100%
+:name: fig-sorter
+
+One terrain, two materials, same inlet. Gradient descent through every impact
 of both trajectories reshapes the surface until restitution alone routes each
-particle to its own bin.*
+particle to its own bin.
+```
+
+```{raw} html
+<dl class="ia-figures">
+  <div><dt>3.99</dt><dd>observed order of accuracy, against an analytic solution</dd></div>
+  <div><dt>10<sup>-12</sup></dt><dd>multi-bounce agreement with a symbolic closed form</dd></div>
+  <div><dt>0 / 1574</dt><dd>failures in Tesseract's own gradient checker</dd></div>
+  <div><dt>24</dt><dd>design variables in the headline separator</dd></div>
+  <div><dt>~5 min</dt><dd>to reproduce from a cold clone</dd></div>
+</dl>
+```
+
+## Where to start
 
 ::::{grid} 3
 :gutter: 2
@@ -27,55 +51,70 @@ particle to its own bin.*
 :link: problem
 :link-type: doc
 
-Autodiff through a time-stepping simulator returns confident, finite, wrong
-gradients the moment the dynamics have events.
+Why autodiff returns a wrong gradient at an impact, what the pure-JAX repair
+costs, and what Diffrax can and cannot do about it today.
 :::
 
 :::{grid-item-card} The method
 :link: method
 :link-type: doc
 
-Saltation-matrix event sensitivities in Julia, published through Tesseract
-endpoints, spliced into JAX's chain rule.
+The saltation jump condition, the component boundary that carries it, and the
+termination semantics that keep optimizers honest.
 :::
 
-:::{grid-item-card} The results
-:link: results
+:::{grid-item-card} The evidence
+:link: studies
 :link-type: doc
 
-Seven experiments and six verification studies, every number generated from
-committed artifacts.
+Six verification studies and seven experiments, every number generated from a
+committed artifact.
 :::
+
 ::::
 
 ## At a glance
 
-| | |
-|---|---|
-| Track | 1, inverse design and shape optimization |
-| Components | `contact-sim` (Julia), `score-target` (JAX), composed under one `jax.grad` |
-| Solver accuracy | order 3.99; 10⁻¹² against a symbolic closed form |
-| Gradient accuracy | agrees with finite differences to below 10⁻⁸; 0 failures in 1574 `check-gradients` checks |
-| Headline design | a 24-parameter surface that sorts particles by restitution alone |
-| Reproduction | about 5 minutes, CPU only |
+```{list-table}
+:header-rows: 1
+:widths: 26 74
 
-## Where to start
-
-- New here: read [the problem](problem.md), then [the method](method.md).
-- Want the evidence: [experiments](experiments.md) and [verification studies](studies.md).
-- Want to run it: [getting started](getting-started.md).
-- Want the numbers: [results](results.md), generated from the artifacts.
+* - Item
+  - Detail
+* - Track
+  - 1, inverse design and shape optimization
+* - Components
+  - `contact-sim` (Julia) and `score-target` (JAX), composed under one `jax.grad`
+* - Gradient method
+  - forward variational sensitivities with analytic saltation updates at events
+* - Headline result
+  - a 24-parameter surface that sorts particles by restitution alone
+* - Validation
+  - two solver-independent oracles, twelve golden tests, CI on every push
+```
 
 ```{toctree}
 :hidden:
-:maxdepth: 2
+:caption: Orientation
 
 problem
 method
 getting-started
+```
+
+```{toctree}
+:hidden:
+:caption: Evidence
+
 experiments
 studies
 results
+```
+
+```{toctree}
+:hidden:
+:caption: Reference
+
 reference
 upstream
 limitations

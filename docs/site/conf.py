@@ -37,13 +37,19 @@ intersphinx_mapping = {
     "jax": ("https://docs.jax.dev/en/latest/", None),
 }
 
+numfig = True
+numfig_format = {"figure": "Figure %s", "table": "Table %s", "code-block": "Listing %s"}
+
 templates_path = ["_templates"]
 exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 
 html_theme = "furo"
 html_static_path = ["_static"]
 html_title = "impact-adjoint"
+html_favicon = "_static/favicon.svg"
 html_theme_options = {
+    "light_logo": "logo.svg",
+    "dark_logo": "logo-dark.svg",
     "sidebar_hide_name": False,
     "source_repository": "https://github.com/singhharsh1708/impact-adjoint/",
     "source_branch": "main",
@@ -69,9 +75,43 @@ html_theme_options = {
 }
 html_css_files = ["custom.css"]
 
-ogp_site_url = "https://singhharsh1708.github.io/impact-adjoint/"
+ogp_site_url = "https://impact-adjoint.vercel.app/"
+ogp_site_name = "impact-adjoint"
+ogp_type = "article"
 ogp_description_length = 200
+ogp_social_cards = {"line_color": "#2a78d6"}
 
 # figures and generated tables live one level up; Sphinx copies what is linked
 html_extra_path = []
 suppress_warnings = ["myst.header"]
+
+mermaid_init_js = """
+(() => {
+  const attr = document.body.dataset.theme;
+  const dark =
+    attr === "dark" ||
+    (attr !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "base",
+    fontFamily: "-apple-system, BlinkMacSystemFont, Segoe UI, Inter, sans-serif",
+    themeVariables: dark
+      ? {
+          background: "#131416",
+          primaryColor: "#1a1b1e",
+          primaryTextColor: "#e8e6e3",
+          primaryBorderColor: "#3a3b40",
+          lineColor: "#8a8883",
+          fontSize: "14px",
+        }
+      : {
+          background: "#fcfcfb",
+          primaryColor: "#f4f4f1",
+          primaryTextColor: "#16161a",
+          primaryBorderColor: "#d8d7d1",
+          lineColor: "#898781",
+          fontSize: "14px",
+        },
+  });
+})();
+"""

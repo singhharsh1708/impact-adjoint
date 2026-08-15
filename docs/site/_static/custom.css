@@ -1,14 +1,533 @@
-/* impact-adjoint docs: light touch on top of Furo */
+/* ============================================================================
+   impact-adjoint documentation styling.
+
+   Two layers. Layer 1 defines raw --ia-* tokens per theme, derived from the
+   figure palette so the pages and the plots read as one artifact. Layer 2 maps
+   Furo's own variables onto them, once. Furo scopes dark mode as
+   body[data-theme="dark"], so the mapping is written on a selector list that
+   matches Furo's specificity and wins on source order (this file is appended
+   after furo.css).
+
+   The restraint is deliberate: colour is reserved for things that already
+   carry meaning in the figures. Body text, headings and the sidebar brand are
+   never coloured. Hierarchy comes from size, weight and rule, not hue.
+   ========================================================================= */
+
+/* ---------- Layer 1: palette ---------- */
+
 :root {
+  --ia-paper: #fcfcfb;
+  --ia-paper-alt: #f4f4f1;
+  --ia-ink: #16161a;
+  --ia-ink-soft: #52514e;
+  --ia-ink-faint: #898781;
+  --ia-rule: #e3e2dc;
+  --ia-rule-soft: #edece7;
+
+  /* figure palette. The blue is 4.30:1 on paper, under AA, so text uses the
+     darkened step and the figure blue is kept for marks only. */
   --ia-blue: #2a78d6;
+  --ia-blue-text: #2166c2;
   --ia-orange: #eb6834;
+  --ia-teal: #1baf7a;
+
+  --ia-accent: var(--ia-blue-text);
+  --ia-measure: 46rem;
 }
-.sidebar-brand-text { font-weight: 600; letter-spacing: -0.01em; }
-article h1 { letter-spacing: -0.02em; }
-/* figures sit on the page background, matching the plots' own surface */
-article img { border-radius: 4px; }
-/* grid cards read as a nav row, not as boxes shouting for attention */
-.sd-card { border-radius: 6px; }
-.sd-card-title { font-size: 0.95rem; font-weight: 600; }
-/* tables: quieter borders, tighter rhythm */
-table.docutils td, table.docutils th { padding: 0.4rem 0.6rem; }
+
+@media (prefers-color-scheme: dark) {
+  body:not([data-theme="light"]) {
+    --ia-paper: #131416;
+    --ia-paper-alt: #1a1b1e;
+    --ia-ink: #e8e6e3;
+    --ia-ink-soft: #b3b1ab;
+    --ia-ink-faint: #8a8883;
+    --ia-rule: #2c2d31;
+    --ia-rule-soft: #232428;
+    --ia-blue-text: #7fb2f7;
+    --ia-accent: #7fb2f7;
+  }
+}
+
+body[data-theme="dark"] {
+  --ia-paper: #131416;
+  --ia-paper-alt: #1a1b1e;
+  --ia-ink: #e8e6e3;
+  --ia-ink-soft: #b3b1ab;
+  --ia-ink-faint: #8a8883;
+  --ia-rule: #2c2d31;
+  --ia-rule-soft: #232428;
+  --ia-blue-text: #7fb2f7;
+  --ia-accent: #7fb2f7;
+}
+
+/* ---------- Layer 2: map Furo onto the palette ---------- */
+
+body,
+body[data-theme="dark"],
+body[data-theme="light"] {
+  --color-background-primary: var(--ia-paper);
+  --color-background-secondary: var(--ia-paper-alt);
+  --color-background-hover: var(--ia-rule-soft);
+  --color-background-border: var(--ia-rule);
+
+  --color-foreground-primary: var(--ia-ink);
+  --color-foreground-secondary: var(--ia-ink-soft);
+  --color-foreground-muted: var(--ia-ink-faint);
+  --color-foreground-border: var(--ia-rule);
+
+  --color-brand-primary: var(--ia-ink);
+  --color-brand-content: var(--ia-accent);
+  --color-brand-visited: var(--ia-accent);
+
+  --color-link: var(--ia-accent);
+  --color-link--visited: var(--ia-accent);
+  --color-link-underline: transparent;
+  --color-link-underline--visited: transparent;
+
+  --color-sidebar-brand-text: var(--ia-ink);
+  --color-sidebar-link-text--top-level: var(--ia-ink-soft);
+  --color-sidebar-caption-text: var(--ia-ink-faint);
+  --color-sidebar-background-border: var(--ia-rule);
+
+  --color-inline-code-background: var(--ia-paper-alt);
+  --color-code-background: var(--ia-paper-alt);
+  --color-api-background: var(--ia-paper-alt);
+
+  --color-admonition-title--note: var(--ia-blue);
+  --color-admonition-title-background--note: color-mix(in srgb, var(--ia-blue) 9%, transparent);
+  --color-admonition-title--important: var(--ia-orange);
+  --color-admonition-title-background--important: color-mix(in srgb, var(--ia-orange) 9%, transparent);
+  --color-admonition-title--tip: var(--ia-teal);
+  --color-admonition-title-background--tip: color-mix(in srgb, var(--ia-teal) 9%, transparent);
+
+  --color-table-border: var(--ia-rule);
+  --color-table-header-background: transparent;
+}
+
+/* ---------- Typography ---------- */
+
+body {
+  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-stack--monospace: "SF Mono", SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", monospace;
+  font-feature-settings: "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+article {
+  line-height: 1.68;
+  font-size: 1.0rem;
+}
+
+.content {
+  max-width: var(--ia-measure);
+}
+
+article p,
+article li {
+  color: var(--ia-ink);
+}
+
+/* Furo ships h1 at 2.5em over a 16px body. That 2.5x ratio is the loudest
+   untouched-template tell there is; the reference sites sit near 2.0x. */
+.content h1 {
+  font-size: 1.95em;
+  font-weight: 650;
+  letter-spacing: -0.021em;
+  line-height: 1.18;
+  margin-bottom: 0.7rem;
+}
+
+.content h2 {
+  font-size: 1.38em;
+  font-weight: 620;
+  letter-spacing: -0.012em;
+  line-height: 1.3;
+  margin-top: 2.7rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid var(--ia-rule);
+}
+
+/* The first section under the title does not need a rule above it. */
+.content > section > section:first-of-type > h2 {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 1.7rem;
+}
+
+.content h3 {
+  font-size: 1.13em;
+  font-weight: 620;
+  letter-spacing: -0.006em;
+  margin-top: 2rem;
+}
+
+.content h4 {
+  font-size: 1em;
+  font-weight: 620;
+  letter-spacing: 0.005em;
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4 {
+  color: var(--ia-ink);
+}
+
+/* Furo's heading anchors are loud on hover; quieten them. */
+.headerlink {
+  color: var(--ia-ink-faint) !important;
+  opacity: 0;
+  transition: opacity 0.12s ease-in-out;
+}
+h1:hover .headerlink,
+h2:hover .headerlink,
+h3:hover .headerlink,
+h4:hover .headerlink {
+  opacity: 0.6;
+}
+
+/* ---------- Links ---------- */
+
+article a.reference {
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--ia-accent) 35%, transparent);
+  transition: border-color 0.12s ease-in-out;
+}
+article a.reference:hover {
+  border-bottom-color: var(--ia-accent);
+}
+
+/* ---------- Tables: booktabs ---------- */
+/* results.md is three tables and nothing else, so this is the highest-leverage
+   element on the site. Three horizontal rules, no verticals, no fill, no
+   zebra, and lining tabular figures so numeric columns align. */
+
+article table.docutils {
+  border-collapse: collapse;
+  border: 0;
+  box-shadow: none;
+  width: 100%;
+  margin: 1.8rem 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+article table.docutils thead th {
+  background: transparent;
+  border: 0;
+  border-bottom: 1.5px solid var(--ia-ink);
+  padding: 0.45rem 0.75rem 0.45rem 0;
+  text-align: left;
+  font-weight: 620;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ia-ink-soft);
+  vertical-align: bottom;
+}
+
+article table.docutils tbody td {
+  border: 0;
+  border-bottom: 1px solid var(--ia-rule-soft);
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  vertical-align: top;
+}
+
+article table.docutils tbody tr:last-child td {
+  border-bottom: 1.5px solid var(--ia-ink);
+}
+
+article table.docutils tbody tr:nth-child(odd) {
+  background: transparent;
+}
+
+article table.docutils td:last-child,
+article table.docutils th:last-child {
+  padding-right: 0;
+}
+
+/* A leading empty header cell (from a `| | |` markdown row) should not draw. */
+article table.docutils thead th:empty,
+article table.docutils thead th > p:empty {
+  border-bottom-color: var(--ia-ink);
+}
+
+/* Wide tables scroll rather than forcing the page to. */
+article .table-wrapper {
+  overflow-x: auto;
+  margin: 0;
+}
+
+/* ---------- Figures ---------- */
+
+article img {
+  border-radius: 3px;
+}
+
+article figure {
+  margin: 2rem 0;
+}
+
+article figcaption,
+article .caption-text {
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--ia-ink-soft);
+  margin-top: 0.6rem;
+}
+
+/* The loose italic paragraph used as a caption under an {image}. */
+article .ia-caption {
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--ia-ink-soft);
+  margin-top: -0.4rem;
+}
+
+/* ---------- Code ---------- */
+
+article div.highlight,
+article pre {
+  border-radius: 4px;
+}
+
+article div.highlight {
+  border: 1px solid var(--ia-rule);
+}
+
+article code.literal {
+  font-size: 0.86em;
+  padding: 0.12em 0.34em;
+  border-radius: 3px;
+  border: 1px solid var(--ia-rule-soft);
+}
+
+/* ---------- Sidebar ---------- */
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+}
+
+.sidebar-logo-container {
+  margin: 0;
+  flex: none;
+}
+
+.sidebar-logo {
+  width: 30px;
+  max-width: none;
+  margin: 0;
+}
+
+.sidebar-brand-text {
+  font-size: 1.02rem;
+  font-weight: 620;
+  letter-spacing: -0.018em;
+  margin: 0;
+  font-family: var(--font-stack--monospace);
+}
+
+.sidebar-tree .caption {
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ia-ink-faint);
+  margin-top: 1.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.sidebar-tree .reference {
+  font-size: 0.9rem;
+  padding-top: 0.28rem;
+  padding-bottom: 0.28rem;
+}
+
+.sidebar-tree .current-page > .reference {
+  color: var(--ia-accent);
+  font-weight: 620;
+}
+
+.toc-title {
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ia-ink-faint);
+}
+
+/* ---------- Admonitions ---------- */
+
+article .admonition {
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid var(--ia-rule);
+  font-size: 0.94rem;
+}
+
+article .admonition > .admonition-title {
+  font-weight: 620;
+  font-size: 0.86rem;
+  letter-spacing: 0.01em;
+}
+
+article .admonition > .admonition-title::before {
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
+/* ---------- Landing-page pieces ---------- */
+
+/* The headline claim, set as a display element rather than buried in prose. */
+.ia-claim {
+  margin: 1.9rem 0 2.1rem;
+  padding: 1.15rem 0 1.15rem 1.25rem;
+  border-left: 2px solid var(--ia-orange);
+  font-size: 1.12rem;
+  line-height: 1.55;
+  color: var(--ia-ink);
+}
+
+.ia-claim strong {
+  font-weight: 640;
+}
+
+.ia-claim .ia-zero {
+  font-family: var(--font-stack--monospace);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Key numbers, as a quiet row rather than marketing tiles. */
+.ia-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.6rem, 1fr));
+  gap: 1.4rem 1.5rem;
+  margin: 2rem 0 2.4rem;
+  padding: 1.3rem 0;
+  border-top: 1px solid var(--ia-rule);
+  border-bottom: 1px solid var(--ia-rule);
+}
+
+.ia-figures dt {
+  font-size: 1.28rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--ia-ink);
+  margin: 0;
+}
+
+.ia-figures dd {
+  margin: 0.28rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--ia-ink-soft);
+}
+
+/* Cards: flatten Furo/sphinx-design's default shadowed box. */
+.sd-card {
+  border-radius: 4px;
+  border: 1px solid var(--ia-rule);
+  box-shadow: none !important;
+  background: transparent;
+  transition: border-color 0.12s ease-in-out;
+}
+
+.sd-card:hover {
+  border-color: color-mix(in srgb, var(--ia-accent) 45%, var(--ia-rule));
+}
+
+.sd-card-title {
+  font-size: 0.95rem;
+  font-weight: 620;
+  letter-spacing: -0.008em;
+}
+
+.sd-card-body {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--ia-ink-soft);
+}
+
+/* ---------- Mermaid ---------- */
+/* The extension pins a fixed height, which leaves a large dead band under the
+   diagram. Let it size to content. */
+
+.mermaid {
+  height: auto !important;
+  margin: 1.8rem 0;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto !important;
+}
+
+/* ---------- Miscellaneous ---------- */
+
+/* Furo's prev/next block adds visual noise at the foot of short pages. */
+.related-pages {
+  border-top: 1px solid var(--ia-rule);
+  padding-top: 1rem;
+}
+
+.related-pages a {
+  border-bottom: none;
+}
+
+article .math {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* ---------- Figures in dark mode ---------- */
+/* The plots are rendered on the light paper colour, deliberately: they are the
+   same artifacts that appear in the paper and the README. Floating a white
+   rectangle in a dark page looks like a mistake, so in dark mode they sit on an
+   explicit plate with a border, which reads as a figure printed on paper
+   rather than an asset that forgot to adapt. */
+
+@media (prefers-color-scheme: dark) {
+  body:not([data-theme="light"]) article img:not(.sidebar-logo):not(.no-plate) {
+    background: #fcfcfb;
+    padding: 0.55rem;
+    border: 1px solid var(--ia-rule);
+    border-radius: 4px;
+  }
+}
+
+body[data-theme="dark"] article img:not(.sidebar-logo):not(.no-plate) {
+  background: #fcfcfb;
+  padding: 0.55rem;
+  border: 1px solid var(--ia-rule);
+  border-radius: 4px;
+}
+
+/* Captions read as prose, left aligned with the text column. */
+article figcaption,
+article figcaption p,
+article .caption-text {
+  text-align: left;
+}
+
+article figcaption .caption-number {
+  font-weight: 620;
+  color: var(--ia-ink);
+}
+
+/* ---------- Mermaid sizing ---------- */
+/* The extension renders the diagram small inside a wide container; let it use
+   the measure it has. */
+.mermaid svg {
+  width: 100%;
+  min-height: 220px;
+}
