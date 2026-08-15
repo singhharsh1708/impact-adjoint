@@ -129,6 +129,29 @@ def on_build_finished(app, exception):
                 "</head>", _structured_data(app) + "</head>", 1
             )
 
+        # Furo's two <aside> landmarks are indistinguishable to a screen
+        # reader, and its page-action links sit outside every landmark.
+        html = html.replace(
+            '<aside class="sidebar-drawer">',
+            '<aside class="sidebar-drawer" aria-label="Site navigation">',
+        )
+        html = html.replace(
+            '<aside class="toc-drawer">',
+            '<aside class="toc-drawer" aria-label="On this page">',
+        )
+        html = html.replace(
+            '<div class="content-icon-container">',
+            '<div class="content-icon-container" role="navigation"'
+            ' aria-label="Page actions">',
+        )
+
+        # Furo emits role="heading" on sidebar captions without aria-level,
+        # which the role requires. Supply it rather than dropping the role.
+        html = html.replace(
+            '<p class="caption" role="heading">',
+            '<p class="caption" role="heading" aria-level="2">',
+        )
+
         prov = _provenance(app)
         if prov and "ia-provenance" not in html:
             html = LEFT_DETAILS_END.sub(prov + r"\1", html, count=1)

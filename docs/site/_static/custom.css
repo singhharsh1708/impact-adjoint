@@ -683,3 +683,11 @@ article figcaption .caption-number {
   padding: 0;
 }
 
+
+/* The on-this-page links sat under the 24px minimum target size. Padding
+   raises the hit area without changing the visual rhythm much. */
+.toc-tree li > a.reference {
+  display: block;
+  padding: 0.22rem 0;
+  line-height: 1.35;
+}
