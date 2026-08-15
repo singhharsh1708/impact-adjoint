@@ -22,14 +22,34 @@ consume it without knowing any of this.
 The gradients then design passive structures whose function only exists
 because of impacts.
 
-```{figure} ../figures/e5_learning.gif
-:alt: a designed surface learning to sort two materials by restitution
-:width: 100%
-:name: fig-sorter
-
-One terrain, two materials, same inlet. Gradient descent through every impact
-of both trajectories reshapes the surface until restitution alone routes each
-particle to its own bin.
+```{raw} html
+<figure class="ia-video" id="fig-sorter">
+  <video controls autoplay muted loop playsinline preload="metadata"
+         poster="_static/e5_learning_poster.webp" width="892" height="408"
+         aria-describedby="fig-sorter-caption">
+    <source src="_static/e5_learning.mp4" type="video/mp4">
+    <img src="_static/e5_learning_poster.webp" width="892" height="408"
+         alt="The converged surface: two particles that entered identically
+              separate over the designed bumps into their own bins.">
+  </video>
+  <figcaption id="fig-sorter-caption">
+    One terrain, two materials, same inlet. Gradient descent through every
+    impact of both trajectories reshapes the surface until restitution alone
+    routes each particle to its own bin. The poster frame is the converged
+    design.
+  </figcaption>
+</figure>
+<script>
+  // Readers who ask for reduced motion get the converged frame, not the loop.
+  (() => {
+    const v = document.querySelector(".ia-video video");
+    if (v && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      v.removeAttribute("autoplay");
+      v.removeAttribute("loop");
+      v.pause();
+    }
+  })();
+</script>
 ```
 
 ```{raw} html
