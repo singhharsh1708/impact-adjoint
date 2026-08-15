@@ -577,3 +577,96 @@ article figcaption .caption-number {
   line-height: 1.5;
   color: var(--ia-ink-soft);
 }
+
+/* ---- hero call to action ---------------------------------------------- */
+
+.ia-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1.1rem 0 1.5rem;
+}
+
+.ia-cta a {
+  display: inline-block;
+  padding: 0.42rem 0.95rem;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid var(--ia-rule);
+  transition: border-color 0.12s ease-in-out;
+}
+
+.ia-cta a:hover {
+  text-decoration: none;
+  border-color: var(--ia-accent);
+}
+
+.ia-cta-primary {
+  background: var(--ia-accent);
+  border-color: var(--ia-accent) !important;
+  color: var(--ia-paper) !important;
+}
+
+.ia-cta-secondary {
+  color: var(--ia-ink) !important;
+  background: var(--ia-paper-alt);
+}
+
+/* ---- the fail/fix pair ------------------------------------------------ */
+
+.ia-faildemo .sd-card {
+  border: 1px solid var(--ia-rule);
+  border-radius: 3px;
+}
+
+.ia-faildemo .sd-card-header {
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--ia-rule);
+}
+
+/* a warm and a cool edge, so which is which reads before the code does.
+   sphinx-design wraps each card in its own column, so the column is what
+   carries the ordinal, not the card. */
+.ia-faildemo > *:first-child .sd-card {
+  border-left: 3px solid var(--ia-orange);
+}
+
+.ia-faildemo > *:last-child .sd-card {
+  border-left: 3px solid var(--ia-teal);
+}
+
+.ia-faildemo .highlight pre {
+  font-size: 0.795em;
+  line-height: 1.5;
+}
+
+/* ---- repository link in the sidebar ----------------------------------- */
+
+.ia-repo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.35rem 0 0;
+  padding: 0.5rem 0 0;
+  border-top: 1px solid var(--ia-rule);
+  font-size: 0.82rem;
+}
+
+.ia-repo a {
+  color: var(--ia-ink-soft);
+  text-decoration: none;
+}
+
+.ia-repo a:hover {
+  color: var(--ia-accent);
+}
+
+.ia-repo svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  vertical-align: -2px;
+}

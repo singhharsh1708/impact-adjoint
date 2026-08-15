@@ -4,6 +4,13 @@ Exact gradients through impact events, across a Julia and JAX Tesseract
 boundary.
 
 ```{raw} html
+<p class="ia-cta">
+  <a class="ia-cta-primary" href="getting-started">Get started</a>
+  <a class="ia-cta-secondary" href="https://github.com/singhharsh1708/impact-adjoint">View on GitHub</a>
+</p>
+```
+
+```{raw} html
 <div class="ia-claim">
 Simulate a bouncing ball in JAX the natural way, applying the impact at the
 integrator step where it is detected, and <code>jax.grad</code> returns
@@ -21,6 +28,69 @@ consume it without knowing any of this.
 
 The gradients then design passive structures whose function only exists
 because of impacts.
+
+## See it fail, then see it fixed
+
+Both snippets below run as written. The only difference is where the impact
+is applied.
+
+::::{grid} 2
+:gutter: 3
+:class-container: ia-faildemo
+
+:::{grid-item-card} The natural JAX program
+:class-header: ia-fail-head
+
+The impact is applied at the integrator step where it is detected.
+
+```python
+def bounce(v0y, n=2000):
+    dt = 2.0 / n
+
+    def step(q, _):
+        qn = rk4(q, dt)
+        hit = (qn[1] < 0) & (q[1] > 0)
+        qn = jnp.where(hit, reset(qn), qn)
+        return qn, None
+
+    q0 = jnp.array([0., 1., 2., v0y])
+    qf, _ = jax.lax.scan(
+        step, q0, None, length=n)
+    return qf[0]
+
+jax.grad(bounce)(0.5)
+# 0.0
+```
+
+The step at which the event fires is an integer. Autodiff differentiates a
+staircase, and returns zero at every `dt`.
+:::
+
+:::{grid-item-card} The same call through impact-adjoint
+:class-header: ia-fix-head
+
+The impact is applied at the crossing, and its time carries a derivative.
+
+```python
+API = ("tesseracts/contact_sim"
+       "/tesseract_api.py")
+sim = Tesseract.from_tesseract_api(API)
+
+def bounce(v0y):
+    cfg = {**CFG,
+           "v0": jnp.array([2.0, v0y])}
+    out = apply_tesseract(sim, cfg)
+    return out["qf"][0]
+
+jax.grad(bounce)(0.5)
+# 0.09037773625811413
+```
+
+The saltation matrix supplies the missing term at each impact. Exact at any
+`dt`, with no event handling in the JAX program.
+:::
+
+::::
 
 ```{raw} html
 <figure class="ia-video" id="fig-sorter">
@@ -93,7 +163,7 @@ committed artifact.
 
 ::::
 
-## At a glance
+## How it is built
 
 ```{list-table}
 :header-rows: 1
@@ -107,10 +177,9 @@ committed artifact.
   - `contact-sim` (Julia) and `score-target` (JAX), composed under one `jax.grad`
 * - Gradient method
   - forward variational sensitivities with analytic saltation updates at events
-* - Headline result
-  - a 24-parameter surface that sorts particles by restitution alone
-* - Validation
-  - two solver-independent oracles, twelve golden tests, CI on every push
+* - Checked against
+  - a symbolic closed form and an independent scipy reimplementation, plus
+    twelve golden tests on every push
 ```
 
 ```{toctree}

@@ -80,6 +80,36 @@ html_theme_options = {
 }
 html_css_files = ["custom.css"]
 
+html_sidebars = {
+    "**": [
+        "sidebar/scroll-start.html",
+        "sidebar/brand.html",
+        "sidebar/search.html",
+        "sidebar/navigation.html",
+        "sidebar/repo.html",
+        "sidebar/scroll-end.html",
+    ]
+}
+
+
+def _repo_stars(url):
+    """Star count for the sidebar, or None while the repository is private."""
+    import json
+    import urllib.request
+
+    try:
+        api = url.replace("https://github.com/", "https://api.github.com/repos/")
+        with urllib.request.urlopen(api, timeout=4) as r:
+            return json.load(r).get("stargazers_count")
+    except Exception:
+        return None
+
+
+html_context = {
+    "ia_repo_url": "https://github.com/singhharsh1708/impact-adjoint",
+    "ia_repo_stars": _repo_stars("https://github.com/singhharsh1708/impact-adjoint"),
+}
+
 html_baseurl = "https://impact-adjoint.vercel.app/"
 sitemap_url_scheme = "{link}"
 sitemap_excludes = ["404.html", "genindex.html", "search.html"]
