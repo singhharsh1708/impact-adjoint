@@ -4,6 +4,9 @@
 E2b and E5b also speak to Track 4, differentiable inference and UQ, but the
 headline result is a designed structure and Track 1 is the entry's track.)
 
+Documentation site: <https://impact-adjoint.vercel.app>
+Repository: <https://github.com/singhharsh1708/impact-adjoint>
+
 This entry differentiates *through impacts* exactly, rather than by
 smoothing them, and uses the result to design passive structures whose
 function only exists because of those impacts. Sorting by resilience is real
@@ -345,6 +348,8 @@ individual trajectories, which is the combination E4 and E5 exercise.
 
 Everything reproduces with the README commands, CPU-only, in minutes; images
 build for arm64 and x86_64; CI runs the full validation chain on every push.
+The same material is browsable at <https://impact-adjoint.vercel.app>, where
+every figure and the generated results table are collected.
 
 Building this surfaced several problems in the stack, which were reported and
 fixed upstream during the hackathon period:
