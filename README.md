@@ -108,6 +108,30 @@ explicit status** (event capacity / settled contact) and still return
 well-defined total-derivative Jacobians at the truncation point, so
 optimization loops never consume silently nonphysical states.
 
+## Verification studies
+
+Beyond the correctness oracles above, four studies measure the machinery
+itself. Every number is collected into [docs/RESULTS.md](docs/RESULTS.md) by
+`experiments/collect_results.py`, read from the committed artifacts rather
+than retyped.
+
+![verification](docs/figures/study_verification.png)
+*Order 3.99 on a smooth arc against the analytic solution; gradient-vs-FD
+V-curves bottoming below 1e-8 on four probes; cost affine in parameter count
+at R2 = 0.998.*
+
+![benchmark](docs/figures/study_optimizers.png)
+*Five random starts, both methods tuned per seed. Per evaluation Adam ends
+about 900x below tuned CMA-ES. Charged at measured wall-clock, where each
+gradient costs 8.5 solves, CMA-ES is about 24x better at this budget. Both
+are reported; the reverse-mode adjoint in Future work is what closes it.*
+
+![robustness](docs/figures/study_robustness.png)
+*Five independent ensembles: 983/1000 vs 1000/1000 with non-overlapping
+Wilson intervals, and the fifth-percentile margin improving 0.05 m to
+0.58 m. Under inlet jitter the point design is indecisive at 5 of 20
+restitutions, including its own trained value; the ensemble design at none.*
+
 ## Performance envelope
 
 Warm per-call cost of the solver component (M-series CPU, dev mode;
@@ -157,6 +181,16 @@ python experiments/e4_terrain_design.py
 python experiments/e5_separator.py          # ~30 s warm: 3 optimizers x 900 evals
 python experiments/e5b_robust_separator.py  # ~10 min: ensemble design + purity eval
 python experiments/e6_generalization.py
+
+# verification studies (write the artifacts behind docs/RESULTS.md)
+python experiments/study_convergence.py
+python experiments/study_gradient_accuracy.py
+python experiments/study_scaling.py
+python experiments/study_optimizers.py          # ~25 min: 5 seeds x tuned grids
+python experiments/study_robustness_stats.py    # ~10 min
+python experiments/study_generalization_stats.py  # ~15 min
+python experiments/make_study_figures.py
+python experiments/collect_results.py
 
 # containerized (any docker-compatible engine; needs buildx; ~10 min for contact-sim)
 tesseract build tesseracts/contact_sim

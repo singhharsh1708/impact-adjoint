@@ -183,26 +183,29 @@ low-restitution particle is stopped by the solver's event budget
 (`MAX_EVENTS = 8`) rather than by coming to rest, so the separation surface
 is "position after eight impacts", not "position at rest". A chute of fixed
 length imposes an analogous cut, though not the identical one.38 mm and 0.34 mm. The right panel plots the race under the
-evaluation-count accounting; the wall-clock accounting follows in the text,
-and we report both. Charging a gradient call as two forward solves, Adam
-reaches **2×10⁻⁷** while CMA-ES plateaus at 2×10⁻³ (~8,800× worse) and
-Nelder-Mead at 2×10⁻²; a 3-seed × 3-σ₀ CMA tuning grid
-(`experiments/e5_cma_grid.py`) gives median 1.7×10⁻³ with a best tail of
-1.7×10⁻⁴, still ~730× above Adam. The eval-count accounting is generous to
-us, and the honest version is worth stating. Charged by *measured
-wall-clock* (a VJP costs 8.5 forward solves at these 77 parameters, not the 2
-the script charges), Adam consumes about 3.2× CMA's wall-clock over the run.
-Cut at CMA's own wall-clock budget, Adam sits at 3.8×10⁻³ against CMA's
-converged 1.98×10⁻³, so at that cut it loses, and the best tuned CMA grid run
-(1.7×10⁻⁴) is better still. The gradient advantage is not that it wins a
-fixed short budget. It is that it keeps descending four further orders after
-every gradient-free run has stopped moving. The gradient-free runs
-are not equally stuck: CMA-ES is flat over its last third, while Nelder-Mead
-is still improving when the budget ends (its last gain lands at evaluation
-896 of 900), so its 2×10⁻² is a budget limit rather than a converged value.
-Neither is within three orders of the gradient result. In 24 dimensions,
-exact gradients through the events are the difference between solving this
-design problem and not.
+evaluation-count accounting. A single run from one start point cannot settle
+a method comparison, so `experiments/study_optimizers.py` repeats it from
+five random starts with both methods tuned over a grid per seed (learning
+rate for Adam, sigma0 for CMA-ES) and reports medians with interquartile
+bands under both accountings:
+
+![benchmark](figures/study_optimizers.png)
+
+Per evaluation, gradients win decisively: median final objective 3.4×10⁻⁷ for
+Adam against 3.2×10⁻⁴ for tuned CMA-ES, a factor of about 900, with
+Nelder-Mead three orders behind that. Charged by measured wall-clock, where
+each gradient call costs 8.5 forward solves, the ranking reverses at this
+budget: Adam reaches 7.6×10⁻³ while CMA-ES is roughly 24 times better.
+
+We report the reversal because it is real, and because it is an
+implementation property rather than a fact about gradients. The VJP is
+forward-variational, so it pays one variational column per parameter, 93
+microseconds each as measured in the scaling study. A reverse-mode saltation
+adjoint would return the same gradient for roughly the cost of one solve,
+which would make the wall-clock panel resemble the evaluation panel. What
+does not change under either accounting is that the gradient-free methods
+never reach the design: in 24 dimensions they plateau three to five orders
+above what Adam attains per evaluation.
 
 **E5b, design under uncertainty.** Real separators process streams with
 scatter, so we make the expected loss over a particle ensemble (inlet
@@ -264,6 +267,39 @@ Near tangency the impact sensitivities grow as `δ^(−1/2)` (the saltation
 denominator `g_q · f⁻` vanishes at grazing), a property of the physics, not
 an artifact; the solver raises an explicit error at degenerate crossings
 rather than returning an unbounded gradient.
+
+## 4b. Verification studies
+
+Four studies check the machinery itself rather than any application, each
+writing an artifact that `experiments/collect_results.py` reads into
+`docs/RESULTS.md`, so no number in this document is retyped by hand.
+
+![verification](figures/study_verification.png)
+
+The solver converges at **order 3.99** on a smooth arc measured against the
+analytic drag solution, and the multi-bounce flat case sits at 10⁻¹² against
+the symbolic closed form, where the floor is event localization rather than
+the integrator. Gradient agreement with central differences traces the
+expected V in the step size on all four probes, bottoming below 10⁻⁸: a
+wrong analytic gradient would show a flat floor instead of a V, because the
+disagreement would be dominated by the gradient error rather than the step.
+Cost is affine in parameter count (R² = 0.998, 93 microseconds per
+parameter), which is what makes the reverse-mode extension a measured
+argument rather than a preference.
+
+![robustness](figures/study_robustness.png)
+
+Two robustness studies replace single draws with statistics. Over five
+independent 200-particle ensembles, the point design classifies 983 of 1000
+and the ensemble design 1000 of 1000, with non-overlapping Wilson intervals;
+more usefully, the fifth-percentile separation margin improves from 0.05 m to
+0.58 m (bootstrap 95% interval [+0.48, +0.55] m) and the worst case moves
+from inside the wrong bin to 0.09 m clear of the boundary. Sweeping
+restitution under inlet jitter shows what the deterministic sweep hid: the
+point design is indecisive at 5 of 20 restitutions, including its own trained
+value of 0.8, where 10% of jittered draws cross into the wrong bin. The
+ensemble design is unanimous at all 20. Designing against the ensemble is
+what buys that, and it costs a little median margin to get it.
 
 ## 5. Related work: how everyone else gets contact gradients
 
