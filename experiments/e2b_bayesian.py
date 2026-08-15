@@ -6,6 +6,7 @@ updates. Posterior mean +/- sd quantifies what three noisy impact observations
 actually pin down.
 """
 
+import time
 from pathlib import Path
 
 import numpy as np
@@ -14,6 +15,7 @@ import jax
 import jax.numpy as jnp
 import numpyro
 import numpyro.distributions as dist
+from numpyro.diagnostics import gelman_rubin
 from numpyro.infer import MCMC, NUTS
 from tesseract_core import Tesseract
 from tesseract_jax import apply_tesseract
@@ -55,10 +57,17 @@ def run(sim):
 
     mcmc = MCMC(NUTS(model, target_accept_prob=0.9), num_warmup=500, num_samples=1000,
                 num_chains=2, chain_method="sequential", progress_bar=False)
-    mcmc.run(jax.random.PRNGKey(0), extra_fields=("diverging",))
+    t0 = time.perf_counter()
+    mcmc.run(jax.random.PRNGKey(0), extra_fields=("diverging", "num_steps"))
+    wall_s = time.perf_counter() - t0
     mcmc.print_summary()
     s = mcmc.get_samples()
-    n_div = int(np.asarray(mcmc.get_extra_fields()["diverging"]).sum())
+    extra = mcmc.get_extra_fields()
+    n_div = int(np.asarray(extra["diverging"]).sum())
+    # one leapfrog step = one apply plus one saltation VJP through the container
+    n_leapfrog = int(np.asarray(extra["num_steps"]).sum())
+    grouped = mcmc.get_samples(group_by_chain=True)
+    r_hat = {k: float(gelman_rubin(np.asarray(v))) for k, v in grouped.items()}
     e_s, mu_s = np.asarray(s["e"]), np.asarray(s["mu"])
     e_mean, e_sd = float(e_s.mean()), float(e_s.std())
     mu_mean, mu_sd = float(mu_s.mean()), float(mu_s.std())
@@ -74,7 +83,13 @@ def run(sim):
     assert n_div == 0, f"{n_div} divergent transitions"
     assert e95[0] <= E_TRUE <= e95[1], "truth outside 95% CI for e"
     assert mu95[0] <= MU_TRUE <= mu95[1], "truth outside 95% CI for mu"
-    np.savez(ROOT / "experiments" / "e2b_posterior.npz", e=e_s, mu=mu_s)
+    print(f"r_hat: e {r_hat['e']:.4f}  mu {r_hat['mu']:.4f}")
+    print(f"sampling wall time {wall_s:.1f} s over {n_leapfrog} leapfrog steps "
+          f"(one apply plus one VJP each)")
+    np.savez(ROOT / "experiments" / "e2b_posterior.npz", e=e_s, mu=mu_s,
+             n_divergences=n_div, r_hat_e=r_hat["e"], r_hat_mu=r_hat["mu"],
+             n_draws=len(e_s), n_chains=2, n_warmup=500,
+             wall_s=wall_s, n_leapfrog=n_leapfrog)
     print("E2b PASSED: 2-chain NUTS through the Tesseract, 0 divergences, truth inside both 95% CIs")
 
 

@@ -93,7 +93,7 @@ def run(sim, score):
 
     final_loss, final_miss = history[-1][1], history[-1][2]
     first_loss, first_miss = history[0][1], history[0][2]
-    print(f"\noptimized v0 = {np.asarray(params['v0']).round(5)}, e = {float(params['e']):.5f}")
+    print(f"\noptimized v0 = {np.round(params_hist[-1][:2], 5)}, e = {params_hist[-1][2]:.5f}")
     print(f"loss {first_loss:.4f} -> {final_loss:.6f}, miss {first_miss:.3f} m -> {final_miss:.4f} m, bounces {history[-1][3]}")
     assert final_miss < 0.05, f"did not land in cup: miss {final_miss:.4f} m"
     assert history[-1][3] >= 2, "want a multi-bounce solution"

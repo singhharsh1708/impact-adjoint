@@ -31,8 +31,9 @@ Adam through.
 Recover material parameters `(e, μ)` from the positions of three impacts
 observed with 5 mm noise, an observable that exists only because of events.
 Point estimation recovers `e` to 0.002 and `μ` to 0.009. For the posterior,
-NumPyro NUTS runs against the *containerized* solver, roughly 10,000 endpoint
-calls per chain: two chains, zero divergences, r-hat 1.01,
+NumPyro NUTS runs against the *containerized* solver: 23,440 leapfrog steps
+across two chains, each an apply plus a saltation VJP over HTTP, in about 18
+minutes of sampling. Zero divergences, r-hat 1.01,
 `e = 0.697 ± 0.007` and `μ = 0.096 ± 0.009`, with the truth inside both
 credible intervals.
 
@@ -67,7 +68,7 @@ each particle must land in its own bin.
 :width: 100%
 ```
 
-Landing errors of 0.38 mm and 0.34 mm. One caveat this shares with any
+Landing errors of 0.23 mm and 0.42 mm. One caveat this shares with any
 fixed-length chute: the low-restitution particle is stopped by the event
 budget rather than by coming to rest, so the separation surface is "position
 after eight impacts", not "position at rest".

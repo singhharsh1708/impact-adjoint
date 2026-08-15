@@ -15,6 +15,14 @@ not retyped, so this file cannot drift from what was measured.
 | VJP marginal cost per parameter | 93.1 us |
 | affine cost model fit | R2 = 0.9976 |
 
+## Warm per-call cost (dt 1e-3, t_final 2.0 s, four impacts)
+
+| params | apply | vector_jacobian_product | ratio |
+|---|---|---|---|
+| 14 | 1.83 ms | 11.4 ms | 6.22x |
+| 77 | 2.34 ms | 19.8 ms | 8.48x |
+| 581 | 8.24 ms | 64.7 ms | 7.85x |
+
 ## Experiments
 
 | quantity | value |
@@ -27,6 +35,10 @@ not retyped, so this file cannot drift from what was measured.
 | E5 CMA tuning grid, median and best | 0.00167 / 0.000165 |
 | E2b posterior e | 0.6965 +/- 0.0071 |
 | E2b posterior mu | 0.0955 +/- 0.0093 |
+| E2b divergences | 0 |
+| E2b r_hat, e and mu | 1.01 / 1.01 |
+| E2b leapfrog steps, 2 chains (apply + VJP each) | 23440 |
+| E2b sampling wall time | 18 min |
 
 ## Multi-seed benchmark and robustness
 

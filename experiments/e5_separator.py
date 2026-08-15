@@ -87,14 +87,15 @@ def run_adam(sim, score):
     opt = optax.adam(learning_rate=0.02)
     state = opt.init(amp)
     trace = []
-    best = np.inf
+    best, best_amp = np.inf, np.asarray(amp)
     while counter["evals"] + 6 <= BUDGET:
         val, g = loss_and_grad(np.asarray(amp))
-        best = min(best, val)
+        if val < best:
+            best, best_amp = val, np.asarray(amp)
         trace.append((counter["evals"], best))
         updates, state = opt.update(jnp.asarray(g), state)
         amp = jnp.clip(optax.apply_updates(amp, updates), 0.0, AMP_MAX)
-    return np.asarray(amp), trace
+    return best_amp, trace
 
 
 def run_nelder_mead(sim, score):

@@ -64,7 +64,9 @@ def main():
         updates, state = opt.update(jnp.asarray(g), state)
         amp = jnp.clip(optax.apply_updates(amp, updates), 0.0, AMP_MAX)
         amps.append(np.asarray(amp))
-    losses.append(losses[-1])
+    # the last appended amp was never evaluated, so drop it: every frame is a
+    # terrain paired with the objective actually measured on it
+    amps = amps[:-1]
 
     stride = 3
     idxs = list(range(0, len(amps), stride))

@@ -75,6 +75,7 @@ def main():
     for it in range(n_iters):
         (loss, (m1, m2, n1, n2)), grads = grad_fn(params)
         hist.append([float(loss), float(m1), float(m2)])
+        evaluated = {k: np.asarray(v) for k, v in params.items()}
         if it % 20 == 0 or it == n_iters - 1:
             print(f"iter {it:3d}  loss {float(loss):9.5f}  miss_slow {float(m1):7.4f}  "
                   f"miss_fast {float(m2):7.4f}  bounces {int(n1)}/{int(n2)}")
@@ -85,14 +86,14 @@ def main():
         params["ctr"] = jnp.clip(params["ctr"], 0.5, 5.0)
 
     m1, m2 = hist[-1][1], hist[-1][2]
-    print(f"\ndesigned terrain: amp={np.asarray(params['amp']).round(4)}")
-    print(f"                  ctr={np.asarray(params['ctr']).round(4)}")
-    print(f"                  wid={np.asarray(params['wid']).round(4)}")
+    print(f"\ndesigned terrain: amp={evaluated['amp'].round(4)}")
+    print(f"                  ctr={evaluated['ctr'].round(4)}")
+    print(f"                  wid={evaluated['wid'].round(4)}")
     print(f"slow ball -> cup at {CUP_SLOW}: miss {hist[0][1]:.3f} -> {m1:.4f} m")
     print(f"fast ball -> cup at {CUP_FAST}: miss {hist[0][2]:.3f} -> {m2:.4f} m")
     np.savez(ROOT / "experiments" / "e4_result.npz",
              hist=np.array(hist),
-             amp=np.asarray(params["amp"]), ctr=np.asarray(params["ctr"]), wid=np.asarray(params["wid"]))
+             amp=evaluated["amp"], ctr=evaluated["ctr"], wid=evaluated["wid"])
     assert m1 < 0.08 and m2 < 0.08, f"sorter did not converge: {m1:.3f}, {m2:.3f}"
     print("E4 PASSED: one passive terrain routes both inlet speeds to their cups")
 

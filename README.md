@@ -72,7 +72,7 @@ raw `curl` client, unchanged.
 |---|---|
 | **E3**, the failure measured | Grid-reset autodiff gives `d x(T)/d v0y` = **exactly 0.0 at every dt** (truth +0.0904; the exact zero is specific to this flat-terrain case, on curved terrain it is nonzero and wrong). The pure-JAX repair converges only by hand-implementing event sensitivity. |
 | **E5**, 24-dim resilience separator | At a shared budget of 900 forward-solve units with a gradient charged as 2: Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ vs Nelder-Mead 2×10⁻². Charged by measured wall-clock instead, Adam loses at CMA's own budget and wins only by continuing four orders further; the writeup gives both accountings in full. |
-| **E5b**, design under uncertainty | Ensemble objective over inlet and restitution scatter. Held-out sorting purity 199/200 for the point design, 200/200 after refinement, with a visibly wider margin at the decision boundary. |
+| **E5b**, design under uncertainty | Ensemble objective over inlet and restitution scatter. Held-out purity 199/200 for the point design and 200/200 after refinement on one draw; over five independent ensembles, 983/1000 against 1000/1000 with non-overlapping Wilson intervals. The margin at the decision boundary widens visibly. |
 | **E6**, zero-shot generalization | Trained on two materials, sorts the whole continuum e ∈ [0.35, 0.875] with **one threshold**. |
 | **E1**, inverse design | Miss **1.12 m → 2.7 cm** through 5 bounces, across bounce-count changes. |
 | **E2/E2b**, calibration | NUTS posterior `e = 0.697 ± 0.007`, `mu = 0.096 ± 0.009`; truth inside both 95% CIs, 0 divergences. |
@@ -113,7 +113,7 @@ optimization loops never consume silently nonphysical states.
 
 ## Verification studies
 
-Beyond the correctness oracles above, four studies measure the machinery
+Beyond the correctness oracles above, six studies measure the machinery
 itself. Every number is collected into [docs/RESULTS.md](docs/RESULTS.md) by
 `experiments/collect_results.py`, read from the committed artifacts rather
 than retyped.
@@ -137,18 +137,21 @@ restitutions, including its own trained value; the ensemble design at none.*
 
 ## Performance envelope
 
-Warm per-call cost of the solver component (M-series CPU, dev mode;
-container adds ~10 ms HTTP overhead per call):
+Warm per-call cost of the solver component, measured by
+`experiments/study_scaling.py` and read from `scaling_result.npz` (M-series
+CPU, dev mode, `dt` 1e-3, `t_final` 2.0 s, four impacts; the container adds
+~10 ms HTTP overhead per call):
 
-| call | 3 bumps, 14 params (dt 1e-3, t 2.0 s) | 24 bumps, 77 params (dt 5e-4, t 2.2 s) |
-|---|---|---|
-| `apply` | 2.0 ms | 4.9 ms |
-| `vector_jacobian_product` | 12.1 ms | 41.6 ms |
-| ratio | 6.0× | 8.5× |
+| call | 3 bumps, 14 params | 24 bumps, 77 params | 192 bumps, 581 params |
+|---|---|---|---|
+| `apply` | 1.8 ms | 2.3 ms | 8.2 ms |
+| `vector_jacobian_product` | 11.4 ms | 19.8 ms | 64.7 ms |
+| ratio | 6.2× | 8.5× | 7.9× |
 
-Gradients are forward-variational, so VJP cost grows with parameter count.
-HMC through the container sustains roughly 10,000 endpoint calls (apply plus
-VJP pairs) in about 2.5 minutes of sampling.
+Gradients are forward-variational, so VJP cost grows with parameter count:
+93 µs per parameter, affine out to 581 parameters at R² = 0.998. The 8.5×
+ratio at 77 parameters is what `study_optimizers.py` charges a gradient call
+under wall-clock accounting.
 
 ## Reproduce
 
@@ -225,7 +228,7 @@ python experiments/e1_inverse_design.py --container  # same optimization via the
 
 ```
 tesseracts/    contact_sim (Julia solver) · score_target (JAX objective) · julia_kernel (Day-1 proof)
-experiments/   e1–e6, e5b + figure/animation generators + committed result artifacts
+experiments/   e1-e6, e5b + figure/animation generators + committed result artifacts
 scripts/       three validation oracles · boundary proofs · curl client
 tests/         12 golden regression tests (run in CI)
 docs/          technical writeup, all figures, and the site source (docs/site)

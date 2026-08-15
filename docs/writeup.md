@@ -144,11 +144,12 @@ from the *positions of three impacts* observed with 5 mm noise, an
 observable that exists only because of events. Point estimation via the solver's
 VJP recovers `e` to 0.002 and `μ` to 0.009 from a distant start. For the
 posterior, NumPyro's NUTS sampler runs directly against the *containerized*
-solver. Every leapfrog step calls the Tesseract's apply and
-saltation-VJP endpoints over HTTP, roughly 10,000 solver calls per chain. Two
+solver. Every leapfrog step calls the Tesseract's apply and saltation-VJP
+endpoints over HTTP: 23,440 steps across two chains, measured and recorded in
+`e2b_posterior.npz`, in about 18 minutes of sampling. Two
 chains, zero divergences, r̂ = 1.01: posterior `e = 0.697 ± 0.007`, `μ =
 0.096 ± 0.009`, with the truth inside the 68% and 95% credible intervals of
-both marginals. The posterior also resolves the physically meaningful e–μ
+both marginals. The posterior also resolves the physically meaningful e-μ
 ridge, more bounce traded against more tangential loss
 ([figure](figures/e2b_posterior.png)).
 
@@ -175,17 +176,19 @@ bump amplitudes of the surface; each particle must land in its own bin.
 
 ![E5](figures/e5_separator.png)
 
-The designed surface separates the materials from a shared first impact.
-the low-restitution particle is still over bin A when its eighth impact
-exhausts the event budget, while the high-restitution one carries over the
-designed hills into bin B (the optimizer grew a backstop that bounces it
-*backward* into that bin), with landing errors of
-0.
+The designed surface separates the materials from a shared first impact: the
+low-restitution particle is still over bin A when its eighth impact exhausts
+the event budget, while the high-restitution one carries over the designed
+hills into bin B (the optimizer grew a backstop that bounces it *backward*
+into that bin), with landing errors of 0.23 mm and 0.42 mm.
+
 One caveat this design shares with any fixed-length chute: the
 low-restitution particle is stopped by the solver's event budget
 (`MAX_EVENTS = 8`) rather than by coming to rest, so the separation surface
 is "position after eight impacts", not "position at rest". A chute of fixed
-length imposes an analogous cut, though not the identical one.38 mm and 0.34 mm. The right panel plots the race under the
+length imposes an analogous cut, though not the identical one.
+
+The right panel plots the race under the
 evaluation-count accounting. A single run from one start point cannot settle
 a method comparison, so `experiments/study_optimizers.py` repeats it from
 five random starts with both methods tuned over a grid per seed (learning
@@ -216,7 +219,11 @@ velocity sd 5 cm/s, per-particle restitution sd 0.03, fixed common random
 numbers, so the ensemble gradient is exact) the design objective. Two results:
 the E5 point design is already robust, scoring 199 of 200 on the held-out
 ensemble, and ensemble refinement scores 200 of 200. That last step is a
-one-particle difference and should not be read as a significant gain. The
+one-particle difference and should not be read as a significant gain. A
+single 200-particle draw cannot separate the two designs, which is why
+`experiments/study_robustness_stats.py` repeats the comparison over five
+independent ensembles and reports 983 of 1000 against 1000 of 1000 with
+non-overlapping Wilson intervals; those are the numbers to quote. The
 result worth reporting is the margin: refinement widens the gap between the
 two landing distributions at the decision boundary, which is what would
 matter on a real machine ([figure](figures/e5b_purity.png)).

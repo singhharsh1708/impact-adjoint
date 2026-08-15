@@ -60,6 +60,12 @@ def main():
     e2b = load("e2b_posterior.npz")
     r["E2b_e_mean"] = float(e2b["e"].mean()); r["E2b_e_sd"] = float(e2b["e"].std())
     r["E2b_mu_mean"] = float(e2b["mu"].mean()); r["E2b_mu_sd"] = float(e2b["mu"].std())
+    if "n_leapfrog" in e2b.files:
+        r["E2b_divergences"] = int(e2b["n_divergences"])
+        r["E2b_r_hat_e"] = float(e2b["r_hat_e"])
+        r["E2b_r_hat_mu"] = float(e2b["r_hat_mu"])
+        r["E2b_leapfrog_steps"] = int(e2b["n_leapfrog"])
+        r["E2b_wall_s"] = float(e2b["wall_s"])
 
     rb = load("robustness_stats.npz")
     if rb is not None:
@@ -91,6 +97,12 @@ def main():
     if sc is not None:
         r["SCALE_us_per_param"] = float(sc["b_vjp"]) * 1000
         r["SCALE_r2"] = float(sc["r2_vjp"])
+        npar, ta, tv = sc["n_params"], sc["t_apply"], sc["t_vjp"]
+        for want in (14, 77, 581):
+            i = int(np.argmin(np.abs(npar - want)))
+            r[f"SCALE_apply_ms_{want}"] = float(ta[i])
+            r[f"SCALE_vjp_ms_{want}"] = float(tv[i])
+            r[f"SCALE_ratio_{want}"] = float(tv[i] / ta[i])
 
     (E / "results.json").write_text(json.dumps(r, indent=2, sort_keys=True))
 
@@ -115,6 +127,16 @@ def main():
         f"| VJP marginal cost per parameter | {f(r.get('SCALE_us_per_param'))} us |",
         f"| affine cost model fit | R2 = {f(r.get('SCALE_r2'), 4)} |",
         "",
+        "## Warm per-call cost (dt 1e-3, t_final 2.0 s, four impacts)",
+        "",
+        "| params | apply | vector_jacobian_product | ratio |",
+        "|---|---|---|---|",
+    ] + [
+        f"| {n} | {f(r[f'SCALE_apply_ms_{n}'])} ms | {f(r[f'SCALE_vjp_ms_{n}'])} ms "
+        f"| {f(r[f'SCALE_ratio_{n}'])}x |"
+        for n in (14, 77, 581) if f"SCALE_apply_ms_{n}" in r
+    ] + [
+        "",
         "## Experiments",
         "",
         "| quantity | value |",
@@ -127,6 +149,12 @@ def main():
         f"| E5 CMA tuning grid, median and best | {f(r.get('E5_cma_grid_median'))} / {f(r.get('E5_cma_grid_best'))} |",
         f"| E2b posterior e | {f(r['E2b_e_mean'], 4)} +/- {f(r['E2b_e_sd'], 2)} |",
         f"| E2b posterior mu | {f(r['E2b_mu_mean'], 3)} +/- {f(r['E2b_mu_sd'], 2)} |",
+    ] + ([
+        f"| E2b divergences | {r['E2b_divergences']} |",
+        f"| E2b r_hat, e and mu | {f(r['E2b_r_hat_e'], 3)} / {f(r['E2b_r_hat_mu'], 3)} |",
+        f"| E2b leapfrog steps, 2 chains (apply + VJP each) | {r['E2b_leapfrog_steps']} |",
+        f"| E2b sampling wall time | {r['E2b_wall_s'] / 60:.0f} min |",
+    ] if "E2b_leapfrog_steps" in r else []) + [
         "",
         "## Multi-seed benchmark and robustness",
         "",
