@@ -670,3 +670,15 @@ article figcaption .caption-number {
   flex: none;
   vertical-align: -2px;
 }
+
+.ia-provenance {
+  margin-top: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--ia-ink-faint);
+}
+
+.ia-provenance code {
+  font-size: 0.95em;
+  background: none;
+  padding: 0;
+}

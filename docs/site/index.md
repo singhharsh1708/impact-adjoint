@@ -182,6 +182,33 @@ committed artifact.
     twelve golden tests on every push
 ```
 
+## Cite and reuse
+
+The technical write-up is
+[docs/writeup.md](https://github.com/singhharsh1708/impact-adjoint/blob/main/docs/writeup.md)
+in the repository. There is no preprint.
+
+```bibtex
+@software{singh_impact_adjoint_2026,
+  author  = {Singh, Harsh},
+  title   = {impact-adjoint: exact gradients through impact
+             events across a Julia and JAX Tesseract boundary},
+  year    = {2026},
+  version = {0.1.0},
+  license = {Apache-2.0},
+  url     = {https://github.com/singhharsh1708/impact-adjoint}
+}
+```
+
+Released under the
+[Apache License 2.0](https://github.com/singhharsh1708/impact-adjoint/blob/main/LICENSE),
+so the code and the results may be reused and modified with attribution.
+
+Written by Harsh Singh ([@singhharsh1708](https://github.com/singhharsh1708)).
+Questions, corrections and reproduction problems are best raised as
+[an issue](https://github.com/singhharsh1708/impact-adjoint/issues); a
+disagreement with a number here is worth filing.
+
 ```{toctree}
 :hidden:
 :caption: Orientation

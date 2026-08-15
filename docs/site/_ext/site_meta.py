@@ -74,6 +74,24 @@ def _twitter(app, html: str) -> str:
     return "".join(tags)
 
 
+def _provenance(app) -> str:
+    """A footer line naming the commit the site was built from."""
+    meta = app.config.site_meta
+    sha, built = meta.get("commit"), meta.get("built")
+    if not sha:
+        return ""
+    short = sha[:7]
+    href = f'{meta["repository"]}/commit/{sha}'
+    return (
+        '<div class="ia-provenance">Built from '
+        f'<a class="muted-link" href="{href}"><code>{short}</code></a> '
+        f"on {built}.</div>"
+    )
+
+
+LEFT_DETAILS_END = re.compile(r'(</div>\s*<div class="right-details">)')
+
+
 def on_build_finished(app, exception):
     if exception is not None or app.builder.name != "html":
         return
@@ -110,6 +128,10 @@ def on_build_finished(app, exception):
             html = html.replace(
                 "</head>", _structured_data(app) + "</head>", 1
             )
+
+        prov = _provenance(app)
+        if prov and "ia-provenance" not in html:
+            html = LEFT_DETAILS_END.sub(prov + r"\1", html, count=1)
 
         if html != original:
             page.write_text(html, encoding="utf-8")

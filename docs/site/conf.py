@@ -92,6 +92,23 @@ html_sidebars = {
 }
 
 
+def _build_provenance():
+    """Commit and build date for the footer, so the site is traceable too."""
+    import os
+    import subprocess
+
+    sha = os.environ.get("GITHUB_SHA")
+    if not sha:
+        try:
+            sha = subprocess.run(
+                ["git", "rev-parse", "HEAD"], cwd=here, capture_output=True,
+                text=True, check=True,
+            ).stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
+            sha = None
+    return sha, date.today().isoformat()
+
+
 def _repo_stars(url):
     """Star count for the sidebar, or None while the repository is private."""
     import json
@@ -104,6 +121,8 @@ def _repo_stars(url):
     except Exception:
         return None
 
+
+_commit, _built = _build_provenance()
 
 html_context = {
     "ia_repo_url": "https://github.com/singhharsh1708/impact-adjoint",
@@ -125,6 +144,8 @@ site_meta = {
     "author_url": "https://github.com/singhharsh1708",
     "license_url": "https://www.apache.org/licenses/LICENSE-2.0",
     "languages": ["Julia", "Python"],
+    "commit": _commit,
+    "built": _built,
 }
 
 ogp_site_url = "https://impact-adjoint.vercel.app/"
