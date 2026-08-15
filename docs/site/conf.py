@@ -28,7 +28,9 @@ extensions = [
     "sphinx_design",
     "sphinxext.opengraph",
     "sphinxcontrib.mermaid",
+    "sphinx_sitemap",
     "optimize_images",
+    "site_meta",
 ]
 
 myst_enable_extensions = ["dollarmath", "colon_fence", "deflist", "attrs_inline"]
@@ -78,14 +80,29 @@ html_theme_options = {
 }
 html_css_files = ["custom.css"]
 
+html_baseurl = "https://impact-adjoint.vercel.app/"
+sitemap_url_scheme = "{link}"
+sitemap_excludes = ["404.html", "genindex.html", "search.html"]
+html_extra_path = ["_extra"]
+
+# consumed by the site_meta extension for Twitter tags and JSON-LD
+site_meta = {
+    "description": (
+        "Exact gradients through impact events, across a Julia and JAX "
+        "Tesseract boundary."
+    ),
+    "repository": "https://github.com/singhharsh1708/impact-adjoint",
+    "author_url": "https://github.com/singhharsh1708",
+    "license_url": "https://www.apache.org/licenses/LICENSE-2.0",
+    "languages": ["Julia", "Python"],
+}
+
 ogp_site_url = "https://impact-adjoint.vercel.app/"
 ogp_site_name = "impact-adjoint"
 ogp_type = "article"
 ogp_description_length = 200
 ogp_social_cards = {"line_color": "#2a78d6"}
 
-# figures and generated tables live one level up; Sphinx copies what is linked
-html_extra_path = []
 suppress_warnings = ["myst.header"]
 
 mermaid_init_js = """
