@@ -1,0 +1,14 @@
+/* impact-adjoint docs: light touch on top of Furo */
+:root {
+  --ia-blue: #2a78d6;
+  --ia-orange: #eb6834;
+}
+.sidebar-brand-text { font-weight: 600; letter-spacing: -0.01em; }
+article h1 { letter-spacing: -0.02em; }
+/* figures sit on the page background, matching the plots' own surface */
+article img { border-radius: 4px; }
+/* grid cards read as a nav row, not as boxes shouting for attention */
+.sd-card { border-radius: 6px; }
+.sd-card-title { font-size: 0.95rem; font-weight: 600; }
+/* tables: quieter borders, tighter rhythm */
+table.docutils td, table.docutils th { padding: 0.4rem 0.6rem; }

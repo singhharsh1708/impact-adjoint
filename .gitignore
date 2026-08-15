@@ -7,3 +7,4 @@ __pycache__/
 .DS_Store
 notes/
 .pytest_cache/
+docs/site/build/
