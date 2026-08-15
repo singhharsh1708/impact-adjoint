@@ -17,6 +17,7 @@ where the initial guess settles, every Adam step one `jax.grad` through both
 Tesseracts.
 
 ```{image} ../figures/e1_trajectory.png
+:alt: Ball trajectories before and after optimization: the initial guess settles short, the optimized launch lands in the cup after five impacts.
 :width: 100%
 ```
 
@@ -50,6 +51,7 @@ becomes the design variable. One terrain routes balls entering at 1.6 and
 3.0 cm.
 
 ```{image} ../figures/e4_sorter.png
+:alt: One fixed terrain with two trajectories: balls entering at 1.6 and 2.6 m/s follow different bounce paths into two separate cups.
 :width: 100%
 ```
 
@@ -65,6 +67,7 @@ Two particles enter identically and differ only in restitution, `e = 0.5` and
 each particle must land in its own bin.
 
 ```{image} ../figures/e5_separator.png
+:alt: Left, the designed 24-bump surface with the two material trajectories separating into their own bins; right, the optimizer race in which the gradient-free runs end three to five orders above Adam.
 :width: 100%
 ```
 
@@ -91,6 +94,7 @@ continuum it never saw, the geometry acts as a classifier: everything in
 `e ∈ [0.35, 0.875]` is binned by a single threshold.
 
 ```{image} ../figures/e6_generalization.png
+:alt: Landing position swept across restitution: a single threshold separates the whole continuum from 0.35 to 0.875, though the surface was trained on only two values.
 :width: 100%
 ```
 

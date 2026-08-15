@@ -7,6 +7,7 @@ writes an artifact that `experiments/collect_results.py` reads into
 ## Solver and gradient
 
 ```{image} ../figures/study_verification.png
+:alt: Three verification panels: observed order of accuracy 3.99 against the analytic solution, gradient-versus-finite-difference V-curves bottoming below 1e-8 on four probes, and VJP cost affine in parameter count at R-squared 0.998.
 :width: 100%
 ```
 
@@ -32,6 +33,7 @@ methods tuned over a grid per seed, learning rate for Adam and sigma0 for
 CMA-ES.
 
 ```{image} ../figures/study_optimizers.png
+:alt: Median convergence curves with interquartile bands over five random starts under both cost accountings: per evaluation Adam ends about 900 times below tuned CMA-ES, and the ranking reverses under measured wall-clock.
 :width: 100%
 ```
 
@@ -57,6 +59,7 @@ above what Adam attains per evaluation.
 ## Robustness and generalization
 
 ```{image} ../figures/study_robustness.png
+:alt: Held-out purity and separation margin for the point and ensemble designs across five independent ensembles, with non-overlapping Wilson intervals and a widened margin at the decision boundary.
 :width: 100%
 ```
 

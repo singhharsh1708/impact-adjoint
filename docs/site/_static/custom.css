@@ -531,3 +531,26 @@ article figcaption .caption-number {
   width: 100%;
   min-height: 220px;
 }
+
+/* ---- accessibility ---------------------------------------------------- */
+
+/* Keyboard focus must stay visible over every custom surface above. Furo's
+   own ring is kept where it already lands; this only guarantees a fallback. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--ia-accent, #2a78d6);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Readers who ask for reduced motion get the static frame, not the loop.
+   The learning animation also checks this in JS before it plays. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
