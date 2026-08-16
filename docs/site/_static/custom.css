@@ -691,3 +691,42 @@ article figcaption .caption-number {
   padding: 0.22rem 0;
   line-height: 1.35;
 }
+
+/* ---- project-page header ---------------------------------------------- */
+
+.ia-byline {
+  margin: -0.4rem 0 1.1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ia-ink-soft);
+}
+
+.ia-byline p {
+  margin: 0.12rem 0;
+}
+
+.ia-byline strong {
+  color: var(--ia-ink);
+}
+
+/* The resource row reuses .ia-cta; MyST emits <p> inside the container, so
+   the links need to lay out as a row rather than a paragraph. */
+.ia-cta p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.ia-abstract {
+  margin: 1.4rem 0 1.6rem;
+  padding: 0.05rem 0 0.05rem 0.95rem;
+  border-left: 2px solid var(--ia-rule);
+}
+
+.ia-abstract p {
+  margin: 0;
+  font-size: 1.02em;
+  line-height: 1.62;
+  color: var(--ia-ink);
+}

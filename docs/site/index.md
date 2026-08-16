@@ -3,12 +3,30 @@
 Exact gradients through impact events, across a Julia and JAX Tesseract
 boundary.
 
-```{raw} html
-<p class="ia-cta">
-  <a class="ia-cta-primary" href="getting-started">Get started</a>
-  <a class="ia-cta-secondary" href="https://github.com/singhharsh1708/impact-adjoint">View on GitHub</a>
-</p>
-```
+:::{container} ia-byline
+**Harsh Singh** · independent work
+
+Tesseract Hackathon 2026 entry, Track 1: inverse design and shape
+optimization. Version {{ version }}.
+:::
+
+:::{container} ia-cta
+[Get started](getting-started.md){.ia-cta-primary}
+[Write-up](https://github.com/singhharsh1708/impact-adjoint/blob/main/docs/writeup.md)
+[Code](https://github.com/singhharsh1708/impact-adjoint)
+[Results](results.md)
+[Cite](citing.md)
+:::
+
+:::{container} ia-abstract
+Simulations of contact are easy to write and hard to differentiate.
+impact-adjoint computes exact parameter sensitivities across impact events
+using the classical saltation matrix, and serves them from a Julia solver
+through a Tesseract component boundary, so a JAX program obtains the true
+derivative without doing any event handling of its own. The resulting
+gradients design passive structures whose function exists only because of
+impacts.
+:::
 
 ```{raw} html
 <div class="ia-claim">
@@ -21,13 +39,7 @@ The true value is <strong class="ia-zero">+0.09</strong>.
 
 The gradient is not noisy or approximate. It is confidently, silently wrong,
 and refining the step size does not help, because the step at which the event
-fires is an integer and autodiff cannot differentiate it. impact-adjoint
-computes the missing term exactly, using the classical saltation matrix, and
-serves it from a Julia solver through a Tesseract boundary so that JAX can
-consume it without knowing any of this.
-
-The gradients then design passive structures whose function only exists
-because of impacts.
+fires is an integer and autodiff cannot differentiate it.
 
 ## See it fail, then see it fixed
 
@@ -202,33 +214,6 @@ committed artifact.
     twelve golden tests on every push
 ```
 
-## Cite and reuse
-
-The technical write-up is
-[docs/writeup.md](https://github.com/singhharsh1708/impact-adjoint/blob/main/docs/writeup.md)
-in the repository. There is no preprint.
-
-```bibtex
-@software{singh_impact_adjoint_2026,
-  author  = {Singh, Harsh},
-  title   = {impact-adjoint: exact gradients through impact
-             events across a Julia and JAX Tesseract boundary},
-  year    = {2026},
-  version = {0.1.0},
-  license = {Apache-2.0},
-  url     = {https://github.com/singhharsh1708/impact-adjoint}
-}
-```
-
-Released under the
-[Apache License 2.0](https://github.com/singhharsh1708/impact-adjoint/blob/main/LICENSE),
-so the code and the results may be reused and modified with attribution.
-
-Written by Harsh Singh ([@singhharsh1708](https://github.com/singhharsh1708)).
-Questions, corrections and reproduction problems are best raised as
-[an issue](https://github.com/singhharsh1708/impact-adjoint/issues); a
-disagreement with a number here is worth filing.
-
 ```{toctree}
 :hidden:
 :caption: Orientation
@@ -254,4 +239,5 @@ results
 reference
 upstream
 limitations
+citing
 ```

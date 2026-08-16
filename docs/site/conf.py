@@ -33,8 +33,10 @@ extensions = [
     "site_meta",
 ]
 
-myst_enable_extensions = ["dollarmath", "colon_fence", "deflist", "attrs_inline"]
+myst_enable_extensions = ["dollarmath", "colon_fence", "deflist", "attrs_inline",
+                          "substitution"]
 myst_heading_anchors = 3
+myst_substitutions = {"version": version}
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
