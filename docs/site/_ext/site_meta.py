@@ -61,17 +61,49 @@ def _structured_data(app) -> str:
     )
 
 
+def _og(html: str, prop: str) -> str | None:
+    m = re.search(rf'<meta property="og:{prop}" content="([^"]*)"', html)
+    return m.group(1) if m else None
+
+
 def _twitter(app, html: str) -> str:
-    """Mirror the page's own OpenGraph card; its filename is content-hashed."""
+    """Mirror this page's own OpenGraph tags.
+
+    These used to be the site title and tagline on every page, so any share of
+    a subpage previewed as the homepage. The og: tags are already per-page, so
+    the card follows them; the image filename is content-hashed, which is the
+    other reason to read it out of the page rather than construct it.
+    """
     meta = app.config.site_meta
-    m = re.search(r'<meta property="og:image" content="([^"]+)"', html)
+    title = _og(html, "title") or app.config.project
+    desc = _og(html, "description") or meta["description"]
     tags = [
-        f'<meta name="twitter:title" content="{app.config.project}" />',
-        f'<meta name="twitter:description" content="{meta["description"]}" />',
+        f'<meta name="twitter:title" content="{title}" />',
+        f'<meta name="twitter:description" content="{desc}" />',
     ]
-    if m:
-        tags.append(f'<meta name="twitter:image" content="{m.group(1)}" />')
+    image = _og(html, "image")
+    if image:
+        tags.append(f'<meta name="twitter:image" content="{image}" />')
     return "".join(tags)
+
+
+def _lastmod(app):
+    """Last commit date per source file, for sitemap <lastmod>."""
+    import subprocess
+
+    src = Path(app.srcdir)
+    out = {}
+    for md in src.glob("*.md"):
+        try:
+            r = subprocess.run(
+                ["git", "log", "-1", "--format=%cs", "--", md.name],
+                cwd=src, capture_output=True, text=True, check=True,
+            )
+            if r.stdout.strip():
+                out[md.stem] = r.stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
+            pass
+    return out
 
 
 def _provenance(app) -> str:
@@ -166,6 +198,20 @@ def on_build_finished(app, exception):
         xml = sitemap.read_text(encoding="utf-8")
         xml = re.sub(r"<loc>([^<]+)</loc>",
                      lambda m: f"<loc>{_clean(m.group(1))}</loc>", xml)
+
+        # a crawler has no way to tell a changed page from a stale one
+        # without this; the date is the page source's last commit
+        dates = _lastmod(app)
+
+        def stamp(m):
+            loc = m.group(1)
+            rest = loc[len(base):] if loc.startswith(base) else loc
+            slug = rest.strip("/") or "index"
+            date = dates.get(slug)
+            return (f"<loc>{loc}</loc><lastmod>{date}</lastmod>"
+                    if date else f"<loc>{loc}</loc>")
+
+        xml = re.sub(r"<loc>([^<]+)</loc>", stamp, xml)
         sitemap.write_text(xml, encoding="utf-8")
 
     logger.info("site_meta: corrected head tags on %d pages", fixed)

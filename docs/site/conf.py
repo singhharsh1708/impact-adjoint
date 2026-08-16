@@ -33,6 +33,7 @@ extensions = [
     "site_meta",
     "sweep_widget",
     "schema_reference",
+    "figure_source",
 ]
 
 myst_enable_extensions = ["dollarmath", "colon_fence", "deflist", "attrs_inline",

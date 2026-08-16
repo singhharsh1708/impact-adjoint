@@ -16,6 +16,9 @@ an integer and is piecewise-constant in the parameters.
 :width: 100%
 ```
 
+```{figure-source} e3_bias.png
+```
+
 A pure-JAX simulation of a bouncing ball (RK4 scan, reset applied at the grid
 point via `jnp.where`) converges to the correct *trajectory* as `dt` shrinks,
 and reports `d x(T)/d v0y = 0.0` at every resolution. The true value is

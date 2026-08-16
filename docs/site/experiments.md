@@ -21,6 +21,9 @@ Tesseracts.
 :width: 100%
 ```
 
+```{figure-source} e1_trajectory.png
+```
+
 Miss falls from 1.12 m to 2.7 cm through five impacts. The optimizer crosses
 bounce-count boundaries on the way (4, 6, 5, with excursions to 8). The
 objective is discontinuous at those crossings, which is inherent to contact;
@@ -55,6 +58,9 @@ becomes the design variable. One terrain routes balls entering at 1.6 and
 :width: 100%
 ```
 
+```{figure-source} e4_sorter.png
+```
+
 ## E5, the 24-dimensional separator
 
 Resilience separators sort particles by how far they bounce off a profiled
@@ -69,6 +75,9 @@ each particle must land in its own bin.
 ```{image} ../figures/e5_separator.png
 :alt: Left, the designed 24-bump surface with the two material trajectories separating into their own bins; right, the optimizer race in which the gradient-free runs end three to five orders above Adam.
 :width: 100%
+```
+
+```{figure-source} e5_separator.png
 ```
 
 Landing errors of 0.23 mm and 0.42 mm. One caveat this shares with any
@@ -96,6 +105,9 @@ continuum it never saw, the geometry acts as a classifier: everything in
 ```{image} ../figures/e6_generalization.png
 :alt: Landing position swept across restitution: a single threshold separates the whole continuum from 0.35 to 0.875, though the surface was trained on only two values.
 :width: 100%
+```
+
+```{figure-source} e6_generalization.png
 ```
 
 The binning quantity is where the run ends, which for most in-domain points is

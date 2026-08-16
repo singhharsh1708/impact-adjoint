@@ -807,3 +807,15 @@ article figcaption .caption-number {
 .ia-sweep:not(.is-live) .ia-sweep-out {
   display: none;
 }
+
+.ia-figsource {
+  margin: -0.5rem 0 1.4rem;
+  font-size: 0.79rem;
+  color: var(--ia-ink-faint);
+}
+
+.ia-figsource code {
+  font-size: 0.95em;
+  background: none;
+  padding: 0;
+}

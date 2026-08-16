@@ -11,6 +11,9 @@ writes an artifact that `experiments/collect_results.py` reads into
 :width: 100%
 ```
 
+```{figure-source} study_verification.png
+```
+
 **Convergence.** Order 3.99 on a smooth arc measured against the analytic drag
 solution. The multi-bounce flat case sits at 10⁻¹² against the symbolic closed
 form, where the floor is event localization rather than the integrator.
@@ -37,6 +40,9 @@ CMA-ES.
 :width: 100%
 ```
 
+```{figure-source} study_optimizers.png
+```
+
 Per evaluation, gradients win decisively: median final objective 3.4×10⁻⁷ for
 Adam against 3.2×10⁻⁴ for tuned CMA-ES, a factor of about 900, with
 Nelder-Mead three orders behind that. Charged by measured wall-clock, where
@@ -61,6 +67,9 @@ above what Adam attains per evaluation.
 ```{image} ../figures/study_robustness.png
 :alt: Held-out purity and separation margin for the point and ensemble designs across five independent ensembles, with non-overlapping Wilson intervals and a widened margin at the decision boundary.
 :width: 100%
+```
+
+```{figure-source} study_robustness.png
 ```
 
 **Purity with intervals.** Over five independent 200-particle ensembles the

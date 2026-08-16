@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
 
+# thin generated pages, and neither is in the sitemap
+Disallow: /search
+Disallow: /genindex
+
 Sitemap: https://impact-adjoint.vercel.app/sitemap.xml
