@@ -28,6 +28,8 @@ def main():
     r["E3_truth"] = 0.09037774
     r["E3_interp_rel_err_coarse"] = float(abs(e3[0, 2] - r["E3_truth"]) / r["E3_truth"])
     r["E3_interp_rel_err_fine"] = float(abs(e3[-1, 2] - r["E3_truth"]) / r["E3_truth"])
+    if e3.shape[1] > 3:
+        r["E3_saltation_spread"] = float(e3[:, 3].max() - e3[:, 3].min())
 
     e1 = np.load(E / "e1_history.npy")
     r["E1_miss_start_m"] = float(e1[0, 1])
@@ -143,6 +145,7 @@ def main():
         "|---|---|",
         f"| E3 grid-reset gradient (truth {r['E3_truth']}) | {f(r['E3_grid_reset_gradient'])} |",
         f"| E3 interpolated-event relative error, coarse to fine | {f(r['E3_interp_rel_err_coarse'])} to {f(r['E3_interp_rel_err_fine'])} |",
+        f"| E3 saltation spread over the whole dt sweep | {f(r.get('E3_saltation_spread'))} |",
         f"| E1 miss, start to final | {f(r['E1_miss_start_m'])} m to {f(r['E1_miss_final_m'])} m |",
         f"| E4 miss, slow and fast inlet | {f(r.get('E4_miss_slow_m'))} m, {f(r.get('E4_miss_fast_m'))} m |",
         f"| E5 final objective, Adam / CMA-ES / Nelder-Mead | {f(r['E5_adam'])} / {f(r['E5_cma'])} / {f(r['E5_nelder_mead'])} |",

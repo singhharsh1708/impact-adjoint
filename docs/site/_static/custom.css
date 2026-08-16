@@ -819,3 +819,9 @@ article figcaption .caption-number {
   background: none;
   padding: 0;
 }
+
+.ia-sweep-delta {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ia-ink-faint);
+}

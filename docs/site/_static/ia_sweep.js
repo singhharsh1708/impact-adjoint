@@ -23,25 +23,31 @@
     grid: root.querySelector("[data-grid]"),
     interp: root.querySelector("[data-interp]"),
     salt: root.querySelector("[data-salt]"),
+    saltDelta: root.querySelector("[data-saltdelta]"),
   };
 
-  const exp = (x) => {
-    const s = x.toExponential(2).split("e");
-    return s[0] + "e" + (s[1][0] === "-" ? "-" : "") + Math.abs(+s[1]);
-  };
+  // keep the exponent sign, and match the server-rendered fallback table
+  const exp = (x) => x.toExponential(2).replace("e+", "e");
   const fixed = (x) => (Object.is(x, 0) ? "0.0" : x.toFixed(7));
 
   function show(i) {
-    const [dt, grid, interp] = rows[i];
+    const [dt, grid, interp, salt] = rows[i];
     out.dt.textContent = exp(dt);
     out.grid.textContent = fixed(grid);
     out.interp.textContent = fixed(interp);
-    out.salt.textContent = fixed(data.truth);
+    out.salt.textContent = fixed(salt);
+    // the readout agrees to seven decimals at every step size, so show the
+    // residual against the finest solve: without it a reader cannot tell a
+    // per-row measurement from a printed constant
+    const ref = rows[rows.length - 1][3];
+    const d = salt - ref;
+    out.saltDelta.textContent =
+      d === 0 ? "= finest dt" : (d > 0 ? "+" : "") + d.toExponential(1) + " vs finest dt";
     range.setAttribute(
       "aria-valuetext",
       "dt " + exp(dt) + ", grid reset " + fixed(grid) +
         ", interpolated event " + fixed(interp) +
-        ", saltation " + fixed(data.truth)
+        ", saltation " + fixed(salt)
     );
   }
 

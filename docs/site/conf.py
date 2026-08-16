@@ -34,12 +34,27 @@ extensions = [
     "sweep_widget",
     "schema_reference",
     "figure_source",
+    "diffrax_table",
 ]
 
 myst_enable_extensions = ["dollarmath", "colon_fence", "deflist", "attrs_inline",
                           "substitution"]
 myst_heading_anchors = 3
-myst_substitutions = {"version": version}
+# Flip to False the moment the repository is public; that is the only edit
+# needed to remove the notice from every page that carries it.
+repo_is_private = True
+
+_private_note = (
+    ":::{warning}\n"
+    "**The repository is private while the hackathon entry is under review, so "
+    "the links and the clone command on this page return 404 to anyone outside "
+    "the author's account.** It opens when judging concludes. Everything "
+    "described here is in that repository and reproduces from it; until then "
+    "the site is the only public record of it.\n"
+    ":::"
+) if repo_is_private else ""
+
+myst_substitutions = {"version": version, "repo_note": _private_note}
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
@@ -150,6 +165,15 @@ site_meta = {
     "author_url": "https://github.com/singhharsh1708",
     "license_url": "https://www.apache.org/licenses/LICENSE-2.0",
     "languages": ["Julia", "Python"],
+    # Sphinx auto-extracts the description from the first content, which now
+    # starts with the byline and truncates mid-word on "Version". The index
+    # gets an explicit one carrying the claim instead.
+    "index_description": (
+        "Simulate a bouncing ball in JAX the natural way and jax.grad returns "
+        "exactly 0.0, where the true value is +0.09. impact-adjoint supplies "
+        "the missing term with the classical saltation matrix, served from a "
+        "Julia solver through a Tesseract boundary."
+    ),
     "commit": _commit,
     "built": _built,
 }

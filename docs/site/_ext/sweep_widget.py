@@ -37,11 +37,21 @@ def _load(app):
 
     a = np.load(rows)
     truth = json.loads(results.read_text())["E3_truth"]
+    if a.shape[1] < 4:
+        return None  # pre-saltation artifact: rerun experiments/e3_naive_vs_saltation.py
+    salt = a[:, 3]
     return {
         "truth": truth,
-        # (dt, grid-reset gradient, interpolated-event gradient)
-        "rows": [[float(r[0]), float(r[1]), float(r[2])] for r in a],
+        "spread": float(salt.max() - salt.min()),
+        # (dt, grid-reset, interpolated-event, saltation) all measured at that dt
+        "rows": [[float(r[0]), float(r[1]), float(r[2]), float(r[3])] for r in a],
     }
+
+
+def _exp(x):
+    """Match the JS formatting exactly, so the two agree."""
+    s = f"{x:.2e}".replace("e-0", "e-").replace("e+0", "e").replace("e+", "e")
+    return s
 
 
 def _fallback_table(data):
@@ -51,9 +61,9 @@ def _fallback_table(data):
         "<th>interpolated event</th><th>saltation</th></tr></thead><tbody>"
     )
     body = "".join(
-        f"<tr><td>{dt:.3g}</td><td>{grid:.6f}</td>"
-        f"<td>{interp:.6f}</td><td>{data['truth']:.6f}</td></tr>"
-        for dt, grid, interp in data["rows"]
+        f"<tr><td>{_exp(dt)}</td><td>{grid:.7f}</td>"
+        f"<td>{interp:.7f}</td><td>{salt:.7f}</td></tr>"
+        for dt, grid, interp, salt in data["rows"]
     )
     return head + body + "</tbody></table>"
 
@@ -81,14 +91,19 @@ def _markup(data):
     <span class="ia-sweep-cell" data-kind="exact">
       <span class="ia-sweep-name">saltation</span>
       <b data-salt>-</b>
+      <span class="ia-sweep-delta" data-saltdelta>-</span>
     </span>
   </output>
   <p id="ia-sweep-note" class="ia-sweep-note">
-    Move the slider. The grid-reset column does not budge off zero at any step
-    size, the interpolated repair wanders, and the saltation column is the
-    same exact value throughout. Read from
-    <code>experiments/e3_rows.npy</code>; the true value is
-    <code>{data['truth']}</code>.
+    Left is coarse, right is fine: the slider runs from
+    <code>{_exp(data['rows'][0][0])}</code> down to
+    <code>{_exp(data['rows'][-1][0])}</code>. All three columns are measured at
+    the step size shown, including saltation, which is solved afresh at each
+    one rather than carried over. Grid reset never leaves zero; the
+    interpolated repair wanders; saltation moves by
+    <code>{data['spread']:.2e}</code> across the whole sweep, against a
+    reference value of <code>{data['truth']}</code>. Read from
+    <code>experiments/e3_rows.npy</code>.
   </p>
   <noscript>{_fallback_table(data)}</noscript>
 </div>"""

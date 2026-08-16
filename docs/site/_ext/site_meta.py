@@ -129,6 +129,7 @@ def on_build_finished(app, exception):
         return
     out = Path(app.outdir)
     base = app.config.html_baseurl.rstrip("/") + "/"
+    meta_desc = app.config.site_meta.get("index_description", "")
     fixed = 0
 
     for page in out.rglob("*.html"):
@@ -153,6 +154,18 @@ def on_build_finished(app, exception):
             lambda m: m.group(1) + _clean(m.group(2)) + m.group(3),
             html,
         )
+
+        if rel == "index.html" and meta_desc:
+            html = re.sub(
+                r'(<meta name="description" content=")[^"]*(")',
+                lambda mo: mo.group(1) + meta_desc + mo.group(2), html, count=1)
+            html = re.sub(
+                r'(<meta property="og:description" content=")[^"]*(")',
+                lambda mo: mo.group(1) + meta_desc + mo.group(2), html, count=1)
+            if 'name="description"' not in html:
+                html = html.replace(
+                    "</title>",
+                    f'</title><meta name="description" content="{meta_desc}" />', 1)
 
         if "twitter:title" not in html:
             html = html.replace("</head>", _twitter(app, html) + "</head>", 1)

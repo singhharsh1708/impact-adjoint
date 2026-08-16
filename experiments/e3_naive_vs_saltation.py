@@ -123,16 +123,27 @@ def main():
     print(f"d x(T)/d v0y   truth (saltation analytic): {truth:+.8f}")
     print(f"d x(T)/d v0y   FD through hybrid solver  : {fd_truth:+.8f}")
     print()
-    print(f"{'n_steps':>8} {'dt':>10} {'grid-reset grad':>16} {'interp-event grad':>18} {'interp rel err':>15}")
+    print(f"{'n_steps':>8} {'dt':>10} {'grid-reset grad':>16} {'interp-event grad':>18} "
+          f"{'saltation grad':>15} {'interp rel err':>15}")
     grad_naive = jax.grad(naive_final_x)
     grad_interp = jax.grad(interp_final_x)
     rows = []
     for n_steps in (500, 1000, 2000, 4000, 8000, 16000, 32000):
+        dt = CFG["t_final"] / n_steps
         gn = float(grad_naive(jnp.float64(0.5), n_steps))
         gi = float(grad_interp(jnp.float64(0.5), n_steps))
-        rows.append((CFG["t_final"] / n_steps, gn, gi))
-        print(f"{n_steps:>8} {CFG['t_final']/n_steps:>10.2e} {gn:>16.6f} {gi:>18.6f} {abs(gi-truth)/abs(truth):>15.2e}")
+        # the saltation gradient is measured at this same dt, not reused from
+        # the reference solve: the claim that it is dt-independent has to be
+        # something the sweep shows rather than something it assumes
+        jac_dt = t.jacobian({**CFG, "dt": dt}, jac_inputs={"v0"}, jac_outputs={"qf"})
+        gs = float(np.asarray(jac_dt["qf"]["v0"])[0, 1])
+        rows.append((dt, gn, gi, gs))
+        print(f"{n_steps:>8} {dt:>10.2e} {gn:>16.6f} {gi:>18.6f} {gs:>15.8f} "
+              f"{abs(gi - truth) / abs(truth):>15.2e}")
     np.save(Path(__file__).parent / "e3_rows.npy", np.array(rows))
+
+    spread = max(r[3] for r in rows) - min(r[3] for r in rows)
+    print(f"\nsaltation spread across the whole dt sweep: {spread:.2e}")
 
     print("\ngrid-reset autodiff: exactly 0.0 at every dt (event-index staircase; the")
     print("saltation term is structurally absent). interpolated-event autodiff recovers")

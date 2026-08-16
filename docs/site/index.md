@@ -1,3 +1,4 @@
+
 # impact-adjoint
 
 Exact gradients through impact events, across a Julia and JAX Tesseract
@@ -112,6 +113,8 @@ The saltation matrix supplies the missing term at each impact. Exact at any
 <div id="ia-sweep"></div>
 ```
 
+## What the gradients build
+
 ```{raw} html
 <figure class="ia-video" id="fig-sorter">
   <video controls autoplay muted loop playsinline preload="metadata"
@@ -155,6 +158,8 @@ The saltation matrix supplies the missing term at each impact. Exact at any
 ## Reproduce in five minutes
 
 CPU only, no Docker, no GPU. This is the `~5 min` in the strip above.
+
+{{ repo_note }}
 
 ```bash
 git clone https://github.com/singhharsh1708/impact-adjoint

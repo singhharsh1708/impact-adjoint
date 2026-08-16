@@ -1,0 +1,22 @@
+{
+  "expected": 1.0,
+  "jump_time": 0.98,
+  "versions": {
+    "diffrax": "0.7.1",
+    "jax": "0.11.0",
+    "optimistix": "0.1.0",
+    "python": "3.12.13"
+  },
+  "gradients": {
+    "with ClipStepSizeController": {
+      "Heun": 2.220446049250313e-16,
+      "Tsit5": -5.440092820663267e-15,
+      "Bosh3": 3.3306690738754696e-16
+    },
+    "without it": {
+      "Heun": 0.62716916609091,
+      "Tsit5": 0.48307285113283316,
+      "Bosh3": 0.5646691354797259
+    }
+  }
+}

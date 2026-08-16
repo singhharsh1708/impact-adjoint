@@ -12,6 +12,8 @@ python experiments/make_study_figures.py
 ```
 :::
 
+{{ repo_note }}
+
 :::{important}
 **This is a reproducible artifact, not a distributed package.** There is no
 `pip install impact-adjoint`, and none is planned: the deliverable is a

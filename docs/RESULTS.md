@@ -29,6 +29,7 @@ not retyped, so this file cannot drift from what was measured.
 |---|---|
 | E3 grid-reset gradient (truth 0.09037774) | 0 |
 | E3 interpolated-event relative error, coarse to fine | 0.00209 to 5.6e-05 |
+| E3 saltation spread over the whole dt sweep | 6.05e-14 |
 | E1 miss, start to final | 1.12 m to 0.0269 m |
 | E4 miss, slow and fast inlet | 0.0216 m, 0.0303 m |
 | E5 final objective, Adam / CMA-ES / Nelder-Mead | 2.25e-07 / 0.00198 / 0.0186 |

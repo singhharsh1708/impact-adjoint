@@ -22,6 +22,7 @@
   "E3_grid_reset_gradient": 0.0,
   "E3_interp_rel_err_coarse": 0.0020930789286880895,
   "E3_interp_rel_err_fine": 5.598046467241509e-05,
+  "E3_saltation_spread": 6.054878820549447e-14,
   "E3_truth": 0.09037774,
   "E4_miss_fast_m": 0.030337096534898293,
   "E4_miss_slow_m": 0.021605657372062877,

@@ -30,10 +30,9 @@ which is the honest backdrop for every row below.
     dependence through the implicit function theorem. There is no reset map,
     so a bounce has to be assembled by restarting the solve and applying the
     reset in user code, and that pattern is currently unreliable:
-    [issue #729](https://github.com/patrick-kidger/diffrax/issues/729) reports
-    it returning solver-dependent gradients (`0.5` with Heun, `-1.4211714`
-    with Tsit5, `0.7777778` with Bosh3) where the expected value is `1.0`. The
-    maintainer's fix branch is unmerged.
+    [issue #729](https://github.com/patrick-kidger/diffrax/issues/729). We
+    reproduce it below rather than quoting it. The maintainer's fix branch,
+    `partway-event-interpolate-to-step`, is unmerged.
 * - [MuJoCo MJX](https://mujoco.readthedocs.io/en/stable/mjx.html)
   - MuJoCo's soft constraint solver, contact resolved as a convex program.
   - The documentation states that differentiability "is mostly supported in
@@ -80,6 +79,32 @@ which is the honest backdrop for every row below.
     across a bounce-count change the objective is genuinely discontinuous, and
     that is stated in [limitations](limitations.md).
 ```
+
+## The Diffrax restart, measured
+
+The row above is the one quantitative claim on this site about somebody else's
+library, so it is generated from a committed artifact like everything else
+rather than retyped from an issue thread.
+
+The reproducer is the one from issue #729: an ODE whose right-hand side
+switches at `event_time`, solved up to a located event and restarted from that
+state, differentiated with respect to `event_time`. The state grows at rate 1
+before the switch and is flat after it, so the derivative is exactly `1.0`.
+
+```{diffrax-table}
+```
+
+Two things are worth being careful about here. With the clipping controller
+every solver returns exactly zero, which is the same failure this project
+starts from, reached by a different route. Without it the answer is wrong in a
+solver-dependent way instead.
+
+Neither set matches the numbers quoted in the issue thread itself
+(`0.5`, `-1.4211714`, `0.7777778`), which were reported under different
+versions; that is why the versions are printed above and why we publish what we
+measured rather than what we read. This has not been raised with the Diffrax
+maintainer, so treat it as a reproduction of a known open issue and not as a
+new finding.
 
 ## What is actually different here
 
