@@ -51,6 +51,7 @@ is applied.
 :class-container: ia-faildemo
 
 :::{grid-item-card} The natural JAX program
+:class-card: ia-fail
 :class-header: ia-fail-head
 
 The impact is applied at the integrator step where it is detected.
@@ -79,6 +80,7 @@ staircase, and returns zero at every `dt`.
 :::
 
 :::{grid-item-card} The same call through impact-adjoint
+:class-card: ia-fix
 :class-header: ia-fix-head
 
 The impact is applied at the crossing, and its time carries a derivative.
@@ -103,6 +105,12 @@ The saltation matrix supplies the missing term at each impact. Exact at any
 :::
 
 ::::
+
+## Check it yourself
+
+```{raw} html
+<div id="ia-sweep"></div>
+```
 
 ```{raw} html
 <figure class="ia-video" id="fig-sorter">

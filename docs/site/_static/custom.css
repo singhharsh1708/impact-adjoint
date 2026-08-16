@@ -630,11 +630,11 @@ article figcaption .caption-number {
 /* a warm and a cool edge, so which is which reads before the code does.
    sphinx-design wraps each card in its own column, so the column is what
    carries the ordinal, not the card. */
-.ia-faildemo > *:first-child .sd-card {
+.ia-faildemo .sd-card.ia-fail {
   border-left: 3px solid var(--ia-orange);
 }
 
-.ia-faildemo > *:last-child .sd-card {
+.ia-faildemo .sd-card.ia-fix {
   border-left: 3px solid var(--ia-teal);
 }
 
@@ -729,4 +729,81 @@ article figcaption .caption-number {
   font-size: 1.02em;
   line-height: 1.62;
   color: var(--ia-ink);
+}
+
+/* ---- step-size sweep --------------------------------------------------- */
+
+.ia-sweep {
+  margin: 1.3rem 0 1.8rem;
+  padding: 1rem 1.1rem 0.85rem;
+  border: 1px solid var(--ia-rule);
+  border-radius: 3px;
+  background: var(--ia-paper-alt);
+}
+
+.ia-sweep-label {
+  display: block;
+  font-size: 0.86rem;
+  color: var(--ia-ink-soft);
+  margin-bottom: 0.5rem;
+}
+
+.ia-sweep-range {
+  width: 100%;
+  max-width: 32rem;
+  margin: 0 0 0.9rem;
+  accent-color: var(--ia-accent);
+}
+
+.ia-sweep-out {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1.5rem;
+  align-items: baseline;
+}
+
+.ia-sweep-cell,
+.ia-sweep-dt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.ia-sweep-name {
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ia-ink-faint);
+}
+
+.ia-sweep-out b {
+  font-family: var(--font-stack--monospace);
+  font-size: 1.02rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.ia-sweep-cell[data-kind="wrong"] b {
+  color: var(--ia-orange);
+}
+
+.ia-sweep-cell[data-kind="exact"] b {
+  color: var(--ia-teal);
+}
+
+.ia-sweep-dt {
+  min-width: 6.5rem;
+}
+
+.ia-sweep-note {
+  margin: 0.85rem 0 0;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: var(--ia-ink-soft);
+}
+
+/* with scripting off the readout cannot update, so the table is the record */
+.ia-sweep:not(.is-live) .ia-sweep-range,
+.ia-sweep:not(.is-live) .ia-sweep-out {
+  display: none;
 }

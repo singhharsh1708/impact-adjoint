@@ -31,6 +31,7 @@ extensions = [
     "sphinx_sitemap",
     "optimize_images",
     "site_meta",
+    "sweep_widget",
 ]
 
 myst_enable_extensions = ["dollarmath", "colon_fence", "deflist", "attrs_inline",
@@ -81,6 +82,7 @@ html_theme_options = {
     ],
 }
 html_css_files = ["custom.css"]
+html_js_files = ["ia_sweep.js"]
 
 html_sidebars = {
     "**": [
