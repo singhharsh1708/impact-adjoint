@@ -28,3 +28,5 @@ jobs:
         run: python scripts/validate_closed_form.py
       - name: Cross-implementation reference
         run: python scripts/validate_reference.py
+      - name: Randomized property sweep over the declared input space
+        run: python scripts/fuzz_solver.py 100 0
