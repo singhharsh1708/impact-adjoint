@@ -5,16 +5,16 @@
 ```{mermaid}
 flowchart LR
     P["design / material<br/>parameters θ"] --> A
-    subgraph A["contact-sim · Julia Tesseract"]
+    subgraph A["contact-sim · Julia"]
         direction TB
         S["RK4 + event bisection"] --> V["forward variational X<br/>+ saltation jumps at impacts"]
     end
-    A -- "qf, impact_x + VJP/JVP/Jacobian" --> B["score-target · JAX Tesseract<br/>(landing objective)"]
-    B -- "loss" --> O["optax Adam / NumPyro NUTS"]
-    O -- "one jax.grad via tesseract-jax" --> P
+    A -- "qf, impact_x<br/>+ VJP/JVP/Jacobian" --> B["score-target · JAX<br/>(landing objective)"]
+    B -- "loss" --> O["optax Adam /<br/>NumPyro NUTS"]
+    O -- "one jax.grad" --> P
 ```
 
-Two components that disagree about how to differentiate. One side uses
+Two Tesseract components that disagree about how to differentiate. One side uses
 dual-number forward AD plus analytic event handling inside a Julia process,
 the other reverse-mode tracing in JAX, and `tesseract-jax` composes them into
 a single `jax.grad` anyway. The same solver container also serves NumPyro's

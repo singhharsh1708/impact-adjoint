@@ -43,13 +43,13 @@ What the gradients design and infer:
 ```mermaid
 flowchart LR
     P["design / material<br/>parameters θ"] --> A
-    subgraph A["contact-sim · Julia Tesseract"]
+    subgraph A["contact-sim · Julia"]
         direction TB
         S["RK4 + event bisection"] --> V["forward variational X<br/>+ saltation jumps at impacts"]
     end
-    A -- "qf, impact_x + VJP/JVP/Jacobian" --> B["score-target · JAX Tesseract<br/>(landing objective)"]
-    B -- "loss" --> O["optax Adam / NumPyro NUTS"]
-    O -- "one jax.grad via tesseract-jax" --> P
+    A -- "qf, impact_x<br/>+ VJP/JVP/Jacobian" --> B["score-target · JAX<br/>(landing objective)"]
+    B -- "loss" --> O["optax Adam /<br/>NumPyro NUTS"]
+    O -- "one jax.grad" --> P
 ```
 
 The two components *disagree about how to differentiate*. One side uses

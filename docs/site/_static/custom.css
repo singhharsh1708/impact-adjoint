@@ -885,3 +885,23 @@ article figcaption .caption-number {
   font-variant-numeric: tabular-nums;
   color: var(--ia-ink-faint);
 }
+
+/* Mermaid 11 draws edge labels in a foreignObject with its own opaque
+   background, which reads as a highlight over the page. The theme variable
+   does not reach it, so match it to the page here. */
+.mermaid .edgeLabel,
+.mermaid .edgeLabel p,
+.mermaid .edgeLabel span,
+.mermaid .edgeLabel div,
+.mermaid .edgeLabel foreignObject > div {
+  background: var(--ia-paper) !important;
+  background-color: var(--ia-paper) !important;
+  color: var(--ia-ink) !important;
+  fill: var(--ia-ink) !important;
+}
+
+.mermaid .edgeLabel rect,
+.mermaid rect.background {
+  fill: var(--ia-paper) !important;
+  opacity: 1;
+}

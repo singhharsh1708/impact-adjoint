@@ -195,10 +195,18 @@ mermaid_init_js = """
   mermaid.initialize({
     startOnLoad: true,
     theme: "base",
+    // a wrapped subgraph title is drawn over the box edge without this
+    flowchart: {
+      padding: 16,
+      nodeSpacing: 52,
+      rankSpacing: 105,
+      subGraphTitleMargin: { top: 8, bottom: 12 },
+    },
     fontFamily: "-apple-system, BlinkMacSystemFont, Segoe UI, Inter, sans-serif",
     themeVariables: dark
       ? {
           background: "#131416",
+          edgeLabelBackground: "#131416",
           primaryColor: "#1a1b1e",
           primaryTextColor: "#e8e6e3",
           primaryBorderColor: "#3a3b40",
@@ -207,6 +215,7 @@ mermaid_init_js = """
         }
       : {
           background: "#fcfcfb",
+          edgeLabelBackground: "#fcfcfb",
           primaryColor: "#f4f4f1",
           primaryTextColor: "#16161a",
           primaryBorderColor: "#d8d7d1",
