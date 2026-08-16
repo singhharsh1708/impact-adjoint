@@ -167,6 +167,18 @@ def on_build_finished(app, exception):
                     "</title>",
                     f'</title><meta name="description" content="{meta_desc}" />', 1)
 
+        # the serif renders most of the page, so fetch it with the stylesheet
+        # rather than after it
+        if "rel=\"preload\"" not in html:
+            depth = rel.count("/")
+            prefix = "../" * depth
+            html = html.replace(
+                "</title>",
+                '</title><link rel="preload" as="font" type="font/woff2" '
+                f'crossorigin href="{prefix}_static/fonts/source-serif-4.woff2" />',
+                1,
+            )
+
         if "twitter:title" not in html:
             html = html.replace("</head>", _twitter(app, html) + "</head>", 1)
         if "application/ld+json" not in html and rel == "index.html":

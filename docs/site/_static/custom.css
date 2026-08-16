@@ -105,21 +105,81 @@ body[data-theme="light"] {
   --color-table-header-background: transparent;
 }
 
-/* ---------- Typography ---------- */
+/* ---------- Typography ----------
+
+   Source Serif 4 for body, Source Sans 3 for headings and interface, Source
+   Code Pro for code: one superfamily, so the three share proportions. Serif
+   body because this reads as a paper more than as product documentation.
+
+   Self-hosted rather than pulled from a font CDN: no third-party request, no
+   extra connection to open, and /_static/ is already served immutable. These
+   are the variable latin subsets, so one file covers every weight used.
+   Licences sit beside the files in _static/fonts/. */
+
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("fonts/source-serif-4.woff2") format("woff2-variations");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("fonts/source-serif-4-italic.woff2") format("woff2-variations");
+  font-weight: 200 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("fonts/source-sans-3.woff2") format("woff2-variations");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Source Code Pro";
+  src: url("fonts/source-code-pro.woff2") format("woff2-variations");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 body {
-  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  --font-stack--monospace: "SF Mono", SFMono-Regular, Menlo, Consolas,
-    "Liberation Mono", monospace;
+  --font-stack: "Source Serif 4", Charter, "Bitstream Charter", Georgia,
+    "Times New Roman", serif;
+  --font-stack--headings: "Source Sans 3", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-stack--monospace: "Source Code Pro", "SF Mono", SFMono-Regular, Menlo,
+    Consolas, "Liberation Mono", monospace;
   font-feature-settings: "kern" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
+/* Source Serif runs a shade smaller on the body than the old system sans at
+   the same size, and a serif carries a slightly looser line better. */
 article {
-  line-height: 1.68;
-  font-size: 1.0rem;
+  line-height: 1.72;
+  font-size: 1.05rem;
+}
+
+h1, h2, h3, h4, h5, h6,
+.sidebar-tree, .toc-tree, .sidebar-brand-text,
+.sd-card-header, .admonition-title, .admonition > .admonition-title,
+caption, figcaption, table.docutils th,
+.ia-byline, .ia-cta, .ia-sweep, .ia-figures dt, .ia-figsource,
+.ia-provenance, .ia-repo {
+  font-family: var(--font-stack--headings);
+}
+
+/* digits should line up in every table and readout on the site */
+table.docutils td, table.docutils th,
+.ia-figures dt, .ia-sweep-out b {
+  font-variant-numeric: tabular-nums;
 }
 
 .content {
