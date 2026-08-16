@@ -3,95 +3,71 @@
 Two Tesseracts compose in the pipeline, plus a minimal third used only for the
 day-one boundary proof.
 
+Every table on this page is generated at build time from the component's own
+`tesseract_api.py`. The schema is the only source; nothing here is retyped, so
+a field cannot be documented with a shape or a differentiability flag it does
+not have. Where a field has units or a valid range, the schema states them in
+its description and they are reproduced verbatim.
+
 ## contact-sim
 
 Julia solver, all differentiable endpoints: `apply`, `jacobian`,
 `jacobian_vector_product`, `vector_jacobian_product`, `abstract_eval`.
 
+Terrain is a sum of Gaussian bumps, `h(x) = Σ ampᵢ exp(-(x - ctrᵢ)² / 2 widᵢ²)`,
+with `amp`, `ctr` and `wid` sharing one length, so the parameter count follows
+the bump count. The guard is `g(q) = y - h(x)`.
+
 ### Inputs
 
-```{list-table}
-:header-rows: 1
-:widths: 14 12 74
-
-* - name
-  - type
-  - meaning
-* - `v0`
-  - diff, (2,)
-  - launch velocity. Launch position is `(0, y0)`.
-* - `y0`
-  - diff, scalar
-  - launch height, must start above the terrain
-* - `e`
-  - diff, scalar
-  - normal restitution, in (0, 1]
-* - `mu`
-  - diff, scalar
-  - tangential loss factor, in [0, 1)
-* - `amp`, `ctr`, `wid`
-  - diff, (nb,)
-  - Gaussian bump amplitudes, centres and widths. Any `nb >= 1`; the three
-    must share one length. The design vector in E4, E5 and E5b.
-* - `drag`
-  - scalar
-  - linear drag coefficient, not differentiated
-* - `t_final`, `dt`
-  - scalar
-  - horizon and integrator step. Terrain features narrower than
-    `|vx|·dt/3` can be stepped over, so choose `dt <= min(wid)/(3|vx|)`.
-* - `n_samples`
-  - int
-  - trajectory rows returned for plotting, 0 to skip
-* - `v_stop`
-  - scalar
-  - normal-velocity floor below which contact is declared settled
+```{schema-table} tesseracts/contact_sim/tesseract_api.py InputSchema
 ```
-
-Every documented bound is enforced by the schema, so an out-of-range
-restitution is rejected rather than silently integrated.
 
 ### Outputs
 
-```{list-table}
-:header-rows: 1
-:widths: 16 12 72
-
-* - name
-  - type
-  - meaning
-* - `qf`
-  - diff, (4,)
-  - state `(x, y, vx, vy)` at `t_end`. At truncation its Jacobian is the
-    total derivative including event-time dependence.
-* - `impact_x`
-  - diff, (8,)
-  - x-coordinate of each impact, zero-padded. Only `[:n_events]` is
-    meaningful; padded entries are exactly 0 with exactly-zero derivative
-    rows, so gradient checkers stay coherent.
-* - `n_events`
-  - int32
-  - number of impacts
-* - `traj`
-  - (n_samples, 5)
-  - sampled `(t, x, y, vx, vy)` rows
-* - `status`
-  - int32
-  - 0 ran to `t_final`, 1 event capacity, 2 settled contact
-* - `t_end`
-  - scalar
-  - time at which `qf` is measured
+```{schema-table} tesseracts/contact_sim/tesseract_api.py OutputSchema
 ```
+
+Padded entries of `impact_x` are exactly zero and carry exactly-zero
+derivative rows, so a gradient checker stays coherent across trajectories with
+different impact counts. Only `impact_x[:n_events]` is meaningful.
+
+`status` is `0` when the run reached `t_final`, `1` when it hit the event
+capacity, and `2` when contact settled. For a nonzero status, `qf` is the
+state at the truncating event and its Jacobian is the total derivative
+including the event-time dependence, which is what keeps an optimizer from
+consuming a silently nonphysical state.
 
 ## score-target
 
-JAX objective built with the `tesseract init --recipe jax` endpoints. Takes
-`qf`, a `target` position and three `weights`, and returns a `loss` and a
-`miss_distance`.
+JAX objective built with the `tesseract init --recipe jax` endpoints. It takes
+the solver's `qf`, a `target` position and three `weights`, and returns the
+scalar being optimized along with the miss distance used for reporting.
+
+### Inputs
+
+```{schema-table} tesseracts/score_target/tesseract_api.py InputSchema
+```
+
+### Outputs
+
+```{schema-table} tesseracts/score_target/tesseract_api.py OutputSchema
+```
 
 ## julia_kernel
 
 The minimal day-one boundary proof: a Julia function with a hand-written
 adjoint, used by `scripts/proof_local.py` and `scripts/proof_container.py` to
-show `jax.grad` crossing the boundary and matching the analytic derivative to
-1e-12. Not part of the E1 to E6 pipeline.
+show `jax.grad` crossing the component boundary and matching the analytic
+derivative to 1e-12. It computes `y = sin(x) · x²` elementwise, and is not
+part of the E1 to E6 pipeline.
+
+### Inputs
+
+```{schema-table} tesseracts/julia_kernel/tesseract_api.py InputSchema
+```
+
+### Outputs
+
+```{schema-table} tesseracts/julia_kernel/tesseract_api.py OutputSchema
+```
