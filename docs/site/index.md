@@ -248,5 +248,6 @@ reference
 related
 upstream
 limitations
+changelog
 citing
 ```

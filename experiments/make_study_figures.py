@@ -21,16 +21,22 @@ SURFACE = "#fcfcfb"
 INK = "#0b0b0b"
 SECONDARY = "#52514e"
 MUTED = "#898781"
+# tick labels are text: MUTED is 3.59:1 on white, under AA
+TICK_TEXT = "#6a6964"
 GRID = "#e1e0d9"
 BASELINE = "#c3c2b7"
 BLUE = "#2a78d6"
 ORANGE = "#eb6834"
+# darkened only where the colour carries text: the series colours are
+# 4.42:1 and 3.20:1 on white, under the 4.5:1 WCAG AA text threshold
+BLUE_TEXT = "#1f66bd"
+ORANGE_TEXT = "#c4501f"
 AQUA = "#1baf7a"
 
 plt.rcParams.update({
     "figure.facecolor": SURFACE, "axes.facecolor": SURFACE, "savefig.facecolor": SURFACE,
     "font.family": "sans-serif", "text.color": INK, "axes.edgecolor": BASELINE,
-    "axes.labelcolor": SECONDARY, "xtick.color": MUTED, "ytick.color": MUTED,
+    "axes.labelcolor": SECONDARY, "xtick.color": TICK_TEXT, "ytick.color": TICK_TEXT,
     "axes.grid": True, "grid.color": GRID, "grid.linewidth": 0.8,
     "axes.spines.top": False, "axes.spines.right": False,
     "font.size": 11, "axes.titlesize": 12, "axes.labelsize": 11,
@@ -49,11 +55,11 @@ def fig_verification():
     ax.loglog(c["dts"], np.maximum(c["err_drag"], 1e-16), "s-", color=ORANGE, ms=4, lw=1.8)
     ref = c["dts"] ** 4 * (c["err_drag"][0] / c["dts"][0] ** 4)
     ax.loglog(c["dts"], ref, ls=(0, (4, 3)), color=MUTED, lw=1.2)
-    ax.annotate("slope 4", (c["dts"][1], ref[1]), color=MUTED, fontsize=10,
+    ax.annotate("slope 4", (c["dts"][1], ref[1]), color=TICK_TEXT, fontsize=10,
                 textcoords="offset points", xytext=(10, -6))
-    ax.annotate("multi-bounce vs closed form", (c["dts"][5], c["err_flat"][5]), color=BLUE,
+    ax.annotate("multi-bounce vs closed form", (c["dts"][5], c["err_flat"][5]), color=BLUE_TEXT,
                 fontsize=9, textcoords="offset points", xytext=(0, 9), ha="center")
-    ax.annotate("smooth arc vs analytic", (c["dts"][5], c["err_drag"][5]), color=ORANGE,
+    ax.annotate("smooth arc vs analytic", (c["dts"][5], c["err_drag"][5]), color=ORANGE_TEXT,
                 fontsize=9, textcoords="offset points", xytext=(0, -20), ha="center")
     ax.set_xlabel("integrator step dt")
     ax.set_ylabel("max abs error in qf")
@@ -76,10 +82,10 @@ def fig_verification():
     fit = float(s["a_vjp"]) + float(s["b_vjp"]) * n
     ax.plot(n, fit, ls=(0, (4, 3)), color=MUTED, lw=1.2)
     ax.annotate(f"{float(s['b_vjp'])*1000:.0f} us per parameter", (n[-2], fit[-2]),
-                color=MUTED, fontsize=9, textcoords="offset points", xytext=(-10, 12), ha="right")
-    ax.annotate("VJP", (n[-1], s["t_vjp"][-1]), color=BLUE, fontsize=10,
+                color=TICK_TEXT, fontsize=9, textcoords="offset points", xytext=(-10, 12), ha="right")
+    ax.annotate("VJP", (n[-1], s["t_vjp"][-1]), color=BLUE_TEXT, fontsize=10,
                 textcoords="offset points", xytext=(-30, 6))
-    ax.annotate("apply", (n[-1], s["t_apply"][-1]), color=ORANGE, fontsize=10,
+    ax.annotate("apply", (n[-1], s["t_apply"][-1]), color=ORANGE_TEXT, fontsize=10,
                 textcoords="offset points", xytext=(-34, 6))
     ax.set_xlabel("number of parameters")
     ax.set_ylabel("time per call [ms]")
@@ -152,8 +158,8 @@ def fig_stats():
     ax.fill_between(es, g["robust_ci_lo"], g["robust_ci_hi"], color=BLUE, alpha=0.15, lw=0)
     for tr in (0.5, 0.8):
         ax.axvline(tr, color=MUTED, ls=(0, (2, 3)), lw=1.0)
-    ax.annotate("trained", (0.5, 1.06), color=MUTED, fontsize=9, ha="center")
-    ax.annotate("trained", (0.8, 1.06), color=MUTED, fontsize=9, ha="center")
+    ax.annotate("trained", (0.5, 1.06), color=TICK_TEXT, fontsize=9, ha="center")
+    ax.annotate("trained", (0.8, 1.06), color=TICK_TEXT, fontsize=9, ha="center")
     ax.set_ylim(-0.08, 1.15)
     ax.set_xlabel("restitution e")
     ax.set_ylabel("P(sorted to bin A)")

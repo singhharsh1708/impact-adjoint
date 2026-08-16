@@ -12,6 +12,13 @@ python experiments/make_study_figures.py
 ```
 :::
 
+:::{important}
+**This is a reproducible artifact, not a distributed package.** There is no
+`pip install impact-adjoint`, and none is planned: the deliverable is a
+repository whose every reported number regenerates from committed data.
+Cloning is the intended path, and the commands below are the whole of it.
+:::
+
 ## Requirements
 
 Python 3.12 or newer, Docker for the containerized runs, and about 5 GB of

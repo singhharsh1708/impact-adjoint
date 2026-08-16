@@ -27,6 +27,8 @@ SURFACE = "#fcfcfb"
 INK = "#0b0b0b"
 SECONDARY = "#52514e"
 MUTED = "#898781"
+# tick labels are text: MUTED is 3.59:1 on white, under AA
+TICK_TEXT = "#6a6964"
 BASELINE = "#c3c2b7"
 BLUE = "#2a78d6"
 ORANGE = "#eb6834"
@@ -34,7 +36,7 @@ ORANGE = "#eb6834"
 plt.rcParams.update({
     "figure.facecolor": SURFACE, "axes.facecolor": SURFACE, "savefig.facecolor": SURFACE,
     "font.family": "sans-serif", "text.color": INK, "axes.edgecolor": BASELINE,
-    "axes.labelcolor": SECONDARY, "xtick.color": MUTED, "ytick.color": MUTED,
+    "axes.labelcolor": SECONDARY, "xtick.color": TICK_TEXT, "ytick.color": TICK_TEXT,
     "axes.spines.top": False, "axes.spines.right": False, "font.size": 9,
     "axes.titlesize": 11, "axes.labelsize": 10,
 })

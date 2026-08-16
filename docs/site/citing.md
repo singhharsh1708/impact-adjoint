@@ -18,6 +18,12 @@ in the repository. There is no preprint and no journal version.
 }
 ```
 
+:::{note}
+A DOI is not yet minted. Zenodo issues one from a tagged GitHub release, which
+requires the repository to be public; the entry above will gain a `doi` field
+and this page will name it as soon as `v0.1.0` is tagged.
+:::
+
 ## Licence
 
 The code is released under the

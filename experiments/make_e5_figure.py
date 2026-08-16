@@ -21,17 +21,23 @@ SURFACE = "#fcfcfb"
 INK = "#0b0b0b"
 SECONDARY = "#52514e"
 MUTED = "#898781"
+# tick labels are text: MUTED is 3.59:1 on white, under AA
+TICK_TEXT = "#6a6964"
 GRID = "#e1e0d9"
 BASELINE = "#c3c2b7"
 BLUE = "#2a78d6"
 ORANGE = "#eb6834"
+# darkened only where the colour carries text: the series colours are
+# 4.42:1 and 3.20:1 on white, under the 4.5:1 WCAG AA text threshold
+BLUE_TEXT = "#1f66bd"
+ORANGE_TEXT = "#c4501f"
 AQUA = "#1baf7a"
 TERRAIN = "#e1e0d9"
 
 plt.rcParams.update({
     "figure.facecolor": SURFACE, "axes.facecolor": SURFACE, "savefig.facecolor": SURFACE,
     "font.family": "sans-serif", "text.color": INK, "axes.edgecolor": BASELINE,
-    "axes.labelcolor": SECONDARY, "xtick.color": MUTED, "ytick.color": MUTED,
+    "axes.labelcolor": SECONDARY, "xtick.color": TICK_TEXT, "ytick.color": TICK_TEXT,
     "axes.grid": True, "grid.color": GRID, "grid.linewidth": 0.8,
     "axes.spines.top": False, "axes.spines.right": False, "font.size": 12,
     "axes.titlesize": 13, "axes.labelsize": 12,
@@ -68,9 +74,10 @@ def main():
         cy = float(h_of(cup))
         ax.scatter([cup], [cy], marker="v", s=70, color=c, zorder=5)
         ax.annotate(f"bin {'A' if c == BLUE else 'B'}", (cup, cy), textcoords="offset points",
-                    xytext=(0, -16), ha="center", color=c, fontsize=11)
-    ax.annotate('e = 0.5 "rubber"', (0.9, 0.75), color=BLUE, fontsize=11)
-    ax.annotate('e = 0.8 "PET"', (2.6, 0.62), color=ORANGE, fontsize=11)
+                    xytext=(0, -16), ha="center", fontsize=11,
+                    color=BLUE_TEXT if c == BLUE else ORANGE_TEXT)
+    ax.annotate('e = 0.5 "rubber"', (0.9, 0.75), color=BLUE_TEXT, fontsize=11)
+    ax.annotate('e = 0.8 "PET"', (2.6, 0.62), color=ORANGE_TEXT, fontsize=11)
     ax.set_xlim(-0.1, 5.6)
     ax.set_ylim(-0.16, 1.4)
     ax.set_xlabel("x [m]")
@@ -83,9 +90,9 @@ def main():
                        ("nelder-mead", MUTED, (0, (2, 2)))):
         tr = d[f"{key}_trace"]
         ax2.plot(tr[:, 0], np.maximum(tr[:, 1], 1e-8), color=c, lw=2.0, ls=ls)
-    ax2.annotate("Adam (ours)", (620, 3e-6), color=BLUE, fontsize=11, ha="left")
+    ax2.annotate("Adam (ours)", (620, 3e-6), color=BLUE_TEXT, fontsize=11, ha="left")
     ax2.annotate("CMA-ES", (640, 6e-3), color=SECONDARY, fontsize=11)
-    ax2.annotate("Nelder-Mead", (430, 1.7e-1), color=MUTED, fontsize=11)
+    ax2.annotate("Nelder-Mead", (430, 1.7e-1), color=TICK_TEXT, fontsize=11)
     ax2.set_yscale("log")
     ax2.set_xlabel("solver evaluations (gradient call = 2)")
     ax2.set_ylabel("best objective")

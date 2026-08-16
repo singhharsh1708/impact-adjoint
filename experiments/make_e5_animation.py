@@ -37,9 +37,15 @@ SURFACE = "#fcfcfb"
 INK = "#0b0b0b"
 SECONDARY = "#52514e"
 MUTED = "#898781"
+# tick labels are text: MUTED is 3.59:1 on white, under AA
+TICK_TEXT = "#6a6964"
 BASELINE = "#c3c2b7"
 BLUE = "#2a78d6"
 ORANGE = "#eb6834"
+# darkened only where the colour carries text: the series colours are
+# 4.42:1 and 3.20:1 on white, under the 4.5:1 WCAG AA text threshold
+BLUE_TEXT = "#1f66bd"
+ORANGE_TEXT = "#c4501f"
 TERRAIN = "#e1e0d9"
 
 
@@ -86,7 +92,7 @@ def main():
     plt.rcParams.update({
         "figure.facecolor": SURFACE, "axes.facecolor": SURFACE, "savefig.facecolor": SURFACE,
         "font.family": "sans-serif", "text.color": INK, "axes.edgecolor": BASELINE,
-        "axes.labelcolor": SECONDARY, "xtick.color": MUTED, "ytick.color": MUTED,
+        "axes.labelcolor": SECONDARY, "xtick.color": TICK_TEXT, "ytick.color": TICK_TEXT,
         "axes.spines.top": False, "axes.spines.right": False, "font.size": 9,
     })
     fig, ax = plt.subplots(figsize=(7.2, 3.3), dpi=124)
@@ -97,9 +103,10 @@ def main():
     (l_pet,) = ax.plot([], [], color=ORANGE, lw=2.0, zorder=3)
     for cup, c, name in ((BIN_RUBBER, BLUE, "bin A"), (BIN_PET, ORANGE, "bin B")):
         ax.scatter([cup], [-0.06], marker="v", s=70, color=c, zorder=6)
-        ax.annotate(name, (cup, -0.06), textcoords="offset points", xytext=(0, -14), ha="center", color=c)
-    ax.annotate('e = 0.5 "rubber"', (0.35, 1.12), color=BLUE, fontsize=9)
-    ax.annotate('e = 0.8 "PET"', (0.35, 1.00), color=ORANGE, fontsize=9)
+        ax.annotate(name, (cup, -0.06), textcoords="offset points", xytext=(0, -14),
+                    ha="center", color=BLUE_TEXT if c == BLUE else ORANGE_TEXT)
+    ax.annotate('e = 0.5 "rubber"', (0.35, 1.12), color=BLUE_TEXT, fontsize=9)
+    ax.annotate('e = 0.8 "PET"', (0.35, 1.00), color=ORANGE_TEXT, fontsize=9)
     info = ax.text(0.99, 0.95, "", transform=ax.transAxes, va="top", ha="right", color=SECONDARY, fontsize=10)
     ax.set_xlim(-0.1, 5.6)
     ax.set_ylim(-0.16, 1.3)

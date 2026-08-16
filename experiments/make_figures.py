@@ -27,11 +27,18 @@ SURFACE = "#fcfcfb"
 INK = "#0b0b0b"
 SECONDARY = "#52514e"
 MUTED = "#898781"
+# tick labels are text: MUTED is 3.59:1 on white, under AA
+TICK_TEXT = "#6a6964"
 GRID = "#e1e0d9"
 BASELINE = "#c3c2b7"
 BLUE = "#2a78d6"
 ORANGE = "#eb6834"
+# darkened only where the colour carries text: the series colours are
+# 4.42:1 and 3.20:1 on white, under the 4.5:1 WCAG AA text threshold
+BLUE_TEXT = "#1f66bd"
+ORANGE_TEXT = "#c4501f"
 AQUA = "#1baf7a"
+AQUA_TEXT = "#137d57"
 TERRAIN = "#e1e0d9"
 
 plt.rcParams.update({
@@ -42,8 +49,8 @@ plt.rcParams.update({
     "text.color": INK,
     "axes.edgecolor": BASELINE,
     "axes.labelcolor": SECONDARY,
-    "xtick.color": MUTED,
-    "ytick.color": MUTED,
+    "xtick.color": TICK_TEXT,
+    "ytick.color": TICK_TEXT,
     "axes.grid": True,
     "grid.color": GRID,
     "grid.linewidth": 0.8,
@@ -84,9 +91,9 @@ def fig_trajectory(t):
     ax.scatter([TARGET_X], [cup_y], marker="v", s=70, color=INK, zorder=5)
     ax.annotate("cup", (TARGET_X, cup_y), textcoords="offset points", xytext=(8, 6),
                 ha="left", color=INK, fontsize=9)
-    ax.annotate("initial guess", (1.35, 0.66), ha="center", color=ORANGE, fontsize=9,
+    ax.annotate("initial guess", (1.35, 0.66), ha="center", color=ORANGE_TEXT, fontsize=9,
                 xytext=(0, 8), textcoords="offset points")
-    ax.annotate("optimized", (2.85, 0.32), ha="center", color=BLUE, fontsize=9,
+    ax.annotate("optimized", (2.85, 0.32), ha="center", color=BLUE_TEXT, fontsize=9,
                 xytext=(0, 8), textcoords="offset points")
     ax.set_xlim(-0.1, 5.2)
     ax.set_ylim(-0.08, 1.45)
@@ -109,7 +116,7 @@ def fig_convergence():
     ax.set_ylabel("miss distance [m]")
     ax.set_title("E1: distance to cup", loc="left")
     ax.annotate(f"{hist[-1, 1]*100:.1f} cm", (len(hist) - 1, hist[-1, 1]),
-                textcoords="offset points", xytext=(-8, 10), ha="right", color=BLUE, fontsize=10)
+                textcoords="offset points", xytext=(-8, 10), ha="right", color=BLUE_TEXT, fontsize=10)
     fig.tight_layout()
     fig.savefig(FIGS / "e1_convergence.png")
     plt.close(fig)
@@ -130,10 +137,10 @@ def _fig_e3_inner():
 
     ax.axhline(truth, color=BLUE, lw=2.0)
     ax.annotate("true gradient (saltation, = FD)", (dts[2], truth),
-                textcoords="offset points", xytext=(0, 7), ha="center", color=BLUE, fontsize=9)
+                textcoords="offset points", xytext=(0, 7), ha="center", color=BLUE_TEXT, fontsize=9)
     ax.plot(dts, naive, color=ORANGE, lw=2.0, marker="o", ms=5, markeredgecolor=SURFACE, markeredgewidth=0.8)
     ax.annotate("grid-reset autodiff (exactly 0)", (dts[2], 0.0),
-                textcoords="offset points", xytext=(0, -16), ha="center", color=ORANGE, fontsize=9)
+                textcoords="offset points", xytext=(0, -16), ha="center", color=ORANGE_TEXT, fontsize=9)
     ax.set_xscale("log")
     ax.invert_xaxis()
     ax.set_ylim(-0.03, 0.115)
@@ -144,13 +151,14 @@ def _fig_e3_inner():
     rel_interp = np.abs(interp - truth) / truth
     ax2.plot(dts, rel_interp, color=AQUA, lw=1.8, marker="o", ms=4, markeredgecolor=SURFACE, markeredgewidth=0.7)
     ax2.annotate("hand-interpolated event (converging, erratic)", (dts[3], rel_interp[3]),
-                 textcoords="offset points", xytext=(0, -22), ha="center", color=AQUA, fontsize=9)
+                 textcoords="offset points", xytext=(0, -22), ha="center",
+                 color=AQUA_TEXT, fontsize=9)
     ax2.axhline(1e-15, color=BLUE, lw=2.0)
     ax2.annotate("saltation (machine precision)", (dts[3], 1e-15),
-                 textcoords="offset points", xytext=(0, 7), ha="center", color=BLUE, fontsize=9)
+                 textcoords="offset points", xytext=(0, 7), ha="center", color=BLUE_TEXT, fontsize=9)
     ax2.axhline(1.0, color=ORANGE, lw=2.0)
     ax2.annotate("grid-reset (100% bias)", (dts[3], 1.0),
-                 textcoords="offset points", xytext=(0, 6), ha="center", color=ORANGE, fontsize=9)
+                 textcoords="offset points", xytext=(0, 6), ha="center", color=ORANGE_TEXT, fontsize=9)
     ax2.set_xscale("log")
     ax2.set_yscale("log")
     ax2.invert_xaxis()
@@ -184,7 +192,7 @@ def fig_e4(t):
     ax.plot(xs, h_des(xs), color=BASELINE, lw=1.2, zorder=2)
     h0 = 0.15 * np.sum(np.exp(-((xs[:, None] - np.array([1.2, 2.4, 3.6])) ** 2) / (2 * 0.5**2)), axis=1)
     ax.plot(xs, h0, color=MUTED, lw=1.0, ls=(0, (4, 3)), zorder=2)
-    ax.annotate("initial terrain", (0.55, 0.19), color=MUTED, fontsize=8)
+    ax.annotate("initial terrain", (0.55, 0.19), color=TICK_TEXT, fontsize=8)
     for r, c, label, cup in ((r_slow, BLUE, "slow inlet (1.6 m/s)", 2.6), (r_fast, ORANGE, "fast inlet (2.6 m/s)", 4.6)):
         traj = np.asarray(r["traj"])
         ax.plot(traj[:, 1], traj[:, 2], color=c, lw=2.0, zorder=3)
@@ -193,9 +201,10 @@ def fig_e4(t):
         cy = float(h_des(cup))
         ax.scatter([cup], [cy], marker="v", s=70, color=c, zorder=5)
         ax.annotate(f"cup {'A' if c == BLUE else 'B'}", (cup, cy), textcoords="offset points",
-                    xytext=(0, -16), ha="center", color=c, fontsize=9)
-    ax.annotate("slow inlet", (1.05, 0.72), color=BLUE, fontsize=9)
-    ax.annotate("fast inlet", (2.30, 0.60), color=ORANGE, fontsize=9)
+                    xytext=(0, -16), ha="center", fontsize=9,
+                    color=BLUE_TEXT if c == BLUE else ORANGE_TEXT)
+    ax.annotate("slow inlet", (1.05, 0.72), color=BLUE_TEXT, fontsize=9)
+    ax.annotate("fast inlet", (2.30, 0.60), color=ORANGE_TEXT, fontsize=9)
     ax.set_xlim(-0.1, 5.4)
     ax.set_ylim(-0.08, 1.45)
     ax.set_xlabel("x [m]")
@@ -245,10 +254,10 @@ def fig_e6():
         ax.scatter([es[i]], [xs[i]], s=120, facecolors="none", edgecolors=INK, linewidths=1.2, zorder=4)
         ax.annotate("trained", (es[i], xs[i]), textcoords="offset points", xytext=(0, 10),
                     ha="center", color=INK, fontsize=8)
-    ax.annotate("bin A side", (0.365, 1.05), color=BLUE, fontsize=9)
-    ax.annotate("bin B side", (0.365, 5.15), color=ORANGE, fontsize=9)
+    ax.annotate("bin A side", (0.365, 1.05), color=BLUE_TEXT, fontsize=9)
+    ax.annotate("bin B side", (0.365, 5.15), color=ORANGE_TEXT, fontsize=9)
     ax.annotate("outside validated domain\n(superball rebound)", (0.9, 1.95), ha="center",
-                color=MUTED, fontsize=8)
+                color=TICK_TEXT, fontsize=8)
     ax.set_xlabel("restitution e  (trained on 0.5 and 0.8 only)")
     ax.set_ylabel("landing x [m]")
     ax.set_ylim(-0.3, 6.0)

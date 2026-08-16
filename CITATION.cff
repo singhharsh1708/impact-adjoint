@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+title: >-
+  impact-adjoint: exact gradients through impact events across a Julia and JAX
+  Tesseract boundary
+message: If you use this work, please cite it as below.
+type: software
+authors:
+  - given-names: Harsh
+    family-names: Singh
+    alias: singhharsh1708
+repository-code: https://github.com/singhharsh1708/impact-adjoint
+url: https://impact-adjoint.vercel.app
+abstract: >-
+  Simulations of contact are easy to write and hard to differentiate: the step
+  at which an impact fires is an integer, so automatic differentiation returns
+  a gradient that is silently wrong rather than merely inaccurate.
+  impact-adjoint computes exact parameter sensitivities across impact events
+  using the classical saltation matrix, and serves them from a Julia solver
+  through a Tesseract component boundary, so a JAX program obtains the true
+  derivative without doing any event handling of its own. The resulting
+  gradients design passive structures whose function exists only because of
+  impacts.
+keywords:
+  - differentiable simulation
+  - hybrid dynamical systems
+  - saltation matrix
+  - contact dynamics
+  - automatic differentiation
+  - inverse design
+# Uncomment and fill once a Zenodo DOI is minted from a tagged release:
+# identifiers:
+#   - type: doi
+#     value: 10.5281/zenodo.XXXXXXX
+#     description: Archived release
+license: Apache-2.0
+version: 0.1.0
+date-released: '2026-08-16'
