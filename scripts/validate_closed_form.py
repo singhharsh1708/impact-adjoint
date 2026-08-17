@@ -22,6 +22,23 @@ _jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.
 import sympy as sp
 from tesseract_core import Tesseract
 
+
+def record(key, value):
+    """Append one measurement to experiments/oracle_results.json.
+
+    The headline agreement figures used to be printed and then lost, so the
+    numbers quoted in the README and the writeup traced to nothing. This makes
+    them artifacts like every other published number.
+    """
+    import json
+    from pathlib import Path as _P
+
+    path = _P(__file__).parent.parent / "experiments" / "oracle_results.json"
+    data = json.loads(path.read_text()) if path.exists() else {}
+    data[key] = float(value)
+    path.write_text(json.dumps(data, indent=2, sort_keys=True))
+
+
 API_PATH = Path(__file__).parent.parent / "tesseracts" / "contact_sim" / "tesseract_api.py"
 
 # ---------------- symbolic closed form (no solver involvement) ----------------
@@ -125,6 +142,7 @@ worst = max(worst, se_amp)
 print(f"[amp] d impact_x1/d amp solver={a_amp}  IFT={hand_dimp1_damp}  scaled_err={se_amp:.2e}")
 
 print(f"\nWORST scaled Jacobian err vs independent closed form: {worst:.3e}")
+record("CLOSED_FORM_jacobian_worst", worst)
 assert traj_err < 1e-9, f"trajectory vs closed form: {traj_err:.3e} >= 1e-9"
 assert worst < 1e-7, f"Jacobian vs closed form: {worst:.3e} >= 1e-7"
 print("CLOSED-FORM ORACLE PASSED (trajectory < 1e-9, Jacobian < 1e-7, solver-independent derivation)")

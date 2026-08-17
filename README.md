@@ -94,13 +94,16 @@ as finite-difference gates through the solver itself:
 
 - `scripts/validate_closed_form.py` runs the full multi-bounce closed form on flat
   terrain, derived in sympy rational arithmetic (including hand-differentiated
-  impact recursions): Jacobian agreement **7e-12**.
+  impact recursions): Jacobian agreement **7e-12**. All four oracle agreements
+  on this list are recorded in `experiments/oracle_results.json` by the
+  validators themselves rather than read off a terminal.
 - `scripts/validate_reference.py` is an independent reimplementation of the spec
   (scipy RK45 + its own event localization): primal agreement 1e-10; analytic
   Jacobian vs finite differences *through the independent implementation*
   **5e-9**, covering the sloped-contact-frame and drag sectors.
 - `tesseract run contact-sim check-gradients` is Tesseract's built-in checker:
-  **0 failures / 1574 checks** per gradient endpoint.
+  **0 failures / 1574 checks** per gradient endpoint, captured by
+  `scripts/capture_check_gradients.py` into `experiments/check_gradients.json`.
 - `scripts/validate_contact.py` is an FD gate (rtol 1e-5) plus robustness
   regressions: chatter/settle termination, event-capacity truncation,
   sub-step-width terrain features, energy conservation at `e=1` (relative

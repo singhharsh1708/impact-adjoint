@@ -9,11 +9,12 @@ design vector. The objective, both particles landing in their own bins, is only
 computable through the impact events the surface itself creates.
 
 Methods under one evaluation budget. Budget accounting: a gradient call is
-charged as 2 forward evaluations. Measured wall-clock at this configuration
-(77 sensitivity columns) measures a VJP at 8.5x a forward solve. The gradients
-are forward-variational, so their cost scales with parameter count, and the
-writeup reports the comparison under both accountings; the qualitative result
-(gradient-free plateaus orders of magnitude short) is unchanged either way.
+charged as 2 forward evaluations here. The gradients are forward-variational,
+so their cost scales with parameter count; study_optimizers.py measures the
+wall-clock charge against the 24 columns this objective actually
+differentiates and reports the comparison under both accountings. The result
+is NOT the same either way: per evaluation the gradient wins by about 900x,
+and under measured wall-clock CMA-ES is ahead at this budget.
   - Adam on the saltation gradients (ours)
   - Nelder-Mead (scipy), objective-only
   - CMA-ES (cma), objective-only
@@ -141,9 +142,22 @@ def main():
         results[name] = {"amp": amp, "trace": np.array(trace)}
         print(f"{name:12s} final best objective: {trace[-1][1]:.6f}  ({trace[-1][0]} weighted evals)")
 
+    # the per-particle landing errors are quoted in the writeup and on the
+    # site; record them rather than leaving them derivable only by re-solving
+    miss = []
+    for e, bin_x in ((E_RUBBER, BIN_RUBBER), (E_PET, BIN_PET)):
+        res = sim.apply({**FIXED, "v0": V0, "e": e, "amp": results["adam"]["amp"],
+                         "ctr": CTR, "wid": WID})
+        qf = np.asarray(res["qf"], dtype=float)
+        h_target = float(np.sum(results["adam"]["amp"]
+                                * np.exp(-((bin_x - CTR) ** 2) / (2 * WID**2))))
+        miss.append(float(np.hypot(qf[0] - bin_x, qf[1] - h_target)))
+    print(f"adam landing errors: {miss[0] * 1000:.3f} mm and {miss[1] * 1000:.3f} mm")
+
     np.savez(ROOT / "experiments" / "e5_result.npz",
              **{f"{k}_trace": v["trace"] for k, v in results.items()},
              **{f"{k}_amp": v["amp"] for k, v in results.items()},
+             adam_miss_m=np.array(miss),
              ctr=CTR, wid=WID)
 
     adam_best = results["adam"]["trace"][-1][1]

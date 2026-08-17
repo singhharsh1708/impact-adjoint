@@ -1,0 +1,6 @@
+{
+  "CLOSED_FORM_jacobian_worst": 7.104520010568949e-12,
+  "CONTACT_energy_drift": 4.627309102384062e-13,
+  "REFERENCE_jacobian_worst": 4.5658094265125976e-09,
+  "REFERENCE_primal_worst": 1.1402787047920526e-10
+}

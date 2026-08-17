@@ -106,6 +106,27 @@ def main():
             r[f"SCALE_vjp_ms_{want}"] = float(tv[i])
             r[f"SCALE_ratio_{want}"] = float(tv[i] / ta[i])
 
+    # oracle agreements, recorded by the three validators rather than printed
+    ora = E / "oracle_results.json"
+    if ora.exists():
+        r.update(json.loads(ora.read_text()))
+
+    e2 = load("e2_result.npz")
+    if e2 is not None:
+        r["E2_e_err"] = float(e2["e_err"])
+        r["E2_mu_err"] = float(e2["mu_err"])
+
+    if e5 is not None and "adam_miss_m" in e5.files:
+        miss = e5["adam_miss_m"]
+        r["E5_miss_mm"] = [float(m) * 1000 for m in miss]
+
+    cg = E / "check_gradients.json"
+    if cg.exists():
+        d = json.loads(cg.read_text())
+        r["CHECKGRAD_failures"] = int(d["failures"])
+        r["CHECKGRAD_checks"] = int(d["checks"])
+        r["CHECKGRAD_endpoints"] = int(d["endpoints"])
+
     (E / "results.json").write_text(json.dumps(r, indent=2, sort_keys=True))
 
     def f(x, n=3):
@@ -128,6 +149,16 @@ def main():
         f"| worst gradient-vs-FD agreement over 4 probes | {f(r.get('GRAD_best_agreement'))} |",
         f"| VJP marginal cost per parameter | {f(r.get('SCALE_us_per_param'))} us |",
         f"| affine cost model fit | R2 = {f(r.get('SCALE_r2'), 4)} |",
+    ] + ([
+        f"| symbolic closed-form oracle, worst Jacobian | {f(r['CLOSED_FORM_jacobian_worst'])} |",
+        f"| scipy reference oracle, worst primal | {f(r['REFERENCE_primal_worst'])} |",
+        f"| scipy reference oracle, worst Jacobian vs FD | {f(r['REFERENCE_jacobian_worst'])} |",
+        f"| energy drift at e=1, mu=0 | {f(r['CONTACT_energy_drift'])} |",
+    ] if "CLOSED_FORM_jacobian_worst" in r else []) + ([
+        f"| Tesseract check-gradients | {r['CHECKGRAD_failures']} failures / "
+        f"{r['CHECKGRAD_checks']} checks on {r['CHECKGRAD_endpoints']} endpoints |",
+    ] if "CHECKGRAD_checks" in r else []) + [
+        "",
         "",
         "## Warm per-call cost (dt 1e-3, t_final 2.0 s, four impacts)",
         "",

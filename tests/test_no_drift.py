@@ -74,6 +74,11 @@ QUOTED = [
     ("BENCH_ratio_eval", lambda v: f"{v:.0f}", ["docs/RESULTS.md"]),
     ("E3_saltation_spread", lambda v: f"{v:.2e}", ["docs/RESULTS.md"]),
     ("GRAD_best_agreement", lambda v: f"{v:.2e}", ["docs/RESULTS.md"]),
+    ("CLOSED_FORM_jacobian_worst", lambda v: f"{v:.3g}", ["docs/RESULTS.md"]),
+    ("REFERENCE_primal_worst", lambda v: f"{v:.3g}", ["docs/RESULTS.md"]),
+    ("CONTACT_energy_drift", lambda v: f"{v:.3g}", ["docs/RESULTS.md"]),
+    ("CHECKGRAD_checks", lambda v: str(int(v)), ["README.md", "docs/RESULTS.md"]),
+    ("CHECKGRAD_failures", lambda v: f"{int(v)} failures", ["docs/RESULTS.md"]),
 ]
 
 

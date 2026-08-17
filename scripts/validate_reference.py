@@ -22,6 +22,18 @@ API_PATH = Path(__file__).parent.parent / "tesseracts" / "contact_sim" / "tesser
 
 from tesseract_core.runtime.core import load_module_from_path
 
+
+def record(key, value):
+    """Append one measurement to experiments/oracle_results.json."""
+    import json
+    from pathlib import Path as _P
+
+    path = _P(__file__).parent.parent / "experiments" / "oracle_results.json"
+    data = json.loads(path.read_text()) if path.exists() else {}
+    data[key] = max(float(value), data.get(key, 0.0))  # keep the worst case
+    path.write_text(json.dumps(data, indent=2, sort_keys=True))
+
+
 MAX_EVENTS = load_module_from_path(API_PATH).MAX_EVENTS
 
 G = 9.81
@@ -121,6 +133,7 @@ def check(t, base, label):
         np.max(np.abs(np.asarray(res["impact_x"])[:nev] - ref_imp)),
     )
     print(f"[{label}] n_events={nev}, primal max abs err vs scipy reference: {prim_err:.3e}")
+    record("REFERENCE_primal_worst", prim_err)
     assert prim_err < 1e-7, f"{label}: primal mismatch {prim_err:.3e}"
 
     jac = t.jacobian(base, jac_inputs=set(DIFF_INPUTS), jac_outputs={"qf", "impact_x"})
@@ -134,6 +147,7 @@ def check(t, base, label):
         worst = max(worst, err)
         np.testing.assert_allclose(analytic, fd[name], rtol=5e-4, atol=1e-6, err_msg=f"{label}: {name}")
     print(f"[{label}] analytic Jacobian vs FD-through-INDEPENDENT-implementation OK (worst scaled err {worst:.2e})")
+    record("REFERENCE_jacobian_worst", worst)
 
 
 BASE = {

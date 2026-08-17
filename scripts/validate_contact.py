@@ -26,6 +26,23 @@ API_PATH = Path(__file__).parent.parent / "tesseracts" / "contact_sim" / "tesser
 
 from tesseract_core.runtime.core import load_module_from_path
 
+
+def record(key, value):
+    """Append one measurement to experiments/oracle_results.json.
+
+    The headline agreement figures used to be printed and then lost, so the
+    numbers quoted in the README and the writeup traced to nothing. This makes
+    them artifacts like every other published number.
+    """
+    import json
+    from pathlib import Path as _P
+
+    path = _P(__file__).parent.parent / "experiments" / "oracle_results.json"
+    data = json.loads(path.read_text()) if path.exists() else {}
+    data[key] = float(value)
+    path.write_text(json.dumps(data, indent=2, sort_keys=True))
+
+
 MAX_EVENTS = load_module_from_path(API_PATH).MAX_EVENTS
 
 BASE = {
@@ -207,6 +224,7 @@ def regressions(t):
     drift = float(np.max(np.abs(E - E[0])) / E[0])
     assert drift < 1e-12, f"energy drift {drift:.2e}"
     print(f"[energy] e=1 mu=0: {int(res['n_events'])} impacts, relative energy drift {drift:.1e}")
+    record("CONTACT_energy_drift", drift)
 
     # n_samples=1 must not crash.
     res = t.apply(dict(BASE, n_samples=1))

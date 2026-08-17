@@ -14,6 +14,12 @@ not retyped, so this file cannot drift from what was measured.
 | worst gradient-vs-FD agreement over 4 probes | 8.13e-09 |
 | VJP marginal cost per parameter | 93.1 us |
 | affine cost model fit | R2 = 0.9976 |
+| symbolic closed-form oracle, worst Jacobian | 7.1e-12 |
+| scipy reference oracle, worst primal | 1.14e-10 |
+| scipy reference oracle, worst Jacobian vs FD | 4.57e-09 |
+| energy drift at e=1, mu=0 | 4.63e-13 |
+| Tesseract check-gradients | 0 failures / 1574 checks on 3 endpoints |
+
 
 ## Warm per-call cost (dt 1e-3, t_final 2.0 s, four impacts)
 
