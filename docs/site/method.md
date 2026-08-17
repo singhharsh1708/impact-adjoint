@@ -75,7 +75,7 @@ plausible-looking gradients of a ball in free-fall below the terrain.
 ## Cost
 
 The sensitivities are forward-variational, so a VJP costs O(n_params):
-measured at 6.0x a forward solve for 14 parameters and 8.5x for 77, and affine
+measured at 6.2x a forward solve for 14 parameters and 8.5x for 77, and affine
 in parameter count out to 581 (93 microseconds per parameter, R² = 0.998). See
 [verification studies](studies.md). At thousands of design variables the
 natural extension is a reverse-mode saltation adjoint behind the same

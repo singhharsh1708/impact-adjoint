@@ -230,7 +230,7 @@ python experiments/e1_inverse_design.py --container  # same optimization via the
 tesseracts/    contact_sim (Julia solver) · score_target (JAX objective) · julia_kernel (Day-1 proof)
 experiments/   e1-e6, e5b + figure/animation generators + committed result artifacts
 scripts/       three validation oracles · boundary proofs · curl client
-tests/         12 golden regression tests (run in CI)
+tests/         21 tests: golden regressions plus no-drift guards (run in CI)
 docs/          technical writeup, all figures, and the site source (docs/site)
 ```
 

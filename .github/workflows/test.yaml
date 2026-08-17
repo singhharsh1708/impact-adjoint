@@ -29,4 +29,7 @@ jobs:
       - name: Cross-implementation reference
         run: python scripts/validate_reference.py
       - name: Randomized property sweep over the declared input space
-        run: python scripts/fuzz_solver.py 100 0
+        # seeded from the run id, not a constant: a fixed seed makes this 100
+        # extra golden configurations that can never find anything new after
+        # the first green run. The seed is printed so a failure reproduces.
+        run: python scripts/fuzz_solver.py 100 ${{ github.run_id }}

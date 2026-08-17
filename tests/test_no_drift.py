@@ -11,6 +11,7 @@ change a result.
 """
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -26,15 +27,18 @@ def _regenerate(tmp_path):
     """Run the collector against a copy, leaving the working tree alone."""
     before_md = RESULTS_MD.read_text()
     before_json = RESULTS_JSON.read_text()
-    subprocess.run(
-        [sys.executable, str(ROOT / "experiments" / "collect_results.py")],
-        check=True, capture_output=True, cwd=ROOT,
-    )
-    after_md = RESULTS_MD.read_text()
-    after_json = RESULTS_JSON.read_text()
-    # restore whatever was committed, so a failing test leaves no diff behind
-    RESULTS_MD.write_text(before_md)
-    RESULTS_JSON.write_text(before_json)
+    try:
+        subprocess.run(
+            [sys.executable, str(ROOT / "experiments" / "collect_results.py")],
+            check=True, capture_output=True, cwd=ROOT,
+        )
+        after_md = RESULTS_MD.read_text()
+        after_json = RESULTS_JSON.read_text()
+    finally:
+        # the collector writes results.json and RESULTS.md at different points,
+        # so a crash between them would otherwise leave one of them rewritten
+        RESULTS_MD.write_text(before_md)
+        RESULTS_JSON.write_text(before_json)
     return (before_md, after_md), (before_json, after_json)
 
 
@@ -65,7 +69,11 @@ QUOTED = [
     ("E1_miss_start_m", lambda v: f"{v:.2f}", ["README.md", "docs/writeup.md"]),
     ("CONV_order", lambda v: f"{v:.2f}", ["README.md", "docs/writeup.md"]),
     ("SCALE_r2", lambda v: f"{v:.3f}", ["README.md"]),
-    ("BENCH_seeds", lambda v: str(int(v)), ["README.md"]),
+    ("SCALE_us_per_param", lambda v: f"{v:.0f}", ["README.md", "docs/writeup.md"]),
+    ("SCALE_ratio_77", lambda v: f"{v:.1f}", ["README.md", "docs/writeup.md"]),
+    ("BENCH_ratio_eval", lambda v: f"{v:.0f}", ["docs/RESULTS.md"]),
+    ("E3_saltation_spread", lambda v: f"{v:.2e}", ["docs/RESULTS.md"]),
+    ("GRAD_best_agreement", lambda v: f"{v:.2e}", ["docs/RESULTS.md"]),
 ]
 
 
@@ -77,7 +85,10 @@ def test_prose_quotes_current_value(key, fmt, files):
     wanted = fmt(r[key])
     for rel in files:
         text = (ROOT / rel).read_text()
-        assert wanted in text, (
+        # a bare substring match lets 1.12 be satisfied by 11.124 elsewhere in
+        # the file, and lets a single-digit value match almost any prose
+        hit = re.search(rf"(?<![\d.]){re.escape(wanted)}(?![\d])", text)
+        assert hit, (
             f"{rel} no longer quotes {key} as {wanted}; either the artifact "
             "moved and the prose was not updated, or the formatting changed"
         )
@@ -113,9 +124,15 @@ def test_sweep_widget_artifact_has_saltation_column():
     )
     salt = rows[:, 3]
     assert np.all(np.isfinite(salt))
-    assert len(set(salt.tolist())) > 1, (
-        "every saltation value is identical to the bit, which means the column "
-        "was filled from one solve rather than measured per dt"
+    # distinct at every step size proves it was solved per dt rather than
+    # copied from one solve; a tiny spread is the dt-independence claim itself
+    assert len(set(salt.tolist())) == len(salt), (
+        "saltation values repeat across step sizes, so the column was filled "
+        "from one solve rather than measured at each dt"
+    )
+    assert float(salt.max() - salt.min()) < 1e-10, (
+        "the saltation gradient is no longer dt-independent to the precision "
+        "the widget and the studies page claim"
     )
 
 

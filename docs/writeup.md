@@ -90,8 +90,8 @@ ForwardDiff dual numbers; the event structure is handled analytically. From the 
 `jax.jvp`, and `jax.jacrev` all work through it.
 
 On cost: the sensitivities are *forward*-variational, so a VJP costs
-O(n_params), measured at 6.0× a forward solve for 14 parameters and 8.5× for
-77 (apply 2.0 / 4.9 ms, VJP 12.1 / 41.6 ms warm). That is the right trade at
+O(n_params), measured at 6.2× a forward solve for 14 parameters and 8.5× for
+77 (apply 1.8 / 2.3 ms, VJP 11.4 / 19.8 ms warm). That is the right trade at
 tens of design variables. At thousands, the natural extension is a
 reverse-mode saltation adjoint behind the same endpoint.
 
@@ -280,7 +280,7 @@ rather than returning an unbounded gradient.
 
 ## 4b. Verification studies
 
-Four studies check the machinery itself rather than any application, each
+Six studies check the machinery itself rather than any application, each
 writing an artifact that `experiments/collect_results.py` reads into
 `docs/RESULTS.md`, so no number in this document is retyped by hand.
 
