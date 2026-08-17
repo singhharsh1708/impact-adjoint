@@ -43,9 +43,10 @@ not retyped, so this file cannot drift from what was measured.
 | E2b posterior e | 0.6965 +/- 0.0071 |
 | E2b posterior mu | 0.0955 +/- 0.0093 |
 | E2b divergences | 0 |
-| E2b r_hat, e and mu | 1.01 / 1.01 |
+| E2b split r_hat, e and mu | 1.01 / 1.01 |
+| E2b effective sample size of 2000 draws | 344 / 330 |
 | E2b leapfrog steps, 2 chains (apply + VJP each) | 23440 |
-| E2b sampling wall time | 18 min |
+| E2b sampling wall time | 23 min |
 
 ## Multi-seed benchmark and robustness
 

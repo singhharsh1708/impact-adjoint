@@ -147,7 +147,10 @@ posterior, NumPyro's NUTS sampler runs directly against the *containerized*
 solver. Every leapfrog step calls the Tesseract's apply and saltation-VJP
 endpoints over HTTP: 23,440 steps across two chains, measured and recorded in
 `e2b_posterior.npz`, in about 18 minutes of sampling. Two
-chains, zero divergences, r̂ = 1.01: posterior `e = 0.697 ± 0.007`, `μ =
+chains, zero divergences, split r̂ = 1.01 with an effective sample size of
+344 and 330 of 2000 draws. Two chains estimate the between-chain variance on
+one degree of freedom, so r̂ here is a weak check rather than a passed one,
+and we report it as such. Posterior `e = 0.697 ± 0.007`, `μ =
 0.096 ± 0.009`, with the truth inside the 68% and 95% credible intervals of
 both marginals. The posterior also resolves the physically meaningful e-μ
 ridge, more bounce traded against more tangential loss

@@ -8,6 +8,16 @@ figure changed, this says what it was and what it became.
 
 ### Corrected
 
+- **The NUTS convergence statistic was the outdated one, and the number a
+  reader actually needs was missing.** `gelman_rubin` is the classic
+  non-split R-hat, which cannot detect within-chain non-stationarity; it is
+  `split_gelman_rubin` now. Effective sample size was never reported at all:
+  2000 draws buy **344 and 330** effective ones, which is the relevant figure
+  given the sampler cost is a headline. Two chains estimate the between-chain
+  variance on one degree of freedom, so R-hat here is stated as a weak check
+  rather than a passed one. The wall-clock figure timed warmup plus sampling
+  while the leapfrog count covered sampling only; the label says so now.
+
 - **The gradient-free designs had never been scored on the metric this project
   says matters, and doing so weakens a headline.** E5 saved the CMA-ES and
   Nelder-Mead designs and nothing ever loaded them. Scored on E5b's held-out

@@ -15,7 +15,7 @@ import jax
 import jax.numpy as jnp
 import numpyro
 import numpyro.distributions as dist
-from numpyro.diagnostics import gelman_rubin
+from numpyro.diagnostics import effective_sample_size, split_gelman_rubin
 from numpyro.infer import MCMC, NUTS
 from tesseract_core import Tesseract
 from tesseract_jax import apply_tesseract
@@ -67,7 +67,12 @@ def run(sim):
     # one leapfrog step = one apply plus one saltation VJP through the container
     n_leapfrog = int(np.asarray(extra["num_steps"]).sum())
     grouped = mcmc.get_samples(group_by_chain=True)
-    r_hat = {k: float(gelman_rubin(np.asarray(v))) for k, v in grouped.items()}
+    # split R-hat rather than the classic statistic: the non-split version
+    # cannot detect within-chain non-stationarity, and 2 chains estimate the
+    # between-chain variance on one degree of freedom, so this is a weak check
+    # either way and is reported as such
+    r_hat = {k: float(split_gelman_rubin(np.asarray(v))) for k, v in grouped.items()}
+    ess = {k: float(effective_sample_size(np.asarray(v))) for k, v in grouped.items()}
     e_s, mu_s = np.asarray(s["e"]), np.asarray(s["mu"])
     e_mean, e_sd = float(e_s.mean()), float(e_s.std())
     mu_mean, mu_sd = float(mu_s.mean()), float(mu_s.std())
@@ -83,11 +88,14 @@ def run(sim):
     assert n_div == 0, f"{n_div} divergent transitions"
     assert e95[0] <= E_TRUE <= e95[1], "truth outside 95% CI for e"
     assert mu95[0] <= MU_TRUE <= mu95[1], "truth outside 95% CI for mu"
-    print(f"r_hat: e {r_hat['e']:.4f}  mu {r_hat['mu']:.4f}")
-    print(f"sampling wall time {wall_s:.1f} s over {n_leapfrog} leapfrog steps "
-          f"(one apply plus one VJP each)")
+    print(f"split r_hat: e {r_hat['e']:.4f}  mu {r_hat['mu']:.4f}")
+    print(f"effective sample size: e {ess['e']:.0f}  mu {ess['mu']:.0f} "
+          f"of {len(e_s)} draws")
+    print(f"wall time {wall_s:.1f} s for warmup plus sampling; {n_leapfrog} "
+          f"leapfrog steps in the sampling phase (one apply plus one VJP each)")
     np.savez(ROOT / "experiments" / "e2b_posterior.npz", e=e_s, mu=mu_s,
              n_divergences=n_div, r_hat_e=r_hat["e"], r_hat_mu=r_hat["mu"],
+             ess_e=ess["e"], ess_mu=ess["mu"],
              n_draws=len(e_s), n_chains=2, n_warmup=500,
              wall_s=wall_s, n_leapfrog=n_leapfrog)
     print("E2b PASSED: 2-chain NUTS through the Tesseract, 0 divergences, truth inside both 95% CIs")

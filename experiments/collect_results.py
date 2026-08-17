@@ -89,6 +89,9 @@ def main():
         r["E2b_divergences"] = int(e2b["n_divergences"])
         r["E2b_r_hat_e"] = float(e2b["r_hat_e"])
         r["E2b_r_hat_mu"] = float(e2b["r_hat_mu"])
+        if "ess_e" in e2b.files:
+            r["E2b_ess_e"] = float(e2b["ess_e"])
+            r["E2b_ess_mu"] = float(e2b["ess_mu"])
         r["E2b_leapfrog_steps"] = int(e2b["n_leapfrog"])
         r["E2b_wall_s"] = float(e2b["wall_s"])
 
@@ -208,7 +211,9 @@ def main():
         f"| E2b posterior mu | {f(r['E2b_mu_mean'], 3)} +/- {f(r['E2b_mu_sd'], 2)} |",
     ] + ([
         f"| E2b divergences | {r['E2b_divergences']} |",
-        f"| E2b r_hat, e and mu | {f(r['E2b_r_hat_e'], 3)} / {f(r['E2b_r_hat_mu'], 3)} |",
+        f"| E2b split r_hat, e and mu | {f(r['E2b_r_hat_e'], 3)} / {f(r['E2b_r_hat_mu'], 3)} |",
+        f"| E2b effective sample size of {r.get('E2b_leapfrog_steps') and 2000} draws | "
+        f"{r.get('E2b_ess_e', float('nan')):.0f} / {r.get('E2b_ess_mu', float('nan')):.0f} |",
         f"| E2b leapfrog steps, 2 chains (apply + VJP each) | {r['E2b_leapfrog_steps']} |",
         f"| E2b sampling wall time | {r['E2b_wall_s'] / 60:.0f} min |",
     ] if "E2b_leapfrog_steps" in r else []) + [
