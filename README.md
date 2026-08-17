@@ -85,7 +85,8 @@ only the saltation endpoint is exact at any dt (right).*
 
 ![E5 separator](docs/figures/e5_separator.png)
 *The designed separator (left) and the 24-dimensional head-to-head (right):
-at equal budget the gradient-free runs end 1.1 to 5.1 orders above Adam.*
+at equal budget the gradient-free runs end 1.1 to 5.1 orders above Adam on
+objective value; on held-out sorting purity the gap nearly vanishes.*
 
 ## Correctness
 
