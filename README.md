@@ -85,7 +85,7 @@ only the saltation endpoint is exact at any dt (right).*
 
 ![E5 separator](docs/figures/e5_separator.png)
 *The designed separator (left) and the 24-dimensional head-to-head (right):
-at equal budget the gradient-free runs end three to five orders above Adam.*
+at equal budget the gradient-free runs end 1.1 to 5.1 orders above Adam.*
 
 ## Correctness
 
@@ -128,7 +128,7 @@ at R2 = 0.998.*
 
 ![benchmark](docs/figures/study_optimizers.png)
 *Five random starts, both methods tuned per seed. Per evaluation Adam ends
-about 900x below tuned CMA-ES. Charged at measured wall-clock, where each
+about 347x below tuned CMA-ES on the paired per-seed median. Charged at measured wall-clock, where each
 gradient costs 6.8 solves, CMA-ES is about 2x better at this budget. Both
 are reported; the reverse-mode adjoint in Future work is what closes it.*
 

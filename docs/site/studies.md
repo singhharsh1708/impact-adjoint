@@ -36,7 +36,7 @@ methods tuned over a grid per seed, learning rate for Adam and sigma0 for
 CMA-ES.
 
 ```{image} ../figures/study_optimizers.png
-:alt: Median convergence curves with interquartile bands over five random starts under both cost accountings: per evaluation Adam ends about 900 times below tuned CMA-ES, and the ranking reverses under measured wall-clock.
+:alt: Median convergence curves with interquartile bands over five random starts under both cost accountings: per evaluation Adam ends about 347 times below tuned CMA-ES on the paired per-seed median, and under measured wall-clock the ordering is not resolved at five seeds.
 :width: 100%
 ```
 
@@ -44,11 +44,19 @@ CMA-ES.
 ```
 
 Per evaluation, gradients win decisively: median final objective 3.4×10⁻⁷ for
-Adam against 3.2×10⁻⁴ for tuned CMA-ES, a factor of about 900, with
+Adam against 3.2×10⁻⁴ for tuned CMA-ES. The seeds are paired, so the honest
+statistic is the median of the per-seed ratios, 347x, rather than the
+ratio of the medians; and the per-seed ratios span 12x to 139843x, so
+the direction is unanimous across five seeds but the magnitude is not
+resolvable at this sample size. With
 Nelder-Mead three orders behind that. Charged by measured wall-clock, where
 each gradient call costs a measured 6.8 forward solves, the ranking
 reverses at this budget: Adam reaches 7.3e-04 and CMA-ES is roughly
-2 times better.
+better on the ratio of medians. That reversal is not resolved at this sample
+size: CMA-ES is ahead on 4 of 5 seeds and behind on 1, a sign test gives
+p = 0.375, and a bootstrap interval on the median per-seed ratio spans both
+sides of parity. The honest statement is that under wall-clock accounting the
+ordering is not established at n = 5, not that it reverses.
 
 :::{important}
 The reversal is real and is reported rather than hidden. It is an
@@ -60,7 +68,7 @@ evaluation panel.
 :::
 
 What does not change under either accounting is that the gradient-free methods
-never reach the design: at 24 dimensions they plateau three to five orders
+never reach the design: at 24 dimensions they plateau 1.1 to 5.1 orders
 above what Adam attains per evaluation.
 
 ## Robustness and generalization
@@ -83,8 +91,8 @@ slightly, because the ensemble objective trades the centre for the tail.
 
 **Decisiveness under jitter.** Sweeping restitution with inlet jitter shows
 what the deterministic sweep hid. The point design is indecisive at 2 of 20
-restitutions, including its own trained value of 0.8, where 10% of jittered
-draws cross into the wrong bin, and 45% at `e = 0.85`. The ensemble design is
+restitutions, including its own trained value of 0.8, where 12.5% of jittered
+draws cross into the wrong bin. The ensemble design is
 unanimous at all 20.
 
 That comparison is the argument for designing against an ensemble, and it

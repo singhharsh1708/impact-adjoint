@@ -198,11 +198,21 @@ bands under both accountings:
 ![benchmark](figures/study_optimizers.png)
 
 Per evaluation, gradients win decisively: median final objective 3.4×10⁻⁷ for
-Adam against 3.2×10⁻⁴ for tuned CMA-ES, a factor of about 900, with
+Adam against 3.2×10⁻⁴ for tuned CMA-ES. The seeds are paired, so the median
+of the per-seed ratios, 347x, is the statistic that respects that; the
+ratio of medians would read 917x. Per-seed ratios span 12x to
+139843x, so the direction is unanimous across five seeds while the
+magnitude is not resolvable at n = 5. With
 Nelder-Mead three orders behind that. Charged by measured wall-clock, where
 each gradient call costs a measured 6.8 forward solves, the ranking
 reverses at this budget: Adam reaches 7.3e-04 while CMA-ES is roughly
-2 times better.
+better on the ratio of medians. We report that as unresolved rather than as a
+reversal: CMA-ES is ahead on 4 of 5 seeds and behind on 1, the sign test
+gives p = 0.375, and the bootstrap interval on the median per-seed ratio
+covers parity. What the wall-clock accounting does establish is that the
+forward-variational cost is large enough to erase a three-order per-evaluation
+lead, which is the reason the reverse-mode adjoint is the first item in future
+work.
 
 We report the reversal because it is real, and because it is an
 implementation property rather than a fact about gradients. The VJP is
@@ -211,7 +221,7 @@ microseconds each as measured in the scaling study. A reverse-mode saltation
 adjoint would return the same gradient for roughly the cost of one solve,
 which would make the wall-clock panel resemble the evaluation panel. What
 does not change under either accounting is that the gradient-free methods
-never reach the design: in 24 dimensions they plateau three to five orders
+never reach the design: in 24 dimensions they plateau 1.1 to 5.1 orders
 above what Adam attains per evaluation.
 
 **E5b, design under uncertainty.** Real separators process streams with
@@ -234,18 +244,19 @@ optimized for exactly two restitution values. Sweeping the continuum it
 never saw, the designed geometry acts as a *classifier*: every material with
 `e ∈ [0.35, 0.875]` is binned by a single threshold (A up to `e = 0.65`, B
 from `e = 0.675`). The binning quantity is the x-coordinate where the run
-ends, which for 19 of the 22 in-domain points is the event-capacity
+ends, which for 15 of the 22 in-domain points is the event-capacity
 truncation at the eighth impact rather than a settled rest position: the
 classifier is "which side the particle is on after eight impacts", which is
-the honest reading of a fixed-length chute. Margins are asymmetric and worth
-stating: the trained `e = 0.5` point lands 0.80 m clear of the decision
-boundary, the trained `e = 0.8` point only 0.13 m. Under 3 cm/s of
-inlet-velocity scatter at off-design materials, `e = 0.45` classifies 12 of
-12 correctly and `e = 0.85` 10 of 12. The failure edge is physical and we
-report it: from `e = 0.9` upward classification stops being clean. At `e =
-0.9` the ball rebounds off the backstop and exits left into the wrong bin;
-at `e = 0.925` it overshoots 1.2 m past bin B; at `e = 0.95` it lands
-between the bins on a capacity-truncated trajectory. Nothing in the
+the honest reading of a fixed-length chute. Both trained points sit 0.80 m
+clear of the decision boundary. Under 3 cm/s of inlet-velocity scatter at
+off-design materials, `e = 0.45` and `e = 0.85` each classify 12 of 12
+correctly. The failure edge is physical and we report it: at `e = 0.9` the
+ball lands 9 mm on the wrong side of the midpoint, a margin so thin the
+classification is meaningless rather than merely wrong. Beyond it the
+behaviour is not monotone, which is the more honest way to put it: `e = 0.925`
+lands 1.03 m past the midpoint and `e = 0.95` 0.75 m past, both nominally in
+bin B, so the sweep does not degrade gracefully outside the validated domain
+so much as stop meaning anything. Nothing in the
 objective asked for any of this. The generalization emerged from optimizing
 two point designs through their impact events:
 
@@ -312,7 +323,7 @@ more usefully, the fifth-percentile separation margin improves from 0.05 m to
 from inside the wrong bin to 0.09 m clear of the boundary. Sweeping
 restitution under inlet jitter shows what the deterministic sweep hid: the
 point design is indecisive at 2 of 20 restitutions, including its own trained
-value of 0.8, where 10% of jittered draws cross into the wrong bin. The
+value of 0.8, where 12.5% of jittered draws cross into the wrong bin. The
 ensemble design is unanimous at all 20. Designing against the ensemble is
 what buys that, and it costs a little median margin to get it.
 

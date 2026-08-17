@@ -31,6 +31,9 @@ X_MID = 0.5 * (BIN_RUBBER + BIN_PET)
 # the separator is defined at E5's horizon: its output is "where the particle
 # is when the run ends", so evaluating past t_final measures a different
 # quantity than the one designed. Import it rather than restating it.
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent))
 from e5_separator import FIXED  # noqa: E402
 
 
@@ -66,7 +69,9 @@ def main():
         mark += " (outside validated domain)" if e > 0.8751 else ""
         print(f"  e={e:5.3f}  landing x={x:6.3f}  bin {c}  status {s}{mark}")
     print(f"\nsingle clean threshold on [0.35, 0.875]: {clean}  (A up to e={thr_lo}, B from e={thr_hi})")
-    print("failure edge beyond: e=0.900 rebounds off the backstop and exits left (bin A)")
+    print(f"failure edge: e=0.900 lands {abs(xs[list(es).index(0.9)] - X_MID) * 1000:.0f} mm "
+          f"on the {'A' if xs[list(es).index(0.9)] < X_MID else 'B'} side of the midpoint; "
+          "beyond the validated domain the sweep is not monotone")
 
     # velocity-jitter robustness at three unseen materials
     rng = np.random.default_rng(11)
@@ -92,7 +97,11 @@ def main():
 
     assert clean, "expected a single A->B threshold on the validated domain"
     assert cls[list(es).index(0.5)] == "A" and cls[list(es).index(0.8)] == "B"
-    assert jitter_ok[0.45][1] >= 0.9 and jitter_ok[0.85][1] >= 0.8, "jitter robustness at off-design materials"
+    # the previous 0.8 floor was tuned to a superseded run that evaluated the
+    # design past its own horizon and produced 10/12 here; at the design
+    # horizon both off-design probes are unanimous, so assert that
+    assert jitter_ok[0.45][1] == 1.0 and jitter_ok[0.85][1] == 1.0, \
+        "off-design probes should classify unanimously under inlet jitter"
     print("\nE6 PASSED: one threshold classifies the restitution continuum on [0.35, 0.875], "
           "with inlet-scatter tolerance at off-design materials and an honest failure edge at e>=0.9")
 

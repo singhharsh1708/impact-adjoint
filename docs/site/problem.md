@@ -56,5 +56,5 @@ the reset, the restart, and the differentiable jump time, for every impact.
 is what happens when that bookkeeping is got wrong; the measurements are on
 [the comparison page](related.md).
 
-Rather than build on that, impact-adjoint puts the event-aware machinery
-behind a component boundary. See [the method](method.md).
+Rather than hand that bookkeeping to the caller, impact-adjoint puts the
+event-aware machinery behind a component boundary. See [the method](method.md).

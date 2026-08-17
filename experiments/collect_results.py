@@ -58,6 +58,16 @@ def main():
             r[f"BENCH_{k}_median"] = float(np.nanmedian(bench[k][:, -1]))
         r["BENCH_ratio_eval"] = r["BENCH_cma_median"] / r["BENCH_adam_eval_median"]
         r["BENCH_ratio_wall"] = r["BENCH_cma_median"] / r["BENCH_adam_wall_median"]
+        # the seeds are paired (same start point per seed), so the ratio of
+        # medians pairs one seed's CMA with another seed's Adam. The median of
+        # per-seed ratios is the statistic that respects the pairing.
+        ae, aw, cm = bench["adam_eval"][:, -1], bench["adam_wall"][:, -1], bench["cma"][:, -1]
+        r["BENCH_paired_ratio_eval"] = float(np.median(cm / ae))
+        r["BENCH_paired_ratio_wall"] = float(np.median(cm / aw))
+        r["BENCH_eval_ratio_range"] = [float((cm / ae).min()), float((cm / ae).max())]
+        r["BENCH_wall_cma_worse_seeds"] = int((cm / aw > 1).sum())
+        gaps = np.log10(cm / ae)
+        r["BENCH_eval_orders_range"] = [float(gaps.min()), float(gaps.max())]
 
     e2b = load("e2b_posterior.npz")
     r["E2b_e_mean"] = float(e2b["e"].mean()); r["E2b_e_sd"] = float(e2b["e"].std())

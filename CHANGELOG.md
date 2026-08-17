@@ -23,13 +23,15 @@ figure changed, this says what it was and what it became.
   charge of 8.5 forward solves came from a VJP over every input, 77
   sensitivity columns, but the separator differentiates only its 24 bump
   amplitudes. The benchmark now measures the charge against the inputs it
-  actually differentiates: 6.8 solves. CMA-ES is **2.3x** better under
+  actually differentiates: 6.8 solves. CMA-ES is **2.3x** ahead on the ratio
+  of medians under
   wall-clock accounting, not the 24x previously published.
 - **E6 and the generalization study evaluated the design past its own
   horizon.** They redeclared `t_final = 3.0` where E5 designs at 2.2, so the
   separator was scored two impacts beyond the point its output is defined at.
-  At its own trained value e = 0.8 that moved the landing from 4.3996 (target
-  4.4) to 3.7262. Both now import the design's configuration instead of
+  At its own trained value e = 0.8 the design lands at 4.3996 against a 4.4
+  target; evaluated at the longer horizon it read 3.7262, which is the number
+  that had been published. Both now import the design's configuration instead of
   restating it. The point design is indecisive under jitter at **2 of 20**
   restitutions, not 5 of 20, still including its own trained value; at
   e = 0.85 it is now unanimous where two different samples had disagreed.

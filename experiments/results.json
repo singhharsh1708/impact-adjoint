@@ -2,10 +2,21 @@
   "BENCH_adam_eval_median": 3.43926217244144e-07,
   "BENCH_adam_wall_median": 0.0007285216299924121,
   "BENCH_cma_median": 0.000315472287038492,
+  "BENCH_eval_orders_range": [
+    1.0618601830963998,
+    5.14563920991503
+  ],
+  "BENCH_eval_ratio_range": [
+    11.53081974481241,
+    139842.50984100744
+  ],
   "BENCH_nm_median": 0.990065389188459,
+  "BENCH_paired_ratio_eval": 346.85681988746995,
+  "BENCH_paired_ratio_wall": 0.15884102686986085,
   "BENCH_ratio_eval": 917.2673417175018,
   "BENCH_ratio_wall": 0.4330307763707411,
   "BENCH_seeds": 5,
+  "BENCH_wall_cma_worse_seeds": 1,
   "CHECKGRAD_checks": 1574,
   "CHECKGRAD_endpoints": 3,
   "CHECKGRAD_failures": 0,

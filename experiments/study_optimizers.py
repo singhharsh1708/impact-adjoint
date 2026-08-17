@@ -6,7 +6,7 @@ records the full trace, and reports medians with interquartile bands under
 BOTH cost accountings:
 
   eval-count : a gradient call charged as 2 forward solves (generous to us)
-  wall-clock : a gradient call charged at its measured cost, 8.5 forward
+  wall-clock : a gradient call charged at its measured cost, remeasured here
                solves at 77 parameters (generous to the gradient-free methods)
 
 Both methods get the same tuning treatment: CMA-ES over a sigma0 grid and
@@ -72,7 +72,7 @@ def measure_grad_charge(sim):
     t_vjp = timeit(lambda: sim.vector_jacobian_product(
         cfg, vjp_inputs={"amp"}, vjp_outputs={"qf"}, cotangent_vector=cot))
     charge = t_vjp / t_apply
-    print(f"measured gradient charge: {t_vjp:.2f} ms / {t_apply:.2f} ms = "
+    print(f"measured gradient charge: {t_vjp * 1000:.2f} ms / {t_apply * 1000:.2f} ms = "
           f"{charge:.2f} forward solves (24 sensitivity columns)")
     return charge
 SIGMAS = [0.02, 0.05, 0.1]
