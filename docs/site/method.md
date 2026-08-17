@@ -78,7 +78,10 @@ plausible-looking gradients of a ball in free-fall below the terrain.
 
 ## Cost
 
-The sensitivities are forward-variational, so a VJP costs O(n_params):
+Exact here means exact for the continuous hybrid system at a fixed event
+topology: across a bounce-count change the objective is genuinely
+discontinuous and there is no derivative to be exact about. The
+sensitivities are forward-variational, so a VJP costs O(n_params):
 measured at 6.2x a forward solve for 14 parameters and 8.5x for 77, and affine
 in parameter count out to 581 (93 microseconds per parameter, R² = 0.998). See
 [verification studies](studies.md). At thousands of design variables the

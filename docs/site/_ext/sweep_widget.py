@@ -103,7 +103,9 @@ def _markup(data):
     interpolated repair wanders; saltation moves by
     <code>{data['spread']:.2e}</code> across the whole sweep, against a
     reference value of <code>{data['truth']}</code>. Read from
-    <code>experiments/e3_rows.npy</code>.
+    <code>experiments/e3_rows.npy</code>. The sweep is flat-terrain ballistic
+    flight, where RK4 is exact by construction; that is what isolates the
+    event term from integrator error.
   </p>
   <noscript>{_fallback_table(data)}</noscript>
 </div>"""

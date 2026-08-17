@@ -21,8 +21,9 @@ optimization. Version {{ version }}.
 
 :::{container} ia-abstract
 Simulations of contact are easy to write and hard to differentiate.
-impact-adjoint computes exact parameter sensitivities across impact events
-using the classical saltation matrix, and serves them from a Julia solver
+impact-adjoint computes parameter sensitivities across impact events that
+are exact for the hybrid system at fixed event topology, using the classical
+saltation matrix, and serves them from a Julia solver
 through a Tesseract component boundary, so a JAX program obtains the true
 derivative without doing any event handling of its own. The resulting
 gradients design passive structures whose function exists only because of
@@ -77,7 +78,9 @@ jax.grad(bounce)(0.5)
 ```
 
 The step at which the event fires is an integer. Autodiff differentiates a
-staircase, and returns zero at every `dt`.
+staircase, and returns zero at every `dt`. Hand-writing an interpolated event
+inside the program does recover a converging gradient, to within 0.3% here;
+what the component removes is the derivation, not the last three digits.
 :::
 
 :::{grid-item-card} The same call through impact-adjoint
@@ -107,7 +110,7 @@ The saltation matrix supplies the missing term at each impact. Exact at any
 
 ::::
 
-## Check it yourself
+## Move the slider
 
 ```{raw} html
 <div id="ia-sweep"></div>
@@ -150,7 +153,7 @@ The saltation matrix supplies the missing term at each impact. Exact at any
   <div><dt>3.99</dt><dd>observed order of accuracy, against an analytic solution</dd></div>
   <div><dt>10<sup>-12</sup></dt><dd>multi-bounce agreement with a symbolic closed form</dd></div>
   <div><dt>0 / 50</dt><dd>failures in Tesseract's gradient checker, at 10<sup>-4</sup> relative tolerance</dd></div>
-  <div><dt>24</dt><dd>design variables in the headline separator</dd></div>
+  <div><dt>4.6e-9</dt><dd>analytic Jacobian vs an independent scipy reimplementation</dd></div>
   <div><dt>~5 min</dt><dd>to re-run the four verification checks</dd></div>
 </dl>
 ```

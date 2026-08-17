@@ -80,8 +80,15 @@ each particle must land in its own bin.
 ```{figure-source} e5_separator.png
 ```
 
-Landing errors of 0.23 mm and 0.42 mm. One caveat this shares with any
-fixed-length chute: the low-restitution particle is stopped by the event
+Landing errors of 0.23 mm and 0.42 mm.
+
+Two caveats, both about where the run stops. The two particles do not stop
+under the same rule: the low-restitution one exhausts the eight-impact budget
+and the high-restitution one reaches `t_final`, so the objective compares
+position-at-the-eighth-impact against position-at-a-fixed-time. And the design
+is defined at its own horizon: evaluated at `t_final = 3.0` instead of 2.2 the
+trained `e = 0.8` particle lands 0.67 m from its target rather than 0.4 mm.
+The first caveat is the one any fixed-length chute shares: the low-restitution particle is stopped by the event
 budget rather than by coming to rest, so the separation surface is "position
 after eight impacts", not "position at rest".
 

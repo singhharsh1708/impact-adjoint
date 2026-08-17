@@ -23,7 +23,7 @@ Cloning is the intended path, and the commands below are the whole of it.
 
 ## Requirements
 
-Python 3.12 or newer, Docker for the containerized runs, and about 5 GB of
+Python 3.12 or newer, Docker for the containerized runs, and about 9 GB of
 disk for the images. Julia itself is bootstrapped automatically by
 `juliacall`, so there is nothing to install by hand.
 
