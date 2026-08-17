@@ -3,8 +3,8 @@
   "BENCH_adam_wall_median": 0.0007285216299924121,
   "BENCH_cma_median": 0.000315472287038492,
   "BENCH_eval_orders_range": [
-    1.0618601830963998,
-    5.14563920991503
+    1.06186,
+    5.145639
   ],
   "BENCH_eval_ratio_range": [
     11.53081974481241,

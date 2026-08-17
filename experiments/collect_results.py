@@ -66,8 +66,12 @@ def main():
         r["BENCH_paired_ratio_wall"] = float(np.median(cm / aw))
         r["BENCH_eval_ratio_range"] = [float((cm / ae).min()), float((cm / ae).max())]
         r["BENCH_wall_cma_worse_seeds"] = int((cm / aw > 1).sum())
+        # log10 differs in the last ulps across platforms, and this is only
+        # ever displayed to one decimal, so round it rather than let a
+        # transcendental's last bits trip the no-drift guard on another machine
         gaps = np.log10(cm / ae)
-        r["BENCH_eval_orders_range"] = [float(gaps.min()), float(gaps.max())]
+        r["BENCH_eval_orders_range"] = [round(float(gaps.min()), 6),
+                                        round(float(gaps.max()), 6)]
 
     e2b = load("e2b_posterior.npz")
     r["E2b_e_mean"] = float(e2b["e"].mean()); r["E2b_e_sd"] = float(e2b["e"].std())
