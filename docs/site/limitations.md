@@ -52,6 +52,27 @@
   event-time sensitivities and targeting per-impact routing rather than a bulk
   flow statistic.
 
+## Known rough edges in the implementation
+
+These were found by audit rather than by a failing test, and are recorded
+because none of them is currently guarded:
+
+- A degenerate crossing raises a Julia exception rather than returning a
+  status code, so an optimizer line-search that overshoots into a graze kills
+  the evaluation instead of getting a flagged result. `v_stop = 0` is a legal
+  input that makes the settling branch unreachable and steers chatter toward
+  that error.
+- The trajectory history is accumulated on every step even when
+  `n_samples = 0`, which is what every gradient call uses, and the step count
+  is unbounded. A request with a very small `dt` and a long `t_final` will
+  consume memory proportional to the step count.
+- `t_end == t_final` holds to floating-point accumulation, not exactly, so a
+  client comparing them should use a tolerance. The solver's own status field
+  is the reliable signal.
+- Four Jacobian evaluations per RK4 step recompute a matrix that is constant
+  for this flow. Correct, but it is the dominant cost of every sensitivity
+  call and the reason the VJP-to-apply ratio is as high as it is.
+
 ## Future work
 
 **Reverse-mode saltation adjoint.** The sensitivities here are forward

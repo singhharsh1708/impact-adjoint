@@ -187,3 +187,59 @@ def test_vjp_matches_jacobian(tess):
         cotangent_vector={"qf": np.array([1.0, 0.0, 0.0, 0.0])},
     )
     assert abs(float(np.asarray(v["e"])) - float(np.asarray(j["qf"]["e"])[0])) < 1e-12
+
+def test_large_bump_count_jacobian(tess):
+    """nb=24 (77 theta) is the E5 configuration and the only one that exercises
+    ForwardDiff's chunked path; nothing else in the suite reaches it."""
+    nb = 24
+    cfg = dict(
+        BASE,
+        amp=np.full(nb, 0.05),
+        ctr=np.linspace(0.4, 5.4, nb),
+        wid=np.full(nb, 0.18),
+    )
+    jac = tess.jacobian(cfg, jac_inputs={"amp"}, jac_outputs={"qf"})
+    a = np.asarray(jac["qf"]["amp"], dtype=float)
+    assert a.shape == (4, nb)
+    assert np.all(np.isfinite(a))
+
+    # central difference on one interior amplitude, at fixed event topology
+    k, h = nb // 2, 1e-6
+    up, dn = np.array(cfg["amp"]), np.array(cfg["amp"])
+    up[k] += h
+    dn[k] -= h
+    ru, rd = tess.apply({**cfg, "amp": up}), tess.apply({**cfg, "amp": dn})
+    if int(ru["n_events"]) == int(rd["n_events"]) == int(tess.apply(cfg)["n_events"]):
+        fd = (np.asarray(ru["qf"], float) - np.asarray(rd["qf"], float)) / (2 * h)
+        assert np.max(np.abs(a[:, k] - fd)) / max(1.0, np.max(np.abs(fd))) < 2e-5
+
+
+def test_impact_x_padding_is_exactly_zero(tess):
+    """The padded rows of impact_x and their derivatives are documented as
+    exactly zero; nothing verified it."""
+    r = tess.apply(BASE)
+    nev = int(r["n_events"])
+    imp = np.asarray(r["impact_x"], dtype=float)
+    assert nev < len(imp), "config should not saturate the event budget"
+    assert np.all(imp[nev:] == 0.0)
+
+    jac = tess.jacobian(BASE, jac_inputs={"v0"}, jac_outputs={"impact_x"})
+    j = np.asarray(jac["impact_x"]["v0"], dtype=float)
+    assert np.all(j[nev:, :] == 0.0), "padded derivative rows must be exactly zero"
+
+
+def test_drag_is_differentiated_consistently(tess):
+    """No golden test used drag != 0, so the drag sector of the Jacobian was
+    exercised only by the reference oracle."""
+    cfg = dict(BASE, drag=0.3)
+    r = tess.apply(cfg)
+    assert int(r["status"]) == 0
+    jac = tess.jacobian(cfg, jac_inputs={"v0"}, jac_outputs={"qf"})
+    a = np.asarray(jac["qf"]["v0"], dtype=float)
+    assert np.all(np.isfinite(a))
+    h = 1e-6
+    up = tess.apply({**cfg, "v0": np.asarray(cfg["v0"]) + np.array([0.0, h])})
+    dn = tess.apply({**cfg, "v0": np.asarray(cfg["v0"]) - np.array([0.0, h])})
+    if int(up["n_events"]) == int(dn["n_events"]) == int(r["n_events"]):
+        fd = (np.asarray(up["qf"], float) - np.asarray(dn["qf"], float)) / (2 * h)
+        assert np.max(np.abs(a[:, 1] - fd)) / max(1.0, np.max(np.abs(fd))) < 2e-5
