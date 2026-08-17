@@ -25,14 +25,15 @@ which is the honest backdrop for every row below.
     interrupting a differential equation solve, by terminating the solve
     before `t1` is reached"
     ([events](https://docs.kidger.site/diffrax/api/events/)).
-  - Event *times* are differentiable: v0.6.0 added continuous events, locating
-    the crossing with a root find and handling the event time's parameter
-    dependence through the implicit function theorem. There is no reset map,
-    so a bounce has to be assembled by restarting the solve and applying the
-    reset in user code, and that pattern is currently unreliable:
-    [issue #729](https://github.com/patrick-kidger/diffrax/issues/729). We
-    reproduce it below rather than quoting it. The maintainer's fix branch,
-    `partway-event-interpolate-to-step`, is unmerged.
+  - Event *times* are differentiable and correct. v0.6.0 added continuous
+    events, locating the crossing with a root find and handling the event
+    time's parameter dependence through the implicit function theorem. We
+    measured the restart-after-event pattern ourselves and Diffrax returns the
+    exact gradient under all three solvers tried; see below. What it does not
+    provide is a *reset map*, so a bounce must be assembled by restarting the
+    solve and applying the impact in user code, and the jump time must be
+    closed over differentiably by hand. That is an ergonomic difference, not a
+    correctness one.
 * - [MuJoCo MJX](https://mujoco.readthedocs.io/en/stable/mjx.html)
   - MuJoCo's soft constraint solver, contact resolved as a convex program.
   - The documentation states that differentiability "is mostly supported in
@@ -41,7 +42,9 @@ which is the honest backdrop for every row below.
     support auto-diff."
 * - [Brax](https://github.com/google/brax)
   - Several backends, including positional, spring and generalized dynamics.
-  - Differentiable end to end. Brax is one of the engines evaluated in
+  - Differentiable end to end, though its own README now states that only
+    `brax/training` is actively maintained as of 0.13.0 and points users at
+    MJX for physics. Brax is one of the engines evaluated in
     arXiv:2207.05060, whose finding is that gradients through contact are not
     always correct across the formulations it surveys.
 * - [DiffTaichi](https://arxiv.org/abs/1910.00935)
@@ -82,29 +85,42 @@ which is the honest backdrop for every row below.
 
 ## The Diffrax restart, measured
 
-The row above is the one quantitative claim on this site about somebody else's
-library, so it is generated from a committed artifact like everything else
-rather than retyped from an issue thread.
+:::{important}
+**This section previously said the opposite, and was wrong.** An earlier
+version of this page claimed the restart-after-event pattern returned
+solver-dependent wrong gradients, citing three numbers from
+[issue #729](https://github.com/patrick-kidger/diffrax/issues/729). Measuring
+it properly shows Diffrax is correct and the fault was in how the reproducer
+was written, including ours. The correction is kept here rather than quietly
+removed.
+:::
 
 The reproducer is the one from issue #729: an ODE whose right-hand side
 switches at `event_time`, solved up to a located event and restarted from that
 state, differentiated with respect to `event_time`. The state grows at rate 1
-before the switch and is flat after it, so the derivative is exactly `1.0`.
+before the switch and is flat after, so the derivative is exactly `1.0`.
 
 ```{diffrax-table}
 ```
 
-Two things are worth being careful about here. With the clipping controller
-every solver returns exactly zero, which is the same failure this project
-starts from, reached by a different route. Without it the answer is wrong in a
-solver-dependent way instead.
+The first row is the documented usage and it is exact. The other two are
+mistakes a caller can make: passing the jump time to
+`ClipStepSizeController` as a plain Python float, so the controller never
+closes over it differentiably, or not declaring the jump at all, which feeds
+the solver a discontinuous vector field it does not accept as valid input.
 
-Neither set matches the numbers quoted in the issue thread itself
-(`0.5`, `-1.4211714`, `0.7777778`), which were reported under different
-versions; that is why the versions are printed above and why we publish what we
-measured rather than what we read. This has not been raised with the Diffrax
-maintainer, so treat it as a reproduction of a known open issue and not as a
-new finding.
+Both are what the maintainer identified in the thread, telling the reporter to
+"replace ... `jump_ts=[jump_time]` with ... `jump_ts=[event_time]`, to close
+over the jump time differentiably", and separately that "your vector field is
+discontinuous, so this already isn't valid input for Diffrax". The reporter
+subsequently wrote that the minimal example may not reproduce the problem they
+were chasing. The three numbers we had quoted are one column of a two-column
+table in a single comment, measured on an experimental branch; the omitted
+column has Heun returning exactly `1.0`.
+
+The honest summary is that Diffrax differentiates event times correctly, and
+the difference here is that it has no reset map, so the bounce and the
+differentiable jump time are the caller's job rather than the component's.
 
 ## What is actually different here
 

@@ -30,8 +30,9 @@ from e5_separator import BIN_PET, BIN_RUBBER, CTR, WID
 ROOT = Path(__file__).parent.parent
 X_MID = 0.5 * (BIN_RUBBER + BIN_PET)
 V0 = np.array([2.0, 0.4])
-FIXED = {"y0": 1.0, "mu": 0.1, "drag": 0.0, "t_final": 3.0,
-         "dt": 5e-4, "n_samples": 0, "v_stop": 1e-4}
+# the design's own horizon: evaluating past it measures a different quantity
+# than the one that was designed, so import rather than restate
+from e5_separator import FIXED  # noqa: E402
 
 ES = np.round(np.arange(0.40, 0.881, 0.025), 4)
 N_DRAWS = 40

@@ -46,8 +46,9 @@ CMA-ES.
 Per evaluation, gradients win decisively: median final objective 3.4×10⁻⁷ for
 Adam against 3.2×10⁻⁴ for tuned CMA-ES, a factor of about 900, with
 Nelder-Mead three orders behind that. Charged by measured wall-clock, where
-each gradient call costs 8.5 forward solves, the ranking reverses at this
-budget: Adam reaches 7.6×10⁻³ and CMA-ES is roughly 24 times better.
+each gradient call costs a measured 6.8 forward solves, the ranking
+reverses at this budget: Adam reaches 7.3e-04 and CMA-ES is roughly
+2 times better.
 
 :::{important}
 The reversal is real and is reported rather than hidden. It is an
@@ -81,7 +82,7 @@ the wrong bin to 0.09 m clear of the boundary. The median margin drops
 slightly, because the ensemble objective trades the centre for the tail.
 
 **Decisiveness under jitter.** Sweeping restitution with inlet jitter shows
-what the deterministic sweep hid. The point design is indecisive at 5 of 20
+what the deterministic sweep hid. The point design is indecisive at 2 of 20
 restitutions, including its own trained value of 0.8, where 10% of jittered
 draws cross into the wrong bin, and 45% at `e = 0.85`. The ensemble design is
 unanimous at all 20.

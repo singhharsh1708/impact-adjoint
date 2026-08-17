@@ -66,6 +66,13 @@ class InputSchema(BaseModel):
             raise ValueError(f"e must be in (0, 1], got {float(self.e)} (e > 1 would gain energy)")
         if not (0.0 <= float(self.mu) < 1.0):
             raise ValueError(f"mu must be in [0, 1), got {float(self.mu)}")
+        if float(self.drag) < 0.0:
+            raise ValueError(
+                f"drag must be >= 0, got {float(self.drag)} "
+                "(negative drag would add energy without bound)"
+            )
+        if float(self.v_stop) < 0.0:
+            raise ValueError(f"v_stop must be >= 0, got {float(self.v_stop)}")
         if not float(self.dt) > 0.0:
             raise ValueError(f"dt must be > 0, got {float(self.dt)}")
         if not float(self.t_final) >= 0.0:

@@ -47,13 +47,13 @@ not retyped, so this file cannot drift from what was measured.
 |---|---|
 | benchmark seeds, both methods tuned per seed | 5 |
 | median final: Adam (eval accounting) | 3.44e-07 |
-| median final: Adam (wall-clock accounting) | 0.00756 |
+| median final: Adam (wall-clock accounting) | 0.000729 |
 | median final: CMA-ES (tuned) | 0.000315 |
 | median final: Nelder-Mead | 0.99 |
-| CMA / Adam ratio, eval then wall-clock | 917x, 0.0417x |
+| CMA / Adam ratio, eval then wall-clock | 917x, 0.433x |
 | held-out purity, point design | 983/1000 (Wilson 97.29 to 98.94 %) |
 | held-out purity, ensemble design | 1000/1000 (Wilson 99.62 to 100.00 %) |
 | 5th-percentile margin, point to ensemble | 0.0522 m to 0.579 m |
 | worst-case margin, point to ensemble | -0.123 m to 0.085 m |
-| decisive under jitter, point design | 15/20 restitutions |
+| decisive under jitter, point design | 18/20 restitutions |
 | decisive under jitter, ensemble design | 20/20 restitutions |

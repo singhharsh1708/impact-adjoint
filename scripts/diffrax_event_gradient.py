@@ -1,21 +1,29 @@
-"""Reproduce the chained-restart gradient reported in Diffrax issue #729.
+"""What Diffrax actually does with a gradient through a restart-after-event.
 
-The comparison table on the documentation site quotes three solver-dependent
-gradients for the restart-after-event pattern. Every other number this
-repository publishes is generated from a committed artifact, and that claim is
-about somebody else's library, so it is held to the same standard rather than
-being retyped from an issue thread.
+An earlier version of this script, and the comparison page that quoted it,
+claimed the restart-and-reset pattern returned solver-dependent wrong
+gradients, citing three numbers from Diffrax issue #729. That was wrong, and
+this script now measures why.
 
-This is the reproducer from
-https://github.com/patrick-kidger/diffrax/issues/729, unchanged apart from
-sweeping the solver and the step-size controller: an ODE whose right-hand side
-switches at `event_time`,
-solved up to a located event and then restarted from that state, differentiated
-with respect to `event_time`. The state grows at rate 1 before the switch and
-is constant after, so d(final state)/d(event_time) is 1.0.
+Reading the whole thread rather than the one comment: the maintainer diagnosed
+the reproducer as a usage error. `ClipStepSizeController(..., jump_ts=[...])`
+was given a plain Python float for the jump time, so the controller did not
+close over it differentiably:
 
-Writes scripts/diffrax_event_gradient.json with the measured values and the
-versions they were measured under.
+    "You should replace ... jump_ts=[jump_time] with ... jump_ts=[event_time],
+     to close over the jump time differentiably. Job done!"
+
+and separately, that a discontinuous vector field is not valid input unless
+the jump is declared through the controller. The reporter later wrote that the
+minimal example may not reproduce the problem they were chasing. The three
+numbers we quoted (0.5, -1.4211714, 0.7777778) are one column of a two-column
+table measured on an experimental branch, and the omitted column has Heun
+returning exactly 1.0.
+
+So this sweeps the usage rather than the solver. The ODE grows at rate 1 until
+`event_time` and is flat after, so d(final state)/d(event_time) is exactly 1.0.
+
+Writes scripts/diffrax_event_gradient.json.
 """
 
 import json
@@ -32,19 +40,24 @@ import optimistix as optx  # noqa: E402
 
 JUMP_TIME = 0.98
 EXPECTED = 1.0
-SOLVERS = {
-    "Heun": diffrax.Heun,
-    "Tsit5": diffrax.Tsit5,
-    "Bosh3": diffrax.Bosh3,
+SOLVERS = {"Heun": diffrax.Heun, "Tsit5": diffrax.Tsit5, "Bosh3": diffrax.Bosh3}
+
+USAGES = {
+    "jump time closed over differentiably": "traced",
+    "jump time passed as a constant": "float",
+    "no jump declared to the controller": "none",
 }
 
 
-def final_state(event_time, solver_cls, clip):
+def final_state(event_time, solver_cls, usage):
     controller = diffrax.PIDController(rtol=1e-6, atol=1e-6)
-    if clip:
+    if usage == "traced":
         controller = diffrax.ClipStepSizeController(
-            controller, jump_ts=[JUMP_TIME]
+            controller, jump_ts=jnp.asarray([event_time])
         )
+    elif usage == "float":
+        controller = diffrax.ClipStepSizeController(controller, jump_ts=[JUMP_TIME])
+
     term = diffrax.ODETerm(
         lambda t, y, args: jnp.array(
             [jnp.select([jnp.less(t, event_time), True], [1.0, 0.0])]
@@ -80,25 +93,29 @@ def main():
         "gradients": {},
     }
     print(f"d(final state)/d(event_time), expected {EXPECTED}")
-    for clip in (True, False):
-        label = "with ClipStepSizeController" if clip else "without it"
-        print(f"  {label}:")
+    for label, usage in USAGES.items():
         out["gradients"][label] = {}
+        print(f"  {label}:")
         for name, cls in SOLVERS.items():
-            g = float(jax.grad(final_state)(JUMP_TIME, cls, clip))
-            out["gradients"][label][name] = g
-            ok = "matches" if abs(g - EXPECTED) < 1e-4 else "DIFFERS"
-            print(f"    {name:6s} {g:+.7f}   {ok}")
+            try:
+                g = float(jax.grad(final_state)(JUMP_TIME, cls, usage))
+            except Exception as exc:
+                g = None
+                print(f"    {name:6s} raised {type(exc).__name__}")
+            if g is not None:
+                out["gradients"][label][name] = g
+                ok = "correct" if abs(g - EXPECTED) < 1e-4 else "WRONG"
+                print(f"    {name:6s} {g:+.7f}   {ok}")
 
     path = Path(__file__).parent / "diffrax_event_gradient.json"
     path.write_text(json.dumps(out, indent=2))
     print(f"\nwrote {path.name} (diffrax {out['versions']['diffrax']}, "
           f"jax {out['versions']['jax']})")
 
-    flat = [g for d in out["gradients"].values() for g in d.values()]
-    assert any(abs(g - EXPECTED) > 1e-4 for g in flat), (
-        "every solver now matches the expected gradient: issue #729 may be "
-        "fixed, and the comparison table must be updated"
+    correct = out["gradients"]["jump time closed over differentiably"]
+    assert all(abs(g - EXPECTED) < 1e-4 for g in correct.values()), (
+        "Diffrax no longer returns the correct gradient under the documented "
+        "usage; the comparison page says it does and must be revisited"
     )
 
 

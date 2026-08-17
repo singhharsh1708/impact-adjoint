@@ -48,11 +48,13 @@ find, so a single event is handled natively and correctly.
 What is missing is the rest of a hybrid trajectory. `diffrax.Event` terminates
 a solve and has no reset map, so a multi-impact chain has to be assembled by
 restarting the solver after each event and applying the reset in user code.
-That route is expressible, and it is currently unreliable:
+That route is expressible and, done correctly, it works: we measured the
+restart pattern and Diffrax returns the exact gradient, provided the jump time
+is closed over differentiably. What the caller takes on is the bookkeeping,
+the reset, the restart, and the differentiable jump time, for every impact.
 [Diffrax issue 729](https://github.com/patrick-kidger/diffrax/issues/729)
-reports exactly this pattern returning solver-dependent wrong gradients (0.50
-with Heun, -1.42 with Tsit5, 0.78 with Bosh3, against a true value of 1.0),
-and the maintainer's fix branch is unmerged.
+is what happens when that bookkeeping is got wrong; the measurements are on
+[the comparison page](related.md).
 
 Rather than build on that, impact-adjoint puts the event-aware machinery
 behind a component boundary. See [the method](method.md).

@@ -44,7 +44,37 @@ ROOT = Path(__file__).parent.parent
 SEEDS = [0, 1, 2, 3, 4]
 BUDGET = 900          # forward-solve units
 GRAD_CHARGE_EVAL = 2  # units per gradient call, eval-count accounting
-GRAD_CHARGE_WALL = 8.5  # measured, see study_scaling.py
+
+
+def measure_grad_charge(sim):
+    """Wall-clock cost of one gradient, in forward solves, for THIS objective.
+
+    Previously hardcoded at 8.5 from study_scaling.py. That figure is a VJP
+    over every input (77 sensitivity columns); this objective differentiates
+    only the 24 bump amplitudes, so 8.5 over-charged the gradient and
+    understated Adam under wall-clock accounting. Measuring it here against
+    the inputs actually differentiated keeps the two from diverging again.
+    """
+    import time
+
+    from e5_separator import CTR, FIXED, V0, WID
+
+    amp = np.full(NB, 0.05)
+    cfg = {**FIXED, "v0": V0, "e": 0.5, "amp": amp, "ctr": CTR, "wid": WID}
+    cot = {"qf": np.array([1.0, 0.0, 0.0, 0.0])}
+
+    def timeit(fn, n=12):
+        fn()
+        return min(_t for _ in range(n)
+                   for _t in [(lambda s=time.perf_counter(): (fn(), time.perf_counter() - s)[1])()])
+
+    t_apply = timeit(lambda: sim.apply(cfg))
+    t_vjp = timeit(lambda: sim.vector_jacobian_product(
+        cfg, vjp_inputs={"amp"}, vjp_outputs={"qf"}, cotangent_vector=cot))
+    charge = t_vjp / t_apply
+    print(f"measured gradient charge: {t_vjp:.2f} ms / {t_apply:.2f} ms = "
+          f"{charge:.2f} forward solves (24 sensitivity columns)")
+    return charge
 SIGMAS = [0.02, 0.05, 0.1]
 LRS = [0.01, 0.02, 0.05]
 
@@ -134,9 +164,10 @@ def main():
     sim = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "contact_sim" / "tesseract_api.py")
     score = Tesseract.from_tesseract_api(ROOT / "tesseracts" / "score_target" / "tesseract_api.py")
     grid = np.linspace(20, BUDGET, 60)
+    grad_charge_wall = measure_grad_charge(sim)
 
     out = {}
-    for charge, tag in ((GRAD_CHARGE_EVAL, "eval"), (GRAD_CHARGE_WALL, "wall")):
+    for charge, tag in ((GRAD_CHARGE_EVAL, "eval"), (grad_charge_wall, "wall")):
         curves = []
         for s in SEEDS:
             best_c, best_f, best_lr = None, np.inf, None
@@ -167,7 +198,7 @@ def main():
     out["cma"] = np.array(cma_curves)
 
     np.savez(ROOT / "experiments" / "optimizer_benchmark.npz", grid=grid,
-             seeds=np.array(SEEDS), grad_charge_wall=GRAD_CHARGE_WALL, **out)
+             seeds=np.array(SEEDS), grad_charge_wall=grad_charge_wall, **out)
 
     def med(k):
         return np.nanmedian(out[k][:, -1])

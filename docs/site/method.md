@@ -27,7 +27,10 @@ drag, over smooth terrain built from configurable Gaussian bumps. The guard is
 `g(q) = y − h(x)`; at an impact the reset applies normal restitution `e` and
 tangential retention `1 − μ` in the local terrain frame. Integration is RK4
 with bisection-based event localization, plus interior guard probes so terrain
-features narrower than one step are not stepped over.
+features narrower than one step are less likely to be stepped over. The
+probes cut the width a feature must have to be seen by about three times;
+they do not remove the failure, and near tangency the guard window narrows
+faster than any step-size rule tracks (see [limitations](limitations.md)).
 
 ## The sensitivities
 
@@ -43,7 +46,8 @@ $$
 
 This is the saltation jump condition applied to the θ-augmented system
 ($\dot\theta = 0$), which is the form Hiskens and Pai give (eqs. 57 to 59 with
-the parameter augmentation of 62 to 63).
+the parameter augmentation of 13 to 16 and the augmented sensitivity system
+of 33).
 
 :::{note}
 One detail worth flagging, since the most-cited statements of the saltation

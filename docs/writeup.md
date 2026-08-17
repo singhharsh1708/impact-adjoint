@@ -80,7 +80,7 @@ X⁺ = R_q X⁻ + R_θ − (f⁺ − R_q f⁻) τ_θᵀ,     τ_θ = −(X⁻ᵀ
 
 This is the saltation jump condition applied to the θ-augmented system
 (θ̇ = 0), which is the form Hiskens & Pai give (eqs. 57 to 59 with the
-parameter augmentation of 62 to 63). One detail worth flagging, since the
+parameter augmentation of 13 to 16 and the augmented sensitivity system of 33). One detail worth flagging, since the
 most-cited statements of the saltation matrix are for time-varying guards:
 because parameters are constant along the flow, `∂g/∂θ` enters the
 event-time *numerator*, not the denominator where an explicit `∂g/∂t` would
@@ -109,11 +109,11 @@ differentiation through an Optimistix root find, so a single event is handled
 natively and correctly. What is missing is the rest of a hybrid trajectory.
 `diffrax.Event` terminates a solve and has no reset map, so a multi-impact
 chain must be assembled by restarting the solver after each event and
-applying the reset in user code. That route is expressible, and it is
-currently unreliable: Diffrax issue #729 reports exactly this pattern
-returning solver-dependent wrong gradients (0.50 with Heun, -1.42 with Tsit5,
-0.78 with Bosh3, against a true value of 1.0), and the maintainer's fix
-branch is unmerged. Rather than build on that, the event-aware machinery
+applying the reset in user code. That route is expressible and correct when
+the jump time is closed over differentiably, which we measured rather than
+assumed; Diffrax issue #729 is what happens when it is not. What the caller
+takes on is the reset, the restart and the differentiable jump time at every
+impact. Rather than hand that to the caller, the event-aware machinery
 sits behind the component contract: Julia publishes *what its derivatives
 are*, not *how it got them*, and `tesseract-jax` splices them into JAX's
 chain rule.
@@ -200,8 +200,9 @@ bands under both accountings:
 Per evaluation, gradients win decisively: median final objective 3.4×10⁻⁷ for
 Adam against 3.2×10⁻⁴ for tuned CMA-ES, a factor of about 900, with
 Nelder-Mead three orders behind that. Charged by measured wall-clock, where
-each gradient call costs 8.5 forward solves, the ranking reverses at this
-budget: Adam reaches 7.6×10⁻³ while CMA-ES is roughly 24 times better.
+each gradient call costs a measured 6.8 forward solves, the ranking
+reverses at this budget: Adam reaches 7.3e-04 while CMA-ES is roughly
+2 times better.
 
 We report the reversal because it is real, and because it is an
 implementation property rather than a fact about gradients. The VJP is
@@ -275,8 +276,12 @@ event-capacity truncation, sub-step terrain-feature detection, and
 
 Near tangency the impact sensitivities grow as `δ^(−1/2)` (the saltation
 denominator `g_q · f⁻` vanishes at grazing), a property of the physics, not
-an artifact; the solver raises an explicit error at degenerate crossings
-rather than returning an unbounded gradient.
+an artifact. The solver does not defend against this: it carries a guard on
+the saltation denominator, but since that denominator scales as `δ^(1/2)` the
+guard is effectively unreachable, and what happens in practice is a large
+finite gradient and then, closer to tangency, a silently missed event. This is
+a real limitation rather than a handled case, and it is stated as one in
+[limitations](https://impact-adjoint.vercel.app/limitations).
 
 ## 4b. Verification studies
 
@@ -306,7 +311,7 @@ more usefully, the fifth-percentile separation margin improves from 0.05 m to
 0.58 m (bootstrap 95% interval [+0.48, +0.55] m) and the worst case moves
 from inside the wrong bin to 0.09 m clear of the boundary. Sweeping
 restitution under inlet jitter shows what the deterministic sweep hid: the
-point design is indecisive at 5 of 20 restitutions, including its own trained
+point design is indecisive at 2 of 20 restitutions, including its own trained
 value of 0.8, where 10% of jittered draws cross into the wrong bin. The
 ensemble design is unanimous at all 20. Designing against the ensemble is
 what buys that, and it costs a little median margin to get it.
@@ -316,9 +321,9 @@ what buys that, and it costs a little median margin to get it.
 Existing engines obtain contact gradients by AD through smoothed/penalty
 stepping (Brax, NeurIPS 2021; DiffTaichi, ICLR 2020; gradSim, ICLR 2021), by
 implicit differentiation of a relaxed complementarity solve (Dojo, arXiv
-2022; Nimble, RSS 2021), or from learned contact models (Zhong et al.,
-NeurIPS 2021), each trading event-gradient fidelity for what the host
-framework can express; Suh et al. (ICML 2022) document the resulting bias.
+2022; Nimble, RSS 2021), or by learning the parameters of an analytic contact
+model embedded in a differentiable simulator (Zhong et al., NeurIPS 2021),
+each trading event-gradient fidelity for what the host framework can express; Suh et al. (ICML 2022) document the resulting bias.
 The exact alternative is classical: the **saltation matrix** (Aizerman &
 Gantmacher 1958; Hiskens & Pai, IEEE TCAS 2000; surveyed by Kong et al.,
 Proc. IEEE 2024). Our contribution is not the formula but the *packaging*:
@@ -358,8 +363,9 @@ build for arm64 and x86_64; CI runs the full validation chain on every push.
 The same material is browsable at <https://impact-adjoint.vercel.app>, where
 every figure and the generated results table are collected.
 
-Building this surfaced several problems in the stack, which were reported and
-fixed upstream during the hackathon period:
+Building this surfaced several problems in the stack, reported upstream during
+the hackathon period. The two Mosaic harness fixes are merged; the Tesseract
+issues and the PRs against them remain open at the time of writing:
 
 - [tesseract-core#666](https://github.com/pasteurlabs/tesseract-core/issues/666)
   and PR [#667](https://github.com/pasteurlabs/tesseract-core/pull/667): the

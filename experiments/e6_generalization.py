@@ -28,7 +28,10 @@ AMP, CTR, WID = D["adam_amp"], D["ctr"], D["wid"]
 V0 = np.array([2.0, 0.4])
 BIN_RUBBER, BIN_PET = 2.8, 4.4
 X_MID = 0.5 * (BIN_RUBBER + BIN_PET)
-FIXED = {"y0": 1.0, "mu": 0.1, "drag": 0.0, "t_final": 3.0, "dt": 5e-4, "n_samples": 0, "v_stop": 1e-4}
+# the separator is defined at E5's horizon: its output is "where the particle
+# is when the run ends", so evaluating past t_final measures a different
+# quantity than the one designed. Import it rather than restating it.
+from e5_separator import FIXED  # noqa: E402
 
 
 def landing_x(t, e, v0):

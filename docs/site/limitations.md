@@ -10,8 +10,31 @@
   topology. Across bounce-count boundaries the objective is discontinuous,
   which is inherent to contact and visible in E1.
 - Event detection resolves terrain features wider than `|vx|·dt/3`, documented
-  on the input schema. Grazing impacts carry an inherent `δ^(-1/2)`
-  sensitivity growth near tangency.
+  on the input schema. That rule is necessary, not sufficient: what has to be
+  resolved is the width of the window where the guard is negative, and near
+  tangency that width scales as the square root of the penetration depth
+  regardless of how wide the bump is. A grazing contact of depth 1e-6 is
+  missed at step sizes more than an order of magnitude below what the rule
+  suggests, and the run reports `status = 0` with one fewer impact rather than
+  signalling anything. Optimizing bump amplitudes can steer a design toward
+  tangency, so this is reachable rather than theoretical.
+- Grazing impacts carry an inherent `δ^(-1/2)` sensitivity growth near
+  tangency. The solver has a guard on the saltation denominator, but since
+  that denominator scales as `δ^(1/2)` the guard is effectively unreachable:
+  in practice you get a large finite gradient, and closer to tangency a
+  silently missed event, rather than an error.
+- The Jacobian is discontinuous across the `status` boundary as well as across
+  bounce-count changes. A run that ends at `t_final` differentiates the state
+  at a fixed time; a run truncated at the event budget differentiates it at a
+  parameter-dependent event time. Straddling that boundary, `qf` moves
+  continuously while its Jacobian can flip sign. The two cases are
+  distinguishable only through `status`, which a client has to check.
+- The tangential law removes a fixed fraction `μ` of tangential velocity at
+  every impact, independent of the normal impulse. That is not merely "less
+  than a full Coulomb cone": the implied friction coefficient grows without
+  bound as the normal velocity goes to zero, so near-grazing and settling
+  contacts are the regime where it is least physical. The Routh reset in
+  future work is what fixes this.
 - Two dimensions, single body. The saltation machinery is dimension-agnostic;
   the scope is a deliberate trade for verified correctness inside the
   hackathon period.

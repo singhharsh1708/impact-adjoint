@@ -73,6 +73,7 @@ tesseract run contact-sim check-gradients \
     @tesseracts/contact_sim/check_payload.json
 python experiments/e2b_bayesian.py                   # NUTS, 2 chains
 python experiments/e1_inverse_design.py --container  # served
+tesseract serve -p 8123 contact-sim &                # curl client needs a server
 ./scripts/second_client_curl.sh                      # curl only
 ```
 

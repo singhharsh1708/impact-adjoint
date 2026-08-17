@@ -151,19 +151,22 @@ The saltation matrix supplies the missing term at each impact. Exact at any
   <div><dt>10<sup>-12</sup></dt><dd>multi-bounce agreement with a symbolic closed form</dd></div>
   <div><dt>0 / 1574</dt><dd>failures in Tesseract's own gradient checker</dd></div>
   <div><dt>24</dt><dd>design variables in the headline separator</dd></div>
-  <div><dt>~5 min</dt><dd>to reproduce from a cold clone</dd></div>
+  <div><dt>~5 min</dt><dd>to re-run the four verification checks</dd></div>
 </dl>
 ```
 
 ## Reproduce in five minutes
 
-CPU only, no Docker, no GPU. This is the `~5 min` in the strip above.
+CPU only, no Docker, no GPU. The four checks themselves take about five
+minutes; the first run adds a few minutes of `pip install` and one Julia
+bootstrap, so budget nearer fifteen from a genuinely cold machine.
 
 {{ repo_note }}
 
 ```bash
 git clone https://github.com/singhharsh1708/impact-adjoint
 cd impact-adjoint
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r docs/requirements-repro.txt
 
 python scripts/proof_local.py          # boundary proof

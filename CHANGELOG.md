@@ -8,14 +8,53 @@ figure changed, this says what it was and what it became.
 
 ### Corrected
 
+- **We were wrong about Diffrax, in its favour.** This project claimed the
+  restart-after-event pattern returned solver-dependent wrong gradients,
+  citing three numbers from Diffrax issue #729. Reading the whole thread, the
+  maintainer diagnosed the reproducer as a usage error (the jump time was
+  passed to `ClipStepSizeController` as a plain float rather than closed over
+  differentiably) and noted the vector field was not valid input; the reporter
+  later said the example may not reproduce what they were chasing. Our own
+  script repeated the same mistake. Measured correctly, **Diffrax returns the
+  exact gradient under all three solvers**. The comparison now says so, and
+  the remaining difference is that Diffrax has no reset map, which is
+  ergonomic rather than a correctness gap.
+- **The wall-clock optimizer comparison over-charged the gradient.** The
+  charge of 8.5 forward solves came from a VJP over every input, 77
+  sensitivity columns, but the separator differentiates only its 24 bump
+  amplitudes. The benchmark now measures the charge against the inputs it
+  actually differentiates: 6.8 solves. CMA-ES is **2.3x** better under
+  wall-clock accounting, not the 24x previously published.
+- **E6 and the generalization study evaluated the design past its own
+  horizon.** They redeclared `t_final = 3.0` where E5 designs at 2.2, so the
+  separator was scored two impacts beyond the point its output is defined at.
+  At its own trained value e = 0.8 that moved the landing from 4.3996 (target
+  4.4) to 3.7262. Both now import the design's configuration instead of
+  restating it. The point design is indecisive under jitter at **2 of 20**
+  restitutions, not 5 of 20, still including its own trained value; at
+  e = 0.85 it is now unanimous where two different samples had disagreed.
+- **"Reported and fixed upstream" was not true.** Two Mosaic harness fixes are
+  merged; the three Tesseract issues and the two PRs against them are open.
+- The writeup said the solver "raises an explicit error at degenerate
+  crossings". It does not: the guard on the saltation denominator is
+  effectively unreachable, and the real behaviour is a large finite gradient
+  and then a silently missed event. Stated as a limitation now.
+- Zhong et al. (NeurIPS 2021) was filed under "learned contact models". Its
+  contact model is analytic; only its parameters are learned.
+- The Hiskens & Pai parameter augmentation is equations 13 to 16 with the
+  augmented sensitivity system at 33, not 62 to 63.
+- `drag` and `v_stop` were unvalidated while `e > 1` was rejected for exactly
+  the same reason. Negative drag added energy without bound and was accepted.
+
 - **E5 and E4 reported a design they had not scored.** Three optimization
   scripts returned the parameter vector one update past the last point they
   evaluated, so the objective in the trace belonged to a different design than
   the one saved, plotted and quoted. They now return the best evaluated
   iterate. The E5 landing errors move from 0.38 mm and 0.34 mm, which were
   measured on the unevaluated design, to **0.23 mm and 0.42 mm**. The
-  optimizer benchmark was already correct, so the 917x and 24x figures are
-  unaffected.
+  optimizer benchmark's own loop was already correct, so the 917x eval-accounting
+  figure is unaffected. (The wall-clock figure changed later, for the separate
+  reason recorded above.)
 - **The performance table did not match its artifact.** It listed 4.9 ms and
   41.6 ms for 77 parameters where `scaling_result.npz` records 2.34 ms and
   19.82 ms, and labelled the column with the wrong configuration. The table is

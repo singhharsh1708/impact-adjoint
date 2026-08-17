@@ -126,13 +126,13 @@ at R2 = 0.998.*
 ![benchmark](docs/figures/study_optimizers.png)
 *Five random starts, both methods tuned per seed. Per evaluation Adam ends
 about 900x below tuned CMA-ES. Charged at measured wall-clock, where each
-gradient costs 8.5 solves, CMA-ES is about 24x better at this budget. Both
+gradient costs 6.8 solves, CMA-ES is about 2x better at this budget. Both
 are reported; the reverse-mode adjoint in Future work is what closes it.*
 
 ![robustness](docs/figures/study_robustness.png)
 *Five independent ensembles: 983/1000 vs 1000/1000 with non-overlapping
 Wilson intervals, and the fifth-percentile margin improving 0.05 m to
-0.58 m. Under inlet jitter the point design is indecisive at 5 of 20
+0.58 m. Under inlet jitter the point design is indecisive at 2 of 20
 restitutions, including its own trained value; the ensemble design at none.*
 
 ## Performance envelope
@@ -163,7 +163,7 @@ under wall-clock accounting.
 > (after the one-time Julia bootstrap). The two GIFs come from
 > `make_animation.py` / `make_e5_animation.py`, which do re-run their loops.
 
-Requires Python ≥ 3.12, Docker (for containerized runs), and ~5 GB disk for
+Requires Python ≥ 3.12, Docker (for containerized runs), and ~9 GB disk for
 the Docker images (contact-sim ~3.8 GB, score-target ~1.3 GB). Julia itself
 is bootstrapped automatically by `juliacall`.
 
@@ -202,8 +202,9 @@ python experiments/collect_results.py
 tesseract build tesseracts/contact_sim
 tesseract build tesseracts/score_target
 tesseract run contact-sim check-gradients @tesseracts/contact_sim/check_payload.json
-python experiments/e2b_bayesian.py                   # NUTS, 2 chains: ~15 min
+python experiments/e2b_bayesian.py                   # NUTS, 2 chains: ~18 min
 python experiments/e1_inverse_design.py --container  # same optimization via the served images
+tesseract serve -p 8123 contact-sim &                 # the curl client needs this
 ./scripts/second_client_curl.sh                      # gradients with nothing but curl
 ```
 
@@ -213,7 +214,7 @@ python experiments/e1_inverse_design.py --container  # same optimization via the
 > time; warm runs take seconds. Measured budget: about 5 minutes for the
 > validation block and experiments E1 to E6, plus ~10 minutes for
 > `e5b_robust_separator.py`, plus ~10 minutes to build the contact-sim image
-> and ~15 minutes for the two NUTS chains.
+> and ~18 minutes for the two NUTS chains.
 
 ## Troubleshooting
 
@@ -275,8 +276,9 @@ See [docs/writeup.md](docs/writeup.md) for the technical writeup.
 
 ## Upstream fixes from this work
 
-Problems found while building this, reported and fixed upstream during the
-hackathon period:
+Problems found while building this and reported upstream during the hackathon
+period. The two Mosaic fixes are merged; the Tesseract issues and their PRs
+are open:
 
 | Where | What |
 |---|---|
