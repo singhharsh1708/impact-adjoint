@@ -20,8 +20,27 @@ PAYLOAD = ROOT / "tesseracts" / "contact_sim" / "check_payload.json"
 LINE = re.compile(r"Gradient check for (\w+) (passed|failed).*?\((\d+) failures? / (\d+) checks?\)")
 
 
+# The CLI defaults are rtol=0.1 and a sampling budget that draws with
+# replacement, so a "1574 checks" headline is mostly cache hits on a few dozen
+# distinct comparisons, compared at ten percent. That measures the sampler, not
+# the gradient. These settings compare distinct entries at a tolerance the
+# oracles say is meaningful: the solver passes at 1e-4 and the finite
+# difference itself stops resolving below that.
+RTOL = "1e-4"
+EPS = "1e-6"
+MAX_EVALS = "30"
+
+
 def main():
-    cmd = ["tesseract", "run", "contact-sim", "check-gradients", f"@{PAYLOAD}"]
+    env = {
+        "TESSERACT_RUNTIME_CHECK_GRADIENTS_RTOL": RTOL,
+        "TESSERACT_RUNTIME_CHECK_GRADIENTS_EPS": EPS,
+        "TESSERACT_RUNTIME_CHECK_GRADIENTS_MAX_EVALS": MAX_EVALS,
+    }
+    cmd = ["tesseract", "run"]
+    for k, v in env.items():
+        cmd += ["-e", f"{k}={v}"]
+    cmd += ["contact-sim", "check-gradients", f"@{PAYLOAD}"]
     print(" ".join(cmd))
     proc = subprocess.run(cmd, capture_output=True, text=True)
     out = proc.stdout + proc.stderr
@@ -42,6 +61,9 @@ def main():
         raise SystemExit(f"endpoints disagree on check count: {counts}")
 
     data = {
+        "rtol": float(RTOL),
+        "eps": float(EPS),
+        "max_evals": int(MAX_EVALS),
         "endpoints": len(endpoints),
         "checks": counts.pop(),
         "failures": sum(v["failures"] for v in endpoints.values()),

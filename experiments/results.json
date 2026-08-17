@@ -17,7 +17,7 @@
   "BENCH_ratio_wall": 0.4330307763707411,
   "BENCH_seeds": 5,
   "BENCH_wall_cma_worse_seeds": 1,
-  "CHECKGRAD_checks": 1574,
+  "CHECKGRAD_checks": 50,
   "CHECKGRAD_endpoints": 3,
   "CHECKGRAD_failures": 0,
   "CLOSED_FORM_jacobian_worst": 7.104520010568949e-12,

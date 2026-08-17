@@ -8,6 +8,25 @@ figure changed, this says what it was and what it became.
 
 ### Corrected
 
+- **The novelty claim was too broad and two thirds of it is withdrawn.** A
+  prior-art sweep found that saltation matrices have been used for optimal
+  *design* explicitly (Kong et al., Proc. IEEE 2024), that a pip-installable
+  package already pairs them with adjoint-gradient trajectory optimization,
+  that SciMLSensitivity.jl implements exact event-time corrections with a
+  bouncing-ball restitution-optimization example, that Diffrax gained
+  pathwise event-time gradients in 2024, and that FMI has carried derivatives
+  across a component boundary since 2014, with adjoint derivatives added for
+  machine-learning consumers in 2022. Tesseract's own fortran_enzyme example
+  is the same boundary pattern. What is claimed now is only the conjunction:
+  gradient-based design of passive geometry, with exact event times, against
+  a per-object routing objective, with the nearest neighbours named.
+- **The gradient-checker headline measured a sampler, not a gradient.** The
+  CLI defaults to `rtol = 0.1` and samples with replacement, so "0 failures /
+  1574 checks" was mostly repeated comparisons at ten percent tolerance. It
+  now runs distinct entries at `rtol = 1e-4`: **0 failures / 50 checks** on
+  each of the three endpoints. It fails at `1e-5`, where the finite difference
+  itself stops resolving, so 1e-4 is the tightest honest setting.
+
 - **We were wrong about Diffrax, in its favour.** This project claimed the
   restart-after-event pattern returned solver-dependent wrong gradients,
   citing three numbers from Diffrax issue #729. Reading the whole thread, the

@@ -149,7 +149,7 @@ The saltation matrix supplies the missing term at each impact. Exact at any
 <dl class="ia-figures">
   <div><dt>3.99</dt><dd>observed order of accuracy, against an analytic solution</dd></div>
   <div><dt>10<sup>-12</sup></dt><dd>multi-bounce agreement with a symbolic closed form</dd></div>
-  <div><dt>0 / 1574</dt><dd>failures in Tesseract's own gradient checker</dd></div>
+  <div><dt>0 / 50</dt><dd>failures in Tesseract's gradient checker, at 10<sup>-4</sup> relative tolerance</dd></div>
   <div><dt>24</dt><dd>design variables in the headline separator</dd></div>
   <div><dt>~5 min</dt><dd>to re-run the four verification checks</dd></div>
 </dl>

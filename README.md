@@ -102,8 +102,13 @@ as finite-difference gates through the solver itself:
   Jacobian vs finite differences *through the independent implementation*
   **5e-9**, covering the sloped-contact-frame and drag sectors.
 - `tesseract run contact-sim check-gradients` is Tesseract's built-in checker:
-  **0 failures / 1574 checks** per gradient endpoint, captured by
+  **0 failures / 50 checks** per gradient endpoint at `rtol = 1e-4`, captured by
   `scripts/capture_check_gradients.py` into `experiments/check_gradients.json`.
+  The CLI defaults to `rtol = 0.1` and samples with replacement, which yields a
+  much larger check count made mostly of repeats compared at ten percent; that
+  measures the sampler rather than the gradient, so this runs distinct entries
+  at a tolerance the oracles justify. It fails at `1e-5`, where the finite
+  difference itself stops resolving.
 - `scripts/validate_contact.py` is an FD gate (rtol 1e-5) plus robustness
   regressions: chatter/settle termination, event-capacity truncation,
   sub-step-width terrain features, energy conservation at `e=1` (relative

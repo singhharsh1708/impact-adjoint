@@ -1,22 +1,25 @@
 {
-  "checks": 1574,
+  "checks": 50,
   "endpoints": 3,
+  "eps": 1e-06,
   "failures": 0,
+  "max_evals": 30,
   "per_endpoint": {
     "jacobian": {
-      "checks": 1574,
+      "checks": 50,
       "failures": 0,
       "passed": true
     },
     "jacobian_vector_product": {
-      "checks": 1574,
+      "checks": 50,
       "failures": 0,
       "passed": true
     },
     "vector_jacobian_product": {
-      "checks": 1574,
+      "checks": 50,
       "failures": 0,
       "passed": true
     }
-  }
+  },
+  "rtol": 0.0001
 }

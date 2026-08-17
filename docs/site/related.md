@@ -124,25 +124,58 @@ differentiable jump time are the caller's job rather than the component's.
 
 ## What is actually different here
 
-Not the observation. DiffTaichi made it in 2019 and Dojo, Nimble and others
-have all engaged with gradients at contact since.
+A prior-art sweep of this question was unkind to the first version of this
+section, which claimed three things. Two of them do not survive, and they are
+withdrawn rather than softened.
 
-Three things are different in combination, and the honest claim is the
-combination rather than any one of them:
+**Not the analytic event-time sensitivity.** Saltation matrices for hybrid
+sensitivity are classical, and the word is in our own description of the
+method. They have been used for optimization and for design specifically:
+[Kong, Payne, Zhu and Johnson (Proc. IEEE 2024)](https://arxiv.org/abs/2306.06862)
+states that adapted saltation conditions "were used to formulate and solve
+optimal design problems", and there is a pip-installable package,
+[hybrid-tools](https://github.com/robomechanics/hybrid-tools), providing
+saltation matrices with adjoint-gradient trajectory optimization and a
+bouncing-ball example. Exact parametric sensitivity across state-dependent
+events goes back to Galán, Feehery and Barton (1999) and Barton and Lee
+(2002).
 
-1. **The event-time term is analytic, not relaxed and not interpolated.** Dojo
-   obtains smooth gradients by relaxing hard contact through the central-path
-   parameter; DiffTaichi's time of impact is a correction inside the
-   simulator's own AD. Here the jump condition is the saltation matrix applied
-   in closed form, so the gradient is exact at any `dt` rather than converging
-   as `dt` shrinks.
-2. **It lives behind a component boundary.** The sensitivity is computed in
-   Julia and consumed by a JAX program that contains no event logic, no reset
-   map and no knowledge that impacts occur. Neither system has to adopt the
-   other's autodiff.
-3. **It is checked against solver-independent oracles.** A symbolic closed
-   form and an independent scipy reimplementation, both in
-   [studies](studies.md), rather than self-consistency alone.
+**Not exact event-time sensitivities in existing software.**
+[SciMLSensitivity.jl](https://github.com/SciML/SciMLSensitivity.jl) implements
+the event-time correction for continuous callbacks in its adjoint, and its
+documented example is a bouncing ball whose restitution coefficient is
+optimized by gradient descent. Diffrax gained autodifferentiable event
+handling with pathwise event-time gradients through
+[Holberg and Salvi (NeurIPS 2024)](https://arxiv.org/abs/2405.13587).
+
+**Not derivatives across a component boundary.** FMI has shipped directional
+derivatives since 2.0 (2014) and adjoint derivatives since 3.0 (2022), the
+latter motivated explicitly by machine-learning frameworks wanting VJPs across
+a binary boundary. Tesseract's own `fortran_enzyme` example is this pattern
+with a different language. This hackathon's premise is composing
+differentiable components across languages, so treating it as a contribution
+would be claiming credit for meeting the entry criteria. It is plumbing, and
+it is the right plumbing, but it is not new.
+
+**What we could not find occupied** is the conjunction, and it is worth
+stating with its parts conceded. Each ingredient is established: event-time
+sensitivities since 1958; gradient routing of a single trajectory through
+impacts, as in DiffTaichi's `billiards` example, which backpropagates through
+a chain of collisions with a time-of-impact correction to steer one ball to
+one target; sampling-based design of passive geometry for per-object impact
+routing, in [Roussel et al. (SIGGRAPH 2019)](https://dl.acm.org/doi/10.1145/3306346.3322983)
+and in Berkowitz and Canny (ICRA 1996), whose objective is per-object and
+whose method is grid enumeration; and restitution-based separators as
+physical devices, including US 8,640,879 for an inclined chute sorting rubber
+from plastic by rebound.
+
+What appears unoccupied is their combination: gradient-based design of the
+*passive geometry itself*, using exact rather than relaxed event times, with a
+*per-object routing* objective rather than a bulk flow statistic. The nearest
+neighbours make the gap narrow. Changing DiffTaichi's billiards decision
+variable from the initial velocity to the peg positions is a small edit;
+Roussel et al. design geometry for ordered impacts but by sampling rather than
+gradients. We claim the conjunction, not any element of it.
 
 The scope is correspondingly narrow: two dimensions, a single body, no
 friction cone. Every system in the table above does more physics than this one
