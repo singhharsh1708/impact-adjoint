@@ -72,7 +72,7 @@ raw `curl` client, unchanged.
 |---|---|
 | **E3**, the failure measured | Grid-reset autodiff gives `d x(T)/d v0y` = **exactly 0.0 at every dt** (truth +0.0904; the exact zero is specific to this flat-terrain case, on curved terrain it is nonzero and wrong). The pure-JAX repair converges only by hand-implementing event sensitivity. |
 | **E5**, 24-dim resilience separator | At a shared budget of 900 forward-solve units with a gradient charged as 2: Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ vs Nelder-Mead 2×10⁻². Charged by measured wall-clock instead, Adam loses at CMA's own budget and wins only by continuing four orders further; the writeup gives both accountings in full. |
-| **E5b**, design under uncertainty | Ensemble objective over inlet and restitution scatter. Held-out purity 199/200 for the point design and 200/200 after refinement on one draw; over five independent ensembles, 983/1000 against 1000/1000 with non-overlapping Wilson intervals. The margin at the decision boundary widens visibly. |
+| **E5b**, design under uncertainty | Ensemble objective over inlet and restitution scatter. Held-out purity 199/200 for the point design and 200/200 after refinement on one draw; over five independent ensembles, 983/1000 against 997/1000 with non-overlapping Wilson intervals (McNemar p = 0.0026). The fifth-percentile margin improves 0.05 m to 0.49 m, though the worst case stays on the wrong side. |
 | **E6**, zero-shot generalization | Trained on two materials, sorts the whole continuum e ∈ [0.35, 0.875] with **one threshold**. |
 | **E1**, inverse design | Miss **1.12 m → 2.7 cm** through 5 bounces, across bounce-count changes. |
 | **E2/E2b**, calibration | NUTS posterior `e = 0.697 ± 0.007`, `mu = 0.096 ± 0.009`; truth inside both 95% CIs, 0 divergences. |
@@ -138,10 +138,11 @@ gradient costs 6.8 solves, CMA-ES is about 2x better at this budget. Both
 are reported; the reverse-mode adjoint in Future work is what closes it.*
 
 ![robustness](docs/figures/study_robustness.png)
-*Five independent ensembles: 983/1000 vs 1000/1000 with non-overlapping
+*Five independent ensembles: 983/1000 vs 997/1000 with non-overlapping
 Wilson intervals, and the fifth-percentile margin improving 0.05 m to
-0.58 m. Under inlet jitter the point design is indecisive at 2 of 20
-restitutions, including its own trained value; the ensemble design at none.*
+0.49 m. The worst case stays inside the wrong bin for both. Under
+inlet jitter the point design is indecisive at 2 of 20 restitutions, including
+its own trained value; the ensemble design at none.*
 
 ## Performance envelope
 

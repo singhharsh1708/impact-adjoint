@@ -58,8 +58,8 @@ not retyped, so this file cannot drift from what was measured.
 | median final: Nelder-Mead | 0.99 |
 | CMA / Adam ratio, eval then wall-clock | 917x, 0.433x |
 | held-out purity, point design | 983/1000 (Wilson 97.29 to 98.94 %) |
-| held-out purity, ensemble design | 1000/1000 (Wilson 99.62 to 100.00 %) |
-| 5th-percentile margin, point to ensemble | 0.0522 m to 0.579 m |
-| worst-case margin, point to ensemble | -0.123 m to 0.085 m |
+| held-out purity, ensemble design | 997/1000 (Wilson 99.12 to 99.90 %) |
+| 5th-percentile margin, point to ensemble | 0.05 m to 0.494 m |
+| worst-case margin, point to ensemble | -0.12 m to -0.353 m |
 | decisive under jitter, point design | 18/20 restitutions |
 | decisive under jitter, ensemble design | 20/20 restitutions |

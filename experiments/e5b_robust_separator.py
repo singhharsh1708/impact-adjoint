@@ -71,13 +71,29 @@ def main():
     def loss_fn(amp):
         return sum(one(amp, jnp.asarray(v0), e, bx) for v0, e, bx in train) / len(train)
 
-    def purity(amp, ensemble):
-        ok = 0
+    def margins(amp, ensemble):
+        """Signed distance from the decision boundary; positive is correct."""
+        out = []
         for v0, e, bx in ensemble:
             r = sim.apply({**FIXED, "v0": np.asarray(v0), "e": e, "amp": np.asarray(amp), "ctr": CTR, "wid": WID})
             x = float(np.asarray(r["qf"])[0])
-            ok += (x < X_MID) == (bx == BIN_RUBBER)
-        return ok / len(ensemble)
+            out.append((X_MID - x) if bx == BIN_RUBBER else (x - X_MID))
+        return np.array(out)
+
+    def purity(amp, ensemble):
+        return float(np.mean(margins(amp, ensemble) > 0))
+
+    # The gradient-free designs were never evaluated on the metric this
+    # project says matters. A four-order gap in loss units is 0.34 mm against
+    # 12.6 mm with bins 1600 mm apart, so both may sort perfectly; the
+    # question is whether they hold up under scatter.
+    e5 = np.load(ROOT / "experiments" / "e5_result.npz")
+    rival_purity = {}
+    for rival in ("cma-es", "nelder-mead"):
+        key = f"{rival}_amp"
+        if key in e5.files:
+            rival_purity[rival] = purity(e5[key], test)
+            print(f"{rival} design: test purity {rival_purity[rival]:.3f}")
 
     p_point_test = purity(point_amp, test)
     print(f"point design (E5): test purity {p_point_test:.3f}  ({N_TEST}/material, "
@@ -101,7 +117,19 @@ def main():
     print(f"\nrobust design: train purity {p_robust_train:.3f}  test purity {p_robust_test:.3f}")
     print(f"point design : test purity {p_point_test:.3f}")
 
+    # margin distributions for every design, so the comparison can be made on
+    # separation quality rather than only on objective value
+    all_margins = {n: margins(a, test) for n, a in
+                   (("adam", point_amp), ("cma-es", e5["cma-es_amp"]),
+                    ("nelder-mead", e5["nelder-mead_amp"]), ("ensemble", robust_amp))}
+    for n, m in all_margins.items():
+        print(f"  {n:12s} purity {np.mean(m > 0):.3f}  median {np.median(m):+.3f} m  "
+              f"5th pct {np.percentile(m, 5):+.3f}  worst {m.min():+.3f}")
+
     np.savez(ROOT / "experiments" / "e5b_result.npz",
+             p_cma_test=rival_purity.get("cma-es", np.nan),
+             p_nm_test=rival_purity.get("nelder-mead", np.nan),
+             **{f"margins_{n.replace('-', '_')}": m for n, m in all_margins.items()},
              robust_amp=robust_amp, point_amp=point_amp,
              p_point_test=p_point_test, p_robust_test=p_robust_test,
              v_sd=V_SD, e_sd=E_SD, n_test=N_TEST)

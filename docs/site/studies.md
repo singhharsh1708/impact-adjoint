@@ -67,9 +67,31 @@ cost of one solve, which would make the wall-clock panel resemble the
 evaluation panel.
 :::
 
-What does not change under either accounting is that the gradient-free methods
-never reach the design: at 24 dimensions they plateau 1.1 to 5.1 orders
-above what Adam attains per evaluation.
+What does not change under either accounting is the objective value: at 24
+dimensions the gradient-free methods plateau 1.1 to 5.1 orders above what Adam
+attains per evaluation.
+
+:::{important}
+**That gap does not survive translation into engineering units, and we checked
+rather than assumed.** The loss is squared landing error summed over two
+particles, so Adam's 2.25e-07 is a 0.34 mm miss and tuned CMA-ES's 3.2e-04 is
+12.6 mm, against bins 1600 mm apart. Scoring all four designs on the held-out
+scatter ensemble that E5b uses:
+
+| design | purity | 5th-percentile margin |
+|---|---|---|
+| Adam | 0.995 | +0.07 m |
+| CMA-ES | 0.980 | +0.18 m |
+| Nelder-Mead | 0.995 | +0.41 m |
+| ensemble-refined | 1.000 | +0.43 m |
+
+Nelder-Mead is five orders behind on the objective and sorts exactly as well
+as Adam, with a *wider* margin. Minimising the point objective further does
+not buy a better separator at this scale. What buys one is optimising the
+ensemble objective, which needs a gradient through many trajectories at once,
+and that is where the gradient actually pays here, not in the last four orders
+of a point fit.
+:::
 
 ## Robustness and generalization
 
@@ -82,12 +104,15 @@ above what Adam attains per evaluation.
 ```
 
 **Purity with intervals.** Over five independent 200-particle ensembles the
-point design classifies 983 of 1000 and the ensemble design 1000 of 1000, with
+point design classifies 983 of 1000 and the ensemble design 997 of 1000, with
 non-overlapping Wilson intervals. More useful than the headline percentage is
-the separation margin: its fifth percentile improves from 0.05 m to 0.58 m
-(bootstrap 95% interval [+0.48, +0.55] m) and the worst case moves from inside
-the wrong bin to 0.09 m clear of the boundary. The median margin drops
-slightly, because the ensemble objective trades the centre for the tail.
+the separation margin: its fifth percentile improves from 0.05 m to 0.49 m
+(paired bootstrap 95% interval [+0.39, +0.47] m). The worst case does **not**
+improve: it goes from -0.12 m to -0.35 m, both inside the wrong bin. The
+ensemble objective buys the low tail, not the extreme, and the median margin
+drops slightly because the centre is what it trades away. A change in the
+median is not distinguishable from zero at this sample size, so we do not
+claim one.
 
 **Decisiveness under jitter.** Sweeping restitution with inlet jitter shows
 what the deterministic sweep hid. The point design is indecisive at 2 of 20

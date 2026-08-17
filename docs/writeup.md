@@ -221,8 +221,17 @@ microseconds each as measured in the scaling study. A reverse-mode saltation
 adjoint would return the same gradient for roughly the cost of one solve,
 which would make the wall-clock panel resemble the evaluation panel. What
 does not change under either accounting is that the gradient-free methods
-never reach the design: in 24 dimensions they plateau 1.1 to 5.1 orders
+never reach the same objective value: in 24 dimensions they plateau 1.1 to 5.1 orders
 above what Adam attains per evaluation.
+
+That gap does not survive translation into engineering units, and we checked
+rather than assumed. Scoring every design on E5b's held-out scatter ensemble,
+Adam reaches 0.995 purity with a 0.07 m fifth-percentile margin, tuned CMA-ES
+0.980 with 0.18 m, and Nelder-Mead 0.995 with 0.41 m: five orders behind on
+the objective, identical purity, and a wider margin. The ensemble-refined
+design reaches 1.000 with 0.43 m. Minimising the point objective further does
+not produce a better separator at this scale; optimising the ensemble
+objective does, and that is a gradient through many trajectories at once.
 
 **E5b, design under uncertainty.** Real separators process streams with
 scatter, so we make the expected loss over a particle ensemble (inlet
@@ -233,7 +242,7 @@ ensemble, and ensemble refinement scores 200 of 200. That last step is a
 one-particle difference and should not be read as a significant gain. A
 single 200-particle draw cannot separate the two designs, which is why
 `experiments/study_robustness_stats.py` repeats the comparison over five
-independent ensembles and reports 983 of 1000 against 1000 of 1000 with
+independent ensembles and reports 983 of 1000 against 997 of 1000 with
 non-overlapping Wilson intervals; those are the numbers to quote. The
 result worth reporting is the margin: refinement widens the gap between the
 two landing distributions at the decision boundary, which is what would
@@ -317,10 +326,12 @@ argument rather than a preference.
 
 Two robustness studies replace single draws with statistics. Over five
 independent 200-particle ensembles, the point design classifies 983 of 1000
-and the ensemble design 1000 of 1000, with non-overlapping Wilson intervals;
+and the ensemble design 997 of 1000, with non-overlapping Wilson intervals
+(McNemar on the paired outcomes gives p = 0.0026);
 more usefully, the fifth-percentile separation margin improves from 0.05 m to
-0.58 m (bootstrap 95% interval [+0.48, +0.55] m) and the worst case moves
-from inside the wrong bin to 0.09 m clear of the boundary. Sweeping
+0.49 m (paired bootstrap 95% interval [+0.39, +0.47] m). The worst case does
+not improve, going from -0.12 m to -0.35 m, both inside the wrong bin: the
+ensemble objective buys the low tail rather than the extreme. Sweeping
 restitution under inlet jitter shows what the deterministic sweep hid: the
 point design is indecisive at 2 of 20 restitutions, including its own trained
 value of 0.8, where 12.5% of jittered draws cross into the wrong bin. The

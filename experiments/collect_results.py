@@ -46,6 +46,15 @@ def main():
     r["E5_nelder_mead"] = float(e5["nelder-mead_trace"][-1, 1])
     r["E5_ratio_cma_over_adam"] = r["E5_cma"] / r["E5_adam"]
 
+    # margin distributions for every design, so the head-to-head can be made on
+    # separation quality and not only on objective value
+    e5b = load("e5b_result.npz")
+    if e5b is not None and "margins_adam" in e5b.files:
+        for name in ("adam", "cma_es", "nelder_mead", "ensemble"):
+            m = e5b[f"margins_{name}"]
+            r[f"E5B_purity_{name}"] = float((m > 0).mean())
+            r[f"E5B_p5_margin_{name}"] = round(float(np.percentile(m, 5)), 6)
+
     grid = load("e5_cma_grid.npz")
     if grid is not None:
         r["E5_cma_grid_median"] = float(np.median(grid["best"]))

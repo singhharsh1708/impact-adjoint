@@ -93,18 +93,39 @@ def main():
     # little median margin for a much safer worst case. Testing stochastic
     # dominance would be the wrong test and would (correctly) fail, so
     # bootstrap the statistic actually claimed.
+    # The same particles are evaluated under both designs, so the bootstrap
+    # must resample particle INDICES and carry both designs' values together.
+    # Resampling the two margin arrays independently discards the pairing.
     rng = np.random.default_rng(0)
+    n = len(p["margins"])
+    assert len(r["margins"]) == n, "designs must be scored on the same particles"
     diffs = []
     for _ in range(4000):
-        a = rng.choice(p["margins"], size=len(p["margins"]), replace=True)
-        b = rng.choice(r["margins"], size=len(r["margins"]), replace=True)
-        diffs.append(np.percentile(b, 5) - np.percentile(a, 5))
+        idx = rng.integers(0, n, size=n)
+        diffs.append(np.percentile(r["margins"][idx], 5)
+                     - np.percentile(p["margins"][idx], 5))
     diffs = np.array(diffs)
     lo_d, hi_d = np.percentile(diffs, [2.5, 97.5])
     print(f"\nmedian margin {np.median(p['margins']):.3f} m -> {np.median(r['margins']):.3f} m "
           f"(slightly lower: the centre is traded away)")
     print(f"5th percentile {np.percentile(p['margins'],5):.3f} m -> "
           f"{np.percentile(r['margins'],5):.3f} m")
+    # Purity is a paired binary outcome on the same particles, so the
+    # criterion is McNemar rather than two independent Wilson intervals.
+    from math import comb
+
+    pc, rc = p["margins"] > 0, r["margins"] > 0
+    b01 = int((~pc & rc).sum())   # point wrong, robust right
+    b10 = int((pc & ~rc).sum())   # point right, robust wrong
+    nd = b01 + b10
+    if nd:
+        k = min(b01, b10)
+        pval = min(1.0, 2 * sum(comb(nd, i) for i in range(k + 1)) / 2 ** nd)
+    else:
+        pval = 1.0
+    print(f"McNemar on paired purity: {b01} point-wrong/robust-right, "
+          f"{b10} the other way, exact two-sided p = {pval:.3g}")
+
     print(f"bootstrap 95% CI on the 5th-percentile improvement: "
           f"[{lo_d:+.3f}, {hi_d:+.3f}] m over 4000 resamples")
     print(f"worst case {p['margins'].min():+.3f} m -> {r['margins'].min():+.3f} m")
@@ -114,7 +135,8 @@ def main():
              point_k=p["k"], point_n=p["n"], robust_k=r["k"], robust_n=r["n"],
              point_ci=np.array([p["lo"], p["hi"]]), robust_ci=np.array([r["lo"], r["hi"]]),
              point_per_ens=p["per_ens"], robust_per_ens=r["per_ens"],
-             tail_ci=np.array([lo_d, hi_d]), n_ensembles=ENSEMBLES, n_per_mat=N_PER_MAT)
+             tail_ci=np.array([lo_d, hi_d]),
+             mcnemar_b01=b01, mcnemar_b10=b10, mcnemar_p=pval, n_ensembles=ENSEMBLES, n_per_mat=N_PER_MAT)
 
     assert r["k"] >= p["k"], "robust design should not classify worse overall"
     assert lo_d > 0, "5th-percentile margin improvement should exclude zero"

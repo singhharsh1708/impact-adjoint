@@ -8,6 +8,31 @@ figure changed, this says what it was and what it became.
 
 ### Corrected
 
+- **The gradient-free designs had never been scored on the metric this project
+  says matters, and doing so weakens a headline.** E5 saved the CMA-ES and
+  Nelder-Mead designs and nothing ever loaded them. Scored on E5b's held-out
+  scatter ensemble: Adam 0.995 purity with a 0.07 m fifth-percentile margin,
+  CMA-ES 0.980 with 0.18 m, and **Nelder-Mead 0.995 with 0.41 m** — five orders
+  behind on the objective, identical purity, wider margin. In engineering units
+  the four-order loss gap is 0.34 mm against 12.6 mm with bins 1600 mm apart.
+  "The gradient-free methods never reach the design" is now stated as what it
+  is, a statement about objective value, with the translation shown.
+- **The ensemble design was built from a superseded point design.** E5b starts
+  from E5's output, and its committed result predated the fix that made E5
+  return the iterate it had actually scored. Rebuilt: held-out purity is
+  **997/1000**, not 1000/1000, and the fifth-percentile margin improves
+  0.05 m to 0.49 m rather than to 0.58 m.
+- **The worst-case margin claim was backwards.** It said the worst case moves
+  "from inside the wrong bin to 0.09 m clear". On the rebuilt designs it goes
+  -0.12 m to -0.35 m, both inside the wrong bin. The ensemble
+  objective buys the low tail, not the extreme, and the page says so now.
+- **Two statistical methods were wrong even where the answer held.** The
+  bootstrap resampled the two margin arrays independently although the same
+  1000 particles are scored under both designs; it now resamples particle
+  indices and carries both together. Purity is a paired binary outcome, so
+  non-overlapping Wilson intervals were the wrong criterion; McNemar is
+  reported alongside, and gives p = 0.0026.
+
 - **The novelty claim was too broad and two thirds of it is withdrawn.** A
   prior-art sweep found that saltation matrices have been used for optimal
   *design* explicitly (Kong et al., Proc. IEEE 2024), that a pip-installable
