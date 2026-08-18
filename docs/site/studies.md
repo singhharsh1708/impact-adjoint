@@ -126,8 +126,16 @@ claim one.
 **Decisiveness under jitter.** Sweeping restitution with inlet jitter shows
 what the deterministic sweep hid. The point design is indecisive at 2 of 20
 restitutions, including its own trained value of 0.8, where 12.5% of jittered
-draws cross into the wrong bin. The ensemble design is
-unanimous at all 20.
+draws cross into the wrong bin. The ensemble design is unanimous at all 20.
 
-That comparison is the argument for designing against an ensemble, and it
-costs a little median margin to get it.
+Two honest limits on that sentence. The two designs are scored on the same
+restitutions and the same jitter draws, so the comparison is paired: 20 against
+18 is two discordant restitutions, and exact McNemar gives **p = 0.50**, which
+is the smallest value two discordant pairs can produce. The direction is
+consistent and the underlying failure at the trained value is real, but this
+comparison has no power to establish it. And "unanimous" is 0 failures in 40
+draws per restitution, which bounds the per-restitution failure rate at about
+**7.5%**, not at zero.
+
+It costs a little median margin to get, though that change is not
+distinguishable from zero at this sample size either.

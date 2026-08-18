@@ -339,8 +339,13 @@ ensemble objective buys the low tail rather than the extreme. Sweeping
 restitution under inlet jitter shows what the deterministic sweep hid: the
 point design is indecisive at 2 of 20 restitutions, including its own trained
 value of 0.8, where 12.5% of jittered draws cross into the wrong bin. The
-ensemble design is unanimous at all 20. Designing against the ensemble is
-what buys that, and it costs a little median margin to get it.
+ensemble design is unanimous at all 20. Both designs see the same restitutions
+and the same jitter draws, so that is a paired comparison of two discordant
+points, and exact McNemar gives p = 0.50, the floor for two discordant pairs:
+the direction is consistent but the comparison cannot establish it. Unanimity
+here also means 0 failures in 40 draws, which bounds the per-restitution
+failure rate at about 7.5% rather than at zero. It costs a little median
+margin, itself not distinguishable from zero at this sample size.
 
 ## 5. Related work: how everyone else gets contact gradients
 
