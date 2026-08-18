@@ -25,7 +25,10 @@ def main():
 
     e3 = np.load(E / "e3_rows.npy")
     r["E3_grid_reset_gradient"] = float(np.max(np.abs(e3[:, 1])))
-    r["E3_truth"] = 0.09037774
+    # measured, not retyped: the mean of the per-dt saltation column. The old
+    # hardcoded literal meant a uniform solver shift would leave this constant
+    # and both derived errors untouched.
+    r["E3_truth"] = round(float(e3[:, 3].mean()), 8) if e3.shape[1] > 3 else 0.09037774
     r["E3_interp_rel_err_coarse"] = float(abs(e3[0, 2] - r["E3_truth"]) / r["E3_truth"])
     r["E3_interp_rel_err_fine"] = float(abs(e3[-1, 2] - r["E3_truth"]) / r["E3_truth"])
     if e3.shape[1] > 3:
@@ -78,7 +81,9 @@ def main():
         # log10 differs in the last ulps across platforms, and this is only
         # ever displayed to one decimal, so round it rather than let a
         # transcendental's last bits trip the no-drift guard on another machine
-        gaps = np.log10(cm / ae)
+        # both gradient-free methods, not CMA alone: quoting the CMA-only span
+        # as "the gradient-free methods" excluded Nelder-Mead's wider spread
+        gaps = np.concatenate([np.log10(cm / ae), np.log10(bench["nm"][:, -1] / ae)])
         r["BENCH_eval_orders_range"] = [round(float(gaps.min()), 6),
                                         round(float(gaps.max()), 6)]
 
@@ -230,7 +235,12 @@ def main():
             f"| median final: Adam (wall-clock accounting) | {f(r['BENCH_adam_wall_median'])} |",
             f"| median final: CMA-ES (tuned) | {f(r['BENCH_cma_median'])} |",
             f"| median final: Nelder-Mead | {f(r['BENCH_nm_median'])} |",
-            f"| CMA / Adam ratio, eval then wall-clock | {f(r['BENCH_ratio_eval'])}x, {f(r['BENCH_ratio_wall'])}x |",
+            f"| CMA / Adam, paired per-seed median (eval, wall) | "
+        f"{f(r['BENCH_paired_ratio_eval'])}x, {f(r['BENCH_paired_ratio_wall'])}x |",
+        f"| CMA / Adam, ratio of medians (unpaired, for reference) | "
+        f"{f(r['BENCH_ratio_eval'])}x, {f(r['BENCH_ratio_wall'])}x |",
+        f"| per-seed eval ratio span | {f(r['BENCH_eval_ratio_range'][0])}x to "
+        f"{f(r['BENCH_eval_ratio_range'][1])}x |",
         ]
     if rb is not None:
         lines += [

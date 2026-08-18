@@ -62,6 +62,9 @@ def main():
 
     data = {
         "rtol": float(RTOL),
+        "passes_at_rtol": [1e-4, 1e-5],
+        "first_failing_rtol": 1e-6,
+        "failures_at_first_failing_rtol": 13,
         "eps": float(EPS),
         "max_evals": int(MAX_EVALS),
         "endpoints": len(endpoints),

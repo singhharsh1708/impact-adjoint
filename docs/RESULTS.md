@@ -57,7 +57,9 @@ not retyped, so this file cannot drift from what was measured.
 | median final: Adam (wall-clock accounting) | 0.000729 |
 | median final: CMA-ES (tuned) | 0.000315 |
 | median final: Nelder-Mead | 0.99 |
-| CMA / Adam ratio, eval then wall-clock | 917x, 0.433x |
+| CMA / Adam, paired per-seed median (eval, wall) | 347x, 0.159x |
+| CMA / Adam, ratio of medians (unpaired, for reference) | 917x, 0.433x |
+| per-seed eval ratio span | 11.5x to 1.4e+05x |
 | held-out purity, point design | 983/1000 (Wilson 97.29 to 98.94 %) |
 | held-out purity, ensemble design | 997/1000 (Wilson 99.12 to 99.90 %) |
 | 5th-percentile margin, point to ensemble | 0.05 m to 0.494 m |

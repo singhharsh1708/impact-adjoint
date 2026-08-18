@@ -85,7 +85,7 @@ only the saltation endpoint is exact at any dt (right).*
 
 ![E5 separator](docs/figures/e5_separator.png)
 *The designed separator (left) and the 24-dimensional head-to-head (right):
-at equal budget the gradient-free runs end 1.1 to 5.1 orders above Adam on
+at equal budget the gradient-free runs end 1.1 to 8.0 orders above Adam on
 objective value; on held-out sorting purity the gap nearly vanishes.*
 
 ## Correctness
@@ -108,8 +108,9 @@ as finite-difference gates through the solver itself:
   The CLI defaults to `rtol = 0.1` and samples with replacement, which yields a
   much larger check count made mostly of repeats compared at ten percent; that
   measures the sampler rather than the gradient, so this runs distinct entries
-  at a tolerance the oracles justify. It fails at `1e-5`, where the finite
-  difference itself stops resolving.
+  at a tolerance the oracles justify. It also passes at `1e-5`, and first fails at
+  `1e-6` (13 of 50), which is where the central difference itself stops
+  resolving rather than where the gradient does.
 - `scripts/validate_contact.py` is an FD gate (rtol 1e-5) plus robustness
   regressions: chatter/settle termination, event-capacity truncation,
   sub-step-width terrain features, energy conservation at `e=1` (relative
@@ -212,7 +213,7 @@ python experiments/collect_results.py
 tesseract build tesseracts/contact_sim
 tesseract build tesseracts/score_target
 tesseract run contact-sim check-gradients @tesseracts/contact_sim/check_payload.json
-python experiments/e2b_bayesian.py                   # NUTS, 2 chains: ~18 min
+python experiments/e2b_bayesian.py                   # NUTS, 2 chains: ~23 min
 python experiments/e1_inverse_design.py --container  # same optimization via the served images
 tesseract serve -p 8123 contact-sim &                 # the curl client needs this
 ./scripts/second_client_curl.sh                      # gradients with nothing but curl
@@ -224,7 +225,7 @@ tesseract serve -p 8123 contact-sim &                 # the curl client needs th
 > time; warm runs take seconds. Measured budget: about 5 minutes for the
 > validation block and experiments E1 to E6, plus ~10 minutes for
 > `e5b_robust_separator.py`, plus ~10 minutes to build the contact-sim image
-> and ~18 minutes for the two NUTS chains.
+> and ~23 minutes for the two NUTS chains.
 
 ## Troubleshooting
 
@@ -241,7 +242,7 @@ tesseract serve -p 8123 contact-sim &                 # the curl client needs th
 tesseracts/    contact_sim (Julia solver) · score_target (JAX objective) · julia_kernel (Day-1 proof)
 experiments/   e1-e6, e5b + figure/animation generators + committed result artifacts
 scripts/       three validation oracles · boundary proofs · curl client
-tests/         21 tests: golden regressions plus no-drift guards (run in CI)
+tests/         33 tests: golden regressions plus no-drift guards (run in CI)
 docs/          technical writeup, all figures, and the site source (docs/site)
 ```
 

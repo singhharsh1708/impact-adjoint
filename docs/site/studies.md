@@ -48,19 +48,19 @@ Adam against 3.2×10⁻⁴ for tuned CMA-ES. The seeds are paired, so the honest
 statistic is the median of the per-seed ratios, 347x, rather than the
 ratio of the medians; and the per-seed ratios span 12x to 139843x, so
 the direction is unanimous across five seeds but the magnitude is not
-resolvable at this sample size. With
-Nelder-Mead three orders behind that. Charged by measured wall-clock, where
-each gradient call costs a measured 6.8 forward solves, the ranking
-reverses at this budget: Adam reaches 7.3e-04 and CMA-ES is roughly
-better on the ratio of medians. That reversal is not resolved at this sample
-size: CMA-ES is ahead on 4 of 5 seeds and behind on 1, a sign test gives
+resolvable at this sample size. Nelder-Mead sits a further 3.5 orders behind
+CMA-ES. Charged by measured wall-clock, where each gradient call costs a
+measured 6.8 forward solves, the ordering at this budget is no longer in
+Adam's favour: Adam reaches 7.3e-04 against CMA-ES at 3.2e-04, which is 2.3x
+on the ratio of medians and 6.3x on the paired per-seed median. That is not
+resolved at this sample size: CMA-ES is ahead on 4 of 5 seeds and behind on 1, a sign test gives
 p = 0.375, and a bootstrap interval on the median per-seed ratio spans both
 sides of parity. The honest statement is that under wall-clock accounting the
 ordering is not established at n = 5, not that it reverses.
 
 :::{important}
-The reversal is real and is reported rather than hidden. It is an
-implementation property, not a fact about gradients. The VJP is
+The wall-clock accounting is reported rather than hidden. What it exposes is
+an implementation property, not a fact about gradients. The VJP is
 forward-variational, so it pays one variational column per parameter. A
 reverse-mode saltation adjoint would return the same gradient for roughly the
 cost of one solve, which would make the wall-clock panel resemble the
@@ -68,14 +68,14 @@ evaluation panel.
 :::
 
 What does not change under either accounting is the objective value: at 24
-dimensions the gradient-free methods plateau 1.1 to 5.1 orders above what Adam
+dimensions the gradient-free methods plateau 1.1 to 8.0 orders above what Adam
 attains per evaluation.
 
 :::{important}
-**That gap does not survive translation into engineering units, and we checked
+**That 3.9-order gap does not survive translation into engineering units, and we checked
 rather than assumed.** The loss is squared landing error summed over two
-particles, so Adam's 2.25e-07 is a 0.34 mm miss and tuned CMA-ES's 3.2e-04 is
-12.6 mm, against bins 1600 mm apart. Scoring all four designs on the held-out
+particles, so Adam's 2.25e-07 is a 0.34 mm miss and the CMA-ES design E5b actually scores
+is 1.98e-03, about 31 mm per particle, against bins 1600 mm apart. Scoring all four designs on the held-out
 scatter ensemble that E5b uses:
 
 | design | purity | 5th-percentile margin |
@@ -84,6 +84,15 @@ scatter ensemble that E5b uses:
 | CMA-ES | 0.980 | +0.18 m |
 | Nelder-Mead | 0.995 | +0.41 m |
 | ensemble-refined | 1.000 | +0.43 m |
+
+```{image} ../figures/design_comparison.png
+:alt: Left, the margin distribution each design produces on the held-out scatter ensemble as a cumulative curve; right, final objective against fifth-percentile margin, showing four orders of objective buying almost no separation.
+:width: 100%
+```
+
+```{figure-source} design_comparison.png
+```
+
 
 Nelder-Mead is five orders behind on the objective and sorts exactly as well
 as Adam, with a *wider* margin. Minimising the point objective further does

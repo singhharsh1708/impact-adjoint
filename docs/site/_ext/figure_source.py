@@ -39,6 +39,10 @@ SOURCES = {
         "experiments/make_e5b_figure.py",
         ["experiments/e5b_result.npz"],
     ),
+    "design_comparison.png": (
+        "experiments/make_design_comparison_figure.py",
+        ["experiments/e5b_result.npz", "experiments/e5_result.npz"],
+    ),
     "study_verification.png": (
         "experiments/make_study_figures.py",
         [

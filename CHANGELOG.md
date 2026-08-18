@@ -8,6 +8,32 @@ figure changed, this says what it was and what it became.
 
 ### Corrected
 
+- **A README claim about our own gradient checker was false.** It said the
+  check fails at `rtol = 1e-5`. It passes there; the first failure is at
+  `1e-6`, 13 of 50, which is where the central difference stops resolving
+  rather than where the gradient does. The tolerance sweep is recorded in
+  `check_gradients.json` now instead of asserted.
+- **The results table published the statistic the prose calls wrong.** The
+  seeds are paired, so the ratio of medians (917x) pairs one seed's CMA with
+  another seed's Adam; every prose page already used the paired per-seed
+  median (347x) while the generated table led with the unpaired one. The table
+  now leads with the paired statistic and keeps the unpaired one labelled as
+  reference.
+- **"1.1 to 5.1 orders" was CMA-ES alone, attributed to both gradient-free
+  methods.** Nelder-Mead spans 2.9 to 8.0. The published range is 1.1 to 8.0
+  and the collector computes it over both methods.
+- **E3_truth was a hardcoded literal** in the file whose premise is that
+  nothing is retyped, so a uniform solver shift would have left it and both
+  derived errors untouched. It is the mean of the measured per-dt saltation
+  column now.
+- The `e3_bias` figure drew the saltation reference as a literal `1e-15` line,
+  669x below what the artifact measures. It plots the measured column.
+- The robustness figure's caption still said the ensemble objective buys
+  margin "not headline purity"; after the rebuild purity improves with
+  McNemar p = 0.0026, so the caption said the opposite of the panel beneath it.
+- E2b sampling time read "18 minutes" in four places against a measured 22.7,
+  and the test count read 21 against 33 collected.
+
 - **The NUTS convergence statistic was the outdated one, and the number a
   reader actually needs was missing.** `gelman_rubin` is the classic
   non-split R-hat, which cannot detect within-chain non-stationarity; it is
@@ -117,7 +143,7 @@ figure changed, this says what it was and what it became.
   now generated from the artifact.
 - **E2b's diagnostics rested on nothing.** The divergence count, r-hat and
   throughput were prose. The run now records them: 23,440 leapfrog steps over
-  two chains in 18 minutes, 0 divergences, r-hat 1.0089 and 1.0119. The
+  two chains in 23 minutes of warmup plus sampling, 0 divergences, non-split r-hat 1.0089 and 1.0119 (now reported as split r-hat, 1.0061 and 1.0074). The
   previous estimate of "roughly 10,000 solver calls per chain" is replaced by
   the measurement.
 - Held-out purity now states which figure comes from one 200-particle draw

@@ -146,7 +146,7 @@ VJP recovers `e` to 0.002 and `μ` to 0.009 from a distant start. For the
 posterior, NumPyro's NUTS sampler runs directly against the *containerized*
 solver. Every leapfrog step calls the Tesseract's apply and saltation-VJP
 endpoints over HTTP: 23,440 steps across two chains, measured and recorded in
-`e2b_posterior.npz`, in about 18 minutes of sampling. Two
+`e2b_posterior.npz`, in about 23 minutes of sampling. Two
 chains, zero divergences, split r̂ = 1.01 with an effective sample size of
 344 and 330 of 2000 draws. Two chains estimate the between-chain variance on
 one degree of freedom, so r̂ here is a weak check rather than a passed one,
@@ -205,26 +205,27 @@ Adam against 3.2×10⁻⁴ for tuned CMA-ES. The seeds are paired, so the median
 of the per-seed ratios, 347x, is the statistic that respects that; the
 ratio of medians would read 917x. Per-seed ratios span 12x to
 139843x, so the direction is unanimous across five seeds while the
-magnitude is not resolvable at n = 5. With
-Nelder-Mead three orders behind that. Charged by measured wall-clock, where
-each gradient call costs a measured 6.8 forward solves, the ranking
-reverses at this budget: Adam reaches 7.3e-04 while CMA-ES is roughly
-better on the ratio of medians. We report that as unresolved rather than as a
-reversal: CMA-ES is ahead on 4 of 5 seeds and behind on 1, the sign test
+magnitude is not resolvable at n = 5. Nelder-Mead sits a further 3.5 orders
+behind CMA-ES. Charged by measured wall-clock, where each gradient call costs
+a measured 6.8 forward solves, the ordering at this budget is no longer in
+Adam's favour: Adam reaches 7.3e-04 against CMA-ES at 3.2e-04, which is 2.3x
+on the ratio of medians and 6.3x on the paired per-seed median. We report that
+as unresolved rather than as a reversal: CMA-ES is ahead on 4 of 5 seeds and behind on 1, the sign test
 gives p = 0.375, and the bootstrap interval on the median per-seed ratio
 covers parity. What the wall-clock accounting does establish is that the
 forward-variational cost is large enough to erase a three-order per-evaluation
 lead, which is the reason the reverse-mode adjoint is the first item in future
 work.
 
-We report the reversal because it is real, and because it is an
-implementation property rather than a fact about gradients. The VJP is
+We report the wall-clock accounting because it is the one that would govern a
+real run, and because what it exposes is an implementation property rather
+than a fact about gradients. The VJP is
 forward-variational, so it pays one variational column per parameter, 93
 microseconds each as measured in the scaling study. A reverse-mode saltation
 adjoint would return the same gradient for roughly the cost of one solve,
 which would make the wall-clock panel resemble the evaluation panel. What
 does not change under either accounting is that the gradient-free methods
-never reach the same objective value: in 24 dimensions they plateau 1.1 to 5.1 orders
+never reach the same objective value: in 24 dimensions they plateau 1.1 to 8.0 orders
 above what Adam attains per evaluation.
 
 That gap does not survive translation into engineering units, and we checked

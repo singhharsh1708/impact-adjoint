@@ -132,7 +132,9 @@ def fig_e3():
 def _fig_e3_inner():
     rows = np.load(ROOT / "experiments" / "e3_rows.npy")
     dts, naive, interp = rows[:, 0], rows[:, 1], rows[:, 2]
-    truth = 0.09037774
+    # measured, not retyped: the mean of the per-dt saltation column, which
+    # spans 6e-14 across the whole sweep
+    truth = float(rows[:, 3].mean()) if rows.shape[1] > 3 else 0.09037774
     fig, (ax, ax2) = plt.subplots(1, 2, figsize=(8.6, 3.0), dpi=200)
 
     ax.axhline(truth, color=BLUE, lw=2.0)
@@ -153,8 +155,11 @@ def _fig_e3_inner():
     ax2.annotate("hand-interpolated event (converging, erratic)", (dts[3], rel_interp[3]),
                  textcoords="offset points", xytext=(0, -22), ha="center",
                  color=AQUA_TEXT, fontsize=9)
-    ax2.axhline(1e-15, color=BLUE, lw=2.0)
-    ax2.annotate("saltation (machine precision)", (dts[3], 1e-15),
+    # measured per-dt saltation, not a literal: column 3 of e3_rows.npy
+    salt_rel = np.abs(rows[:, 3] - rows[:, 3].mean()) / np.abs(rows[:, 3].mean())
+    ax2.plot(dts, np.maximum(salt_rel, 1e-17), color=BLUE, lw=1.8, marker="s", ms=4,
+             markeredgecolor=SURFACE, markeredgewidth=0.7)
+    ax2.annotate("saltation (dt-independent to 6e-14)", (dts[3], 1e-15),
                  textcoords="offset points", xytext=(0, 7), ha="center", color=BLUE_TEXT, fontsize=9)
     ax2.axhline(1.0, color=ORANGE, lw=2.0)
     ax2.annotate("grid-reset (100% bias)", (dts[3], 1.0),

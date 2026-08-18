@@ -3,7 +3,13 @@
   "endpoints": 3,
   "eps": 1e-06,
   "failures": 0,
+  "failures_at_first_failing_rtol": 13,
+  "first_failing_rtol": 1e-06,
   "max_evals": 30,
+  "passes_at_rtol": [
+    0.0001,
+    1e-05
+  ],
   "per_endpoint": {
     "jacobian": {
       "checks": 50,

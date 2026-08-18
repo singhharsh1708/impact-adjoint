@@ -75,7 +75,7 @@ Two particles enter identically and differ only in restitution, `e = 0.5` and
 each particle must land in its own bin.
 
 ```{image} ../figures/e5_separator.png
-:alt: Left, the designed 24-bump surface with the two material trajectories separating into their own bins; right, the optimizer race in which the gradient-free runs end 1.1 to 5.1 orders above Adam on objective value.
+:alt: Left, the designed 24-bump surface with the two material trajectories separating into their own bins; right, the optimizer race in which, on this run, CMA-ES ends 3.9 and Nelder-Mead 4.9 orders above Adam on objective value.
 :width: 100%
 ```
 

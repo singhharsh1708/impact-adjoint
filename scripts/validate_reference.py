@@ -23,6 +23,9 @@ API_PATH = Path(__file__).parent.parent / "tesseracts" / "contact_sim" / "tesser
 from tesseract_core.runtime.core import load_module_from_path
 
 
+_this_run = {}
+
+
 def record(key, value):
     """Append one measurement to experiments/oracle_results.json."""
     import json
@@ -30,7 +33,11 @@ def record(key, value):
 
     path = _P(__file__).parent.parent / "experiments" / "oracle_results.json"
     data = json.loads(path.read_text()) if path.exists() else {}
-    data[key] = max(float(value), data.get(key, 0.0))  # keep the worst case
+    # the worst case WITHIN THIS RUN, not across history: taking a max against
+    # the committed file made this a ratchet that could never come back down
+    # after a fix, while the results page claims it is what was measured
+    data[key] = max(float(value), _this_run.get(key, 0.0))
+    _this_run[key] = data[key]
     path.write_text(json.dumps(data, indent=2, sort_keys=True))
 
 
