@@ -137,7 +137,8 @@ at R2 = 0.998.*
 ![benchmark](docs/figures/study_optimizers.png)
 *Five random starts, both methods tuned per seed. Per evaluation Adam ends
 about 347x below tuned CMA-ES on the paired per-seed median. Charged at measured wall-clock, where each
-gradient costs 6.8 solves, CMA-ES is about 2x better at this budget. Both
+gradient costs 6.8 solves, CMA-ES is ahead on 4 of 5 seeds, which a sign
+test does not resolve at n = 5. Both
 are reported; the reverse-mode adjoint in Future work is what closes it.*
 
 ![robustness](docs/figures/study_robustness.png)

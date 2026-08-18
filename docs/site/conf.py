@@ -186,7 +186,7 @@ ogp_social_cards = {"line_color": "#2a78d6"}
 
 suppress_warnings = ["myst.header"]
 
-mermaid_init_js = """
+_MERMAID_INIT_JS = """
 (() => {
   const attr = document.body.dataset.theme;
   const dark =
@@ -225,3 +225,21 @@ mermaid_init_js = """
   });
 })();
 """
+
+# sphinxcontrib-mermaid 2.1.0 registers `mermaid_init_config`, not
+# `mermaid_init_js`. The theme block above was assigned to a name Sphinx
+# silently ignores, so none of it ever reached a page. Pass the parts that are
+# static as config, and keep the theme-following logic in a small script.
+mermaid_init_config = {
+    "startOnLoad": True,
+    "theme": "base",
+    "flowchart": {
+        "padding": 16,
+        "nodeSpacing": 52,
+        "rankSpacing": 105,
+        "subGraphTitleMargin": {"top": 8, "bottom": 12},
+    },
+    # no fontFamily override: mermaid measures label widths against the font it
+    # believes it is using, and naming a webfont it cannot measure clips every
+    # node label. The page CSS styles the rendered SVG text instead.
+}

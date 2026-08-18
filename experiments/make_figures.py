@@ -159,7 +159,7 @@ def _fig_e3_inner():
     salt_rel = np.abs(rows[:, 3] - rows[:, 3].mean()) / np.abs(rows[:, 3].mean())
     ax2.plot(dts, np.maximum(salt_rel, 1e-17), color=BLUE, lw=1.8, marker="s", ms=4,
              markeredgecolor=SURFACE, markeredgewidth=0.7)
-    ax2.annotate("saltation (dt-independent to 6e-14)", (dts[3], 1e-15),
+    ax2.annotate("saltation (relative spread below 1e-12)", (dts[3], 1e-15),
                  textcoords="offset points", xytext=(0, 7), ha="center", color=BLUE_TEXT, fontsize=9)
     ax2.axhline(1.0, color=ORANGE, lw=2.0)
     ax2.annotate("grid-reset (100% bias)", (dts[3], 1.0),

@@ -163,19 +163,19 @@ sensitivities since 1958; gradient routing of a single trajectory through
 impacts, as in DiffTaichi's `billiards` example, which backpropagates through
 a chain of collisions with a time-of-impact correction to steer one ball to
 one target; sampling-based design of passive geometry for per-object impact
-routing, in [Roussel et al. (SIGGRAPH 2019)](https://dl.acm.org/doi/10.1145/3306346.3322983)
+routing, in [Roussel et al. (SIGGRAPH 2019)](https://dl.acm.org/doi/10.1145/3306346.3322977)
 and in Berkowitz and Canny (ICRA 1996), whose objective is per-object and
 whose method is grid enumeration; and restitution-based separators as
-physical devices, including US 8,640,879 for an inclined chute sorting rubber
-from plastic by rebound.
+physical devices, including US 8,640,879 for an inclined chute sorting rubber from plastic. That patent attributes the separation to rubber's higher friction and tackiness, which make it tumble and bounce where plastic slides, rather than to a difference in restitution, so it is a neighbouring mechanism rather than the same one.
 
 What appears unoccupied is their combination: gradient-based design of the
 *passive geometry itself*, using exact rather than relaxed event times, with a
 *per-object routing* objective rather than a bulk flow statistic. The nearest
 neighbours make the gap narrow. Changing DiffTaichi's billiards decision
 variable from the initial velocity to the peg positions is a small edit;
-Roussel et al. design geometry for ordered impacts but by sampling rather than
-gradients. We claim the conjunction, not any element of it.
+Roussel et al. design contraption layout for ordered impacts, optimising
+robustness to assembly error rather than differentiating through the
+impacts. We claim the conjunction, not any element of it.
 
 The scope is correspondingly narrow: two dimensions, a single body, no
 friction cone. Every system in the table above does more physics than this one

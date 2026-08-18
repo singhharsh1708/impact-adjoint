@@ -20,9 +20,10 @@ figure changed, this says what it was and what it became.
   Tesseract work was still open.
 
 - **A README claim about our own gradient checker was false.** It said the
-  check fails at `rtol = 1e-5`. It passes there; the first failure is at
-  `1e-6`, 13 of 50, which is where the central difference stops resolving
-  rather than where the gradient does. The tolerance sweep is recorded in
+  check fails at `rtol = 1e-5`, and this entry claimed it passes there.
+  **Both were wrong**: that sweep ran at a different `eps` than the headline
+  configuration. At the published `eps = 1e-6` the checker does fail at
+  `1e-5`, with 22 of 50. Superseded by the entry above.
   `check_gradients.json` now instead of asserted.
 - **The results table published the statistic the prose calls wrong.** The
   seeds are paired, so the ratio of medians (917x) pairs one seed's CMA with
@@ -61,7 +62,9 @@ figure changed, this says what it was and what it became.
   scatter ensemble: Adam 0.995 purity with a 0.07 m fifth-percentile margin,
   CMA-ES 0.980 with 0.18 m, and **Nelder-Mead 0.995 with 0.41 m** — five orders
   behind on the objective, identical purity, wider margin. In engineering units
-  the four-order loss gap is 0.34 mm against 12.6 mm with bins 1600 mm apart.
+  the 3.9-order loss gap is 0.34 mm against 31 mm with bins 1600 mm
+  apart. (This entry first quoted 12.6 mm, which came from the multi-seed
+  benchmark median rather than the CMA-ES design E5b actually scores.)
   "The gradient-free methods never reach the design" is now stated as what it
   is, a statement about objective value, with the translation shown.
 - **The ensemble design was built from a superseded point design.** E5b starts

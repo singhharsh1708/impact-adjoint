@@ -121,10 +121,10 @@ non-overlapping Wilson intervals. More useful than the headline percentage is
 the separation margin: its fifth percentile improves from 0.05 m to 0.49 m
 (paired bootstrap 95% interval [+0.39, +0.47] m). The worst case does **not**
 improve: it goes from -0.12 m to -0.35 m, both inside the wrong bin. The
-ensemble objective buys the low tail, not the extreme, and the median margin
-drops slightly because the centre is what it trades away. A change in the
-median is not distinguishable from zero at this sample size, so we do not
-claim one.
+ensemble objective buys the low tail, not the extreme. The centre is what it
+trades away, and that cost is measurable rather than incidental: the median
+margin drops 2.7 cm, with a paired bootstrap 95% interval of
+[-0.040, -0.009] m that excludes zero.
 
 **Decisiveness under jitter.** Sweeping restitution with inlet jitter shows
 what the deterministic sweep hid. The point design is indecisive at 2 of 20

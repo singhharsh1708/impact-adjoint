@@ -345,7 +345,8 @@ points, and exact McNemar gives p = 0.50, the floor for two discordant pairs:
 the direction is consistent but the comparison cannot establish it. Unanimity
 here also means 0 failures in 40 draws, which bounds the per-restitution
 failure rate at about 7.5% rather than at zero. It costs a little median
-margin, itself not distinguishable from zero at this sample size.
+margin: 2.7 cm, with a paired bootstrap interval of
+[-0.040, -0.009] m that excludes zero, so the trade is measurable.
 
 ## 5. Related work: how everyone else gets contact gradients
 

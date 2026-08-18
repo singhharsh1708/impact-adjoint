@@ -50,7 +50,7 @@ plt.rcParams.update({
 
 DESIGNS = [
     ("Adam (saltation gradients)", "margins_adam", "adam_trace", BLUE, BLUE_TEXT, "-"),
-    ("CMA-ES (tuned)", "margins_cma_es", "cma-es_trace", ORANGE, ORANGE_TEXT, "-"),
+    ("CMA-ES (single run)", "margins_cma_es", "cma-es_trace", ORANGE, ORANGE_TEXT, "-"),
     ("Nelder-Mead", "margins_nelder_mead", "nelder-mead_trace", SECONDARY, SECONDARY, "--"),
     ("ensemble-refined (E5b)", "margins_ensemble", None, AQUA, AQUA, "-"),
 ]
