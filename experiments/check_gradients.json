@@ -3,13 +3,8 @@
   "endpoints": 3,
   "eps": 1e-06,
   "failures": 0,
-  "failures_at_first_failing_rtol": 13,
-  "first_failing_rtol": 1e-06,
+  "first_failing_rtol": 1e-05,
   "max_evals": 30,
-  "passes_at_rtol": [
-    0.0001,
-    1e-05
-  ],
   "per_endpoint": {
     "jacobian": {
       "checks": 50,
@@ -27,5 +22,23 @@
       "passed": true
     }
   },
-  "rtol": 0.0001
+  "rtol": 0.0001,
+  "tolerance_sweep": {
+    "1e-4": {
+      "checks": 50,
+      "failures": 0
+    },
+    "1e-5": {
+      "checks": 50,
+      "failures": 22
+    },
+    "1e-6": {
+      "checks": 50,
+      "failures": 47
+    },
+    "1e-7": {
+      "checks": 50,
+      "failures": 81
+    }
+  }
 }

@@ -1,9 +1,8 @@
 # Upstream fixes from this work
 
 Problems found while building this and reported upstream during the hackathon
-period. Two of them are silent wrong gradients in Tesseract's own AD path. The
-two Mosaic harness fixes are merged; the Tesseract issues and their proposed
-fixes are still open, so this is work offered rather than work landed.
+period. Two of them are silent wrong gradients in Tesseract's own AD path. Both Tesseract fixes and both Mosaic harness fixes are merged; of the three
+issues, two are closed and the juliacall deadlock remains open.
 
 ```{list-table}
 :header-rows: 1

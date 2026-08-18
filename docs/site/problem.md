@@ -1,5 +1,7 @@
 # The problem: gradients die at events
 
+{{ repo_note }}
+
 Differentiable simulation has a failure mode worse than an exception. It
 returns confident, finite, wrong gradients, and it does so wherever the
 dynamics are event-driven: contact, impact, switching, thresholds.

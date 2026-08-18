@@ -8,6 +8,17 @@ figure changed, this says what it was and what it became.
 
 ### Corrected
 
+- **The tolerance sweep in `check_gradients.json` was three hardcoded literals.**
+  They were written into the artifact whose entire purpose is that its numbers
+  are measured, and the README quoted them. The script runs the sweep now, and
+  running it changed the answer: at the same `eps = 1e-6` as the headline run,
+  the checker first fails at `rtol = 1e-5` with 22 of 50, not at `1e-6` with 13.
+  The earlier figure came from an ad-hoc sweep at a different `eps`.
+- **Four upstream fixes have merged since the last entry.** tesseract-core #667
+  and tesseract-jax #236 are both merged, and issues #666 and #235 are closed;
+  only the juliacall deadlock #234 is still open. The pages said all the
+  Tesseract work was still open.
+
 - **A README claim about our own gradient checker was false.** It said the
   check fails at `rtol = 1e-5`. It passes there; the first failure is at
   `1e-6`, 13 of 50, which is where the central difference stops resolving

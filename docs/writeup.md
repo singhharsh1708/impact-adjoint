@@ -395,8 +395,8 @@ The same material is browsable at <https://impact-adjoint.vercel.app>, where
 every figure and the generated results table are collected.
 
 Building this surfaced several problems in the stack, reported upstream during
-the hackathon period. The two Mosaic harness fixes are merged; the Tesseract
-issues and the PRs against them remain open at the time of writing:
+the hackathon period. Both Tesseract PRs and both Mosaic harness fixes are merged; of the three
+issues, two are closed and the juliacall deadlock is still open:
 
 - [tesseract-core#666](https://github.com/pasteurlabs/tesseract-core/issues/666)
   and PR [#667](https://github.com/pasteurlabs/tesseract-core/pull/667): the

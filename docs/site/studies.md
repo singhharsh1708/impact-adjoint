@@ -1,5 +1,7 @@
 # Verification studies
 
+{{ repo_note }}
+
 Six studies that measure the machinery rather than any application. Each
 writes an artifact that `experiments/collect_results.py` reads into
 [results](results.md), so no number is retyped by hand.
@@ -72,10 +74,11 @@ dimensions the gradient-free methods plateau 1.1 to 8.0 orders above what Adam
 attains per evaluation.
 
 :::{important}
-**That 3.9-order gap does not survive translation into engineering units, and we checked
+**That gap does not survive translation into engineering units, and we checked
 rather than assumed.** The loss is squared landing error summed over two
-particles, so Adam's 2.25e-07 is a 0.34 mm miss and the CMA-ES design E5b actually scores
-is 1.98e-03, about 31 mm per particle, against bins 1600 mm apart. Scoring all four designs on the held-out
+particles, so Adam's 2.25e-07 is a 0.34 mm miss, while the CMA-ES design that
+E5b actually scores sits at 1.98e-03, about 31 mm per particle. The bins are
+1600 mm apart. Scoring all four designs on the held-out
 scatter ensemble that E5b uses:
 
 | design | purity | 5th-percentile margin |

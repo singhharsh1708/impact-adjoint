@@ -31,6 +31,21 @@ EPS = "1e-6"
 MAX_EVALS = "30"
 
 
+def _run(rtol):
+    """Invoke the checker at one tolerance and return its combined output."""
+    env = {
+        "TESSERACT_RUNTIME_CHECK_GRADIENTS_RTOL": rtol,
+        "TESSERACT_RUNTIME_CHECK_GRADIENTS_EPS": EPS,
+        "TESSERACT_RUNTIME_CHECK_GRADIENTS_MAX_EVALS": MAX_EVALS,
+    }
+    cmd = ["tesseract", "run"]
+    for k, v in env.items():
+        cmd += ["-e", f"{k}={v}"]
+    cmd += ["contact-sim", "check-gradients", f"@{PAYLOAD}"]
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    return proc.stdout + proc.stderr
+
+
 def main():
     env = {
         "TESSERACT_RUNTIME_CHECK_GRADIENTS_RTOL": RTOL,
@@ -60,11 +75,23 @@ def main():
     if len(counts) != 1:
         raise SystemExit(f"endpoints disagree on check count: {counts}")
 
+    # the tolerance sweep was previously written here as three literals, which
+    # published numbers nobody had measured in the artifact whose whole point is
+    # that they are measured. Run it.
+    sweep = {}
+    for rt in ("1e-4", "1e-5", "1e-6", "1e-7"):
+        rows_rt = LINE.findall(_run(rt))
+        if rows_rt:
+            sweep[rt] = {"failures": sum(int(f) for _, _, f, _ in rows_rt),
+                         "checks": int(rows_rt[0][3])}
+            print(f"  rtol {rt}: {sweep[rt]['failures']} failures / "
+                  f"{sweep[rt]['checks']} checks")
+    failing = [k for k, v in sweep.items() if v["failures"] > 0]
+
     data = {
         "rtol": float(RTOL),
-        "passes_at_rtol": [1e-4, 1e-5],
-        "first_failing_rtol": 1e-6,
-        "failures_at_first_failing_rtol": 13,
+        "tolerance_sweep": sweep,
+        "first_failing_rtol": float(failing[0]) if failing else None,
         "eps": float(EPS),
         "max_evals": int(MAX_EVALS),
         "endpoints": len(endpoints),

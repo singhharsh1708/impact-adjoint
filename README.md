@@ -108,9 +108,10 @@ as finite-difference gates through the solver itself:
   The CLI defaults to `rtol = 0.1` and samples with replacement, which yields a
   much larger check count made mostly of repeats compared at ten percent; that
   measures the sampler rather than the gradient, so this runs distinct entries
-  at a tolerance the oracles justify. It also passes at `1e-5`, and first fails at
-  `1e-6` (13 of 50), which is where the central difference itself stops
-  resolving rather than where the gradient does.
+  at a tolerance the oracles justify. At the same `eps = 1e-6`, it first fails at
+  `rtol = 1e-5` (22 of 50), which is where the central difference
+  itself stops resolving rather than where the gradient does. The whole sweep
+  is recorded in the artifact, measured rather than asserted.
 - `scripts/validate_contact.py` is an FD gate (rtol 1e-5) plus robustness
   regressions: chatter/settle termination, event-capacity truncation,
   sub-step-width terrain features, energy conservation at `e=1` (relative
@@ -160,9 +161,10 @@ CPU, dev mode, `dt` 1e-3, `t_final` 2.0 s, four impacts; the container adds
 | ratio | 6.2× | 8.5× | 7.9× |
 
 Gradients are forward-variational, so VJP cost grows with parameter count:
-93 µs per parameter, affine out to 581 parameters at R² = 0.998. The 8.5×
-ratio at 77 parameters is what `study_optimizers.py` charges a gradient call
-under wall-clock accounting.
+93 µs per parameter, affine out to 581 parameters at R² = 0.998. That 8.5×
+is a VJP over all 77 sensitivity columns; `study_optimizers.py` measures its
+own charge against the 24 columns its objective actually differentiates, which
+comes out at 6.8 forward solves.
 
 ## Reproduce
 
@@ -288,8 +290,8 @@ See [docs/writeup.md](docs/writeup.md) for the technical writeup.
 ## Upstream fixes from this work
 
 Problems found while building this and reported upstream during the hackathon
-period. The two Mosaic fixes are merged; the Tesseract issues and their PRs
-are open:
+period. Four of the fixes are merged, the two Tesseract PRs and the two Mosaic
+harness fixes; the juliacall deadlock issue is still open:
 
 | Where | What |
 |---|---|

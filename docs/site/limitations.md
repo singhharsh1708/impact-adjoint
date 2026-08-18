@@ -45,7 +45,8 @@
   rather than by coming to rest, so its separation surface is "position after
   eight impacts", not "position at rest". A fixed-length chute imposes an
   analogous cut, though not the identical one.
-- The optimizer comparison reverses under wall-clock accounting. Both
+- Under wall-clock accounting the optimizer ordering is not resolved at five
+  seeds; the per-evaluation lead does not survive the forward-variational cost. Both
   accountings are reported in [studies](studies.md).
 - Designing environment geometry through contact-driven simulation is not new
   in itself. What we could not find in the literature is design using exact

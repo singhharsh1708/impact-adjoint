@@ -1,5 +1,7 @@
 # Experiments
 
+{{ repo_note }}
+
 Seven experiments, each with a committed artifact. Numbers here are mirrored
 in [results](results.md), which is generated from those artifacts.
 
@@ -36,8 +38,8 @@ Recover material parameters `(e, μ)` from the positions of three impacts
 observed with 5 mm noise, an observable that exists only because of events.
 Point estimation recovers `e` to 0.002 and `μ` to 0.009. For the posterior,
 NumPyro NUTS runs against the *containerized* solver: 23,440 leapfrog steps
-across two chains, each an apply plus a saltation VJP over HTTP, in about 18
-minutes of sampling. Zero divergences, split r-hat 1.01 on two chains, which is a weak check
+across two chains, each an apply plus a saltation VJP over HTTP, in about 23
+minutes of warmup plus sampling. Zero divergences, split r-hat 1.01 on two chains, which is a weak check
 rather than a passed one, with an effective sample size of 344 and 330 from
 2000 draws,
 `e = 0.697 ± 0.007` and `μ = 0.096 ± 0.009`, with the truth inside both
