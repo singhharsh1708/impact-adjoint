@@ -51,8 +51,7 @@ class DiffraxTable(Directive):
         lines.append("```")
         lines += [
             "",
-            f"The first row is the documented usage and is exact; the other two "
-            f"are caller mistakes, shown for contrast. Expected "
+            f"Expected "
             f"`{d['expected']:.1f}` throughout. Measured on "
             f"diffrax {v['diffrax']}, jax {v['jax']}, optimistix "
             f"{v['optimistix']}, Python {v['python']}, by "

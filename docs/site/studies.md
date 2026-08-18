@@ -81,12 +81,18 @@ E5b actually scores sits at 1.98e-03, about 31 mm per particle. The bins are
 1600 mm apart. Scoring all four designs on the held-out
 scatter ensemble that E5b uses:
 
-| design | purity | 5th-percentile margin |
+| design | purity (95% Wilson) | 5th-percentile margin, m (95% bootstrap) |
 |---|---|---|
-| Adam | 0.995 | +0.07 m |
-| CMA-ES | 0.980 | +0.18 m |
-| Nelder-Mead | 0.995 | +0.41 m |
-| ensemble-refined | 1.000 | +0.43 m |
+| Adam | 199/200 (97–100%) | +0.07 (+0.06 to +0.32) |
+| CMA-ES | 196/200 (95–99%) | +0.18 (+0.11 to +0.25) |
+| Nelder-Mead | 199/200 (97–100%) | +0.41 (+0.33 to +0.51) |
+| ensemble-refined | 200/200 (98–100%) | +0.43 (+0.40 to +0.52) |
+
+All four are scored on the same 200 particles, so the columns are paired.
+The purity intervals overlap for every pair, so purity does not separate
+these designs at this sample size; the margin intervals separate Adam from
+both Nelder-Mead and the ensemble design, and do not separate those two
+from each other.
 
 ```{image} ../figures/design_comparison.png
 :alt: Left, the margin distribution each design produces on the held-out scatter ensemble as a cumulative curve; right, final objective against fifth-percentile margin, showing four orders of objective buying almost no separation.

@@ -19,7 +19,7 @@ jobs:
         run: |
           pip install "tesseract-core[runtime]==1.11.0" tesseract-jax==0.4.1 \
                       "jax==0.11.0" optax equinox juliacall==0.9.31 \
-                      numpy scipy sympy pytest cma
+                      numpy scipy sympy pytest cma sphinx
       - name: Golden regression tests
         run: pytest tests/ -v
       - name: FD validation + robustness regressions

@@ -9,6 +9,7 @@ python experiments/make_figures.py
 python experiments/make_e5_figure.py
 python experiments/make_e5b_figure.py
 python experiments/make_study_figures.py
+python experiments/make_design_comparison_figure.py
 ```
 :::
 
