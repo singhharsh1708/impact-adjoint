@@ -31,6 +31,13 @@ What the gradients design and infer:
 - **terrain** that routes different inlet speeds to different cups,
 - **Bayesian recovery of material parameters** from where things actually hit.
 
+Building it also turned up two silent wrong-gradient bugs inside Tesseract
+itself, both now fixed upstream:
+[tesseract-core #667](https://github.com/pasteurlabs/tesseract-core/pull/667)
+and [tesseract-jax #236](https://github.com/pasteurlabs/tesseract-jax/pull/236),
+alongside two mosaic harness fixes. See
+[upstream fixes](#upstream-fixes-from-this-work).
+
 ## Contents
 
 - [Architecture](#architecture) · [Results](#results) · [Correctness](#correctness)

@@ -7,6 +7,12 @@ headline result is a designed structure and Track 1 is the entry's track.)
 Documentation site: <https://impact-adjoint.vercel.app>
 Repository: <https://github.com/singhharsh1708/impact-adjoint>
 
+Sections 1 to 3 are the core of the entry and run about three pages: the
+failure, the two-Tesseract composition that repairs it, and what the
+gradients design. Section 4 is the correctness evidence, 5 the related work,
+6 the limitations, and 7 reproducibility, including the four fixes this work
+contributed back to tesseract-core, tesseract-jax and mosaic.
+
 This entry differentiates *through impacts* exactly, rather than by
 smoothing them, and uses the result to design passive structures whose
 function only exists because of those impacts. Sorting by resilience is real
