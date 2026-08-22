@@ -8,12 +8,10 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -35,21 +33,9 @@ jobs:
         with:
           path: docs/site/build
 
-  deploy:
-    # Publishing needs Pages enabled, which needs a public repository (private
-    # Pages is a paid feature). While the repo is private this job is skipped
-    # rather than attempted, so a red X does not sit on every commit. Once the
-    # repo is public, enable Pages with Source = GitHub Actions and this runs
-    # automatically on the next push to main.
-    if: >-
-      github.ref == 'refs/heads/main' &&
-      github.event_name == 'push' &&
-      github.event.repository.visibility == 'public'
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+# No Pages deploy job. The site is served from Vercel at
+# impact-adjoint.vercel.app, and that URL is what the README badge, the
+# canonical tags, the sitemap, the JSON-LD and CITATION.cff all point at. A
+# second live copy on Pages would publish the same pages under a different
+# origin and split canonical, so this workflow builds the site with -W as a
+# correctness gate and leaves publishing to the deploy script.
