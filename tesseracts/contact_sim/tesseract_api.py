@@ -42,7 +42,7 @@ class InputSchema(BaseModel):
     )
     ctr: Differentiable[Array[(None,), Float64]] = Field(description="Terrain bump centers.")
     wid: Differentiable[Array[(None,), Float64]] = Field(description="Terrain bump widths (> 0).")
-    drag: Float64 = Field(description="Linear drag coefficient (not differentiated).", default=0.0)
+    drag: Float64 = Field(description="Linear drag coefficient, >= 0 (negative drag would add energy without bound). Not differentiated.", default=0.0)
     t_final: Float64 = Field(description="Simulation end time.", default=2.0)
     dt: Float64 = Field(
         description="Integrator step size. Terrain features narrower than |vx|*dt/3 can be stepped over; choose dt <= min(wid)/(3 |vx|).",
@@ -50,7 +50,7 @@ class InputSchema(BaseModel):
     )
     n_samples: int = Field(description="Trajectory sample rows returned for visualization.", default=0)
     v_stop: Float64 = Field(
-        description="Normal-velocity floor: if the post-impact normal velocity falls below this, the simulation stops at that impact with status=2 (chatter / settled contact; sticking and sliding are outside this model).",
+        description="Normal-velocity floor, >= 0: if the post-impact normal velocity falls below this, the simulation stops at that impact with status=2 (chatter / settled contact; sticking and sliding are outside this model).",
         default=1e-4,
     )
 

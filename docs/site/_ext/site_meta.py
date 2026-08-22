@@ -209,6 +209,13 @@ def on_build_finished(app, exception):
             '<p class="caption" role="heading" aria-level="2">',
         )
 
+        # Sphinx's generated search page ships without an h1, which axe flags
+        # as page-has-heading-one. It is reachable from the search box, so give
+        # it one rather than leaving the only page on the site that fails.
+        if rel == "search.html" and "<h1" not in html:
+            html = html.replace('<div id="search-results">',
+                                '<h1>Search</h1>\n<div id="search-results">', 1)
+
         prov = _provenance(app)
         if prov and "ia-provenance" not in html:
             html = LEFT_DETAILS_END.sub(prov + r"\1", html, count=1)
