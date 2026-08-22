@@ -71,7 +71,7 @@ raw `curl` client, unchanged.
 | Experiment | Headline |
 |---|---|
 | **E3**, the failure measured | Grid-reset autodiff gives `d x(T)/d v0y` = **exactly 0.0 at every dt** (truth +0.0904; the exact zero is specific to this flat-terrain case, on curved terrain it is nonzero and wrong). The pure-JAX repair converges only by hand-implementing event sensitivity. |
-| **E5**, 24-dim resilience separator | At a shared budget of 900 forward-solve units with a gradient charged as 2: Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ vs Nelder-Mead 2×10⁻². Charged by measured wall-clock instead, Adam loses at CMA's own budget and wins only by continuing four orders further; the writeup gives both accountings in full. |
+| **E5**, 24-dim resilience separator | At a shared budget of 900 forward-solve units with a gradient charged as 2: Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ vs Nelder-Mead 2×10⁻². Charged by measured wall-clock instead, CMA-ES is ahead on 4 of 5 seeds, which a sign test does not resolve at that sample size. The objective gap also does not translate: scored on held-out scatter, Nelder-Mead matches Adam's sorting purity with a wider margin. Both accountings and that comparison are in the writeup. |
 | **E5b**, design under uncertainty | Ensemble objective over inlet and restitution scatter. Held-out purity 199/200 for the point design and 200/200 after refinement on one draw; over five independent ensembles, 983/1000 against 997/1000 with non-overlapping Wilson intervals (McNemar p = 0.0026). The fifth-percentile margin improves 0.05 m to 0.49 m, though the worst case stays on the wrong side. |
 | **E6**, zero-shot generalization | Trained on two materials, sorts the whole continuum e ∈ [0.35, 0.875] with **one threshold**. |
 | **E1**, inverse design | Miss **1.12 m → 2.7 cm** through 5 bounces, across bounce-count changes. |
@@ -183,8 +183,7 @@ is bootstrapped automatically by `juliacall`.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
-pip install "tesseract-core[runtime]==1.11.0" tesseract-jax==0.4.1 "jax==0.11.0" \
-            optax equinox juliacall==0.9.31 numpy scipy sympy matplotlib numpyro pytest cma
+pip install -r docs/requirements-repro.txt
 
 # validation (dev mode, no Docker needed)
 python scripts/proof_local.py              # 5 s boundary proof
