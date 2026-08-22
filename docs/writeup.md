@@ -218,7 +218,9 @@ Adam's favour: Adam reaches 7.3e-04 against CMA-ES at 3.2e-04, which is 2.3x
 on the ratio of medians and 6.3x on the paired per-seed median. We report that
 as unresolved rather than as a reversal: CMA-ES is ahead on 4 of 5 seeds and behind on 1, the sign test
 gives p = 0.375, and the bootstrap interval on the median per-seed ratio
-covers parity. What the wall-clock accounting does establish is that the
+covers parity. The charge is itself a wall-clock measurement on a shared
+machine: a repeat run measured 5.5 solves rather than 6.8 and moved the ratio
+of medians to 1.3x. What the wall-clock accounting does establish is that the
 forward-variational cost is large enough to erase a three-order per-evaluation
 lead, which is the reason the reverse-mode adjoint is the first item in future
 work.

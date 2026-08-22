@@ -155,3 +155,47 @@ def test_diffrax_claim_is_backed_by_its_artifact():
         "Diffrax no longer returns the exact gradient under its documented "
         "usage; docs/site/related.md says it does and must be revisited"
     )
+
+
+def test_every_committed_artifact_is_documented():
+    """docs/site/artifacts.md indexes every artifact, and indexes nothing else.
+
+    The provenance page is only worth reading if it is complete. Adding an
+    artifact without a row leaves a published number with no stated source,
+    which is the state this repository exists to make impossible.
+    """
+    sys.path.insert(0, str(ROOT / "docs" / "site" / "_ext"))
+    from artifact_index import ARTIFACTS
+
+    tracked = subprocess.run(
+        ["git", "ls-files", "experiments", "scripts"],
+        cwd=ROOT, capture_output=True, text=True, check=True,
+    ).stdout.split()
+    on_disk = {p for p in tracked if p.endswith((".npz", ".npy", ".json"))}
+    indexed = {a for a, _scripts, _backs in ARTIFACTS}
+
+    assert not (on_disk - indexed), (
+        f"artifacts with no row in docs/site/artifacts.md: "
+        f"{sorted(on_disk - indexed)}"
+    )
+    assert not (indexed - on_disk), (
+        f"artifacts.md lists files that are not committed: "
+        f"{sorted(indexed - on_disk)}"
+    )
+
+    for artifact, scripts, _backs in ARTIFACTS:
+        for rel in [artifact, *scripts]:
+            assert (ROOT / rel).exists(), f"{rel} is indexed but missing"
+
+
+def test_landing_page_timing_matches_the_measurement():
+    """The run time on the landing page is the one time_checks.py measured."""
+    timing = json.loads((ROOT / "experiments" / "timing.json").read_text())
+    r = json.loads(RESULTS_JSON.read_text())
+    assert r["TIMING_checks_total_s"] == timing["total_median_s"], (
+        "results.json disagrees with timing.json; run collect_results.py"
+    )
+    assert timing["total_median_s"] < 120, (
+        "the four checks now take over two minutes; the landing page reads "
+        "the artifact, but getting-started still promises a warm run in seconds"
+    )

@@ -8,6 +8,36 @@ figure changed, this says what it was and what it became.
 
 ### Corrected
 
+- **The wall-clock optimizer comparison rests on one measured scalar, and that
+  scalar moves.** The gradient charge re-measured at 5.5 forward solves rather
+  than 6.8 on a repeat run, which moves the ratio of medians from 2.3x to 1.3x.
+  Every optimizer trace in the artifact is bit-identical between runs; only the
+  timing moved. The pages already reported the wall-clock ordering as
+  unresolved at n = 5, and they now say the charge itself is a measurement with
+  spread.
+- `scripts/second_client_curl.sh` failed with `Expecting value: line 1 column 1`
+  when no server was running, which describes nothing. It checks `/health`
+  first and names the command to start one.
+
+- **The landing page said the four checks take about five minutes; they take
+  about twenty five seconds.** The five minutes was the first-run Julia
+  bootstrap, not the checks, and the figure came from no artifact. It is
+  measured now by `scripts/time_checks.py`, which writes `timing.json`, and
+  both the stat card and the prose read it.
+- **The landing page's headline figures were hand-typed HTML.** The drift test
+  covers README.md, docs/writeup.md and docs/RESULTS.md, so the five numbers on
+  the most-read page of the site were the one place a published figure could go
+  stale silently. They are generated from `results.json` now. The other four
+  were correct.
+- **The cost-scaling slope was quoted as though it were precise.** It is
+  wall-clock on one shared laptop: re-running the study moved 93 microseconds
+  per parameter to 81, and R² from 0.998 to 0.997. The affine shape holds; the
+  absolute figures carry ten to twenty percent of run to run spread, and the
+  pages that quote them say so.
+- `study_generalization_stats.py` printed `transition band ... e in [nan, nan]`
+  when the robust design classified every sampled restitution unanimously.
+  That is the good case, and it now says so in words.
+
 - **The tolerance sweep in `check_gradients.json` was three hardcoded literals.**
   They were written into the artifact whose entire purpose is that its numbers
   are measured, and the README quoted them. The script runs the sweep now, and
@@ -60,7 +90,7 @@ figure changed, this says what it was and what it became.
   says matters, and doing so weakens a headline.** E5 saved the CMA-ES and
   Nelder-Mead designs and nothing ever loaded them. Scored on E5b's held-out
   scatter ensemble: Adam 0.995 purity with a 0.07 m fifth-percentile margin,
-  CMA-ES 0.980 with 0.18 m, and **Nelder-Mead 0.995 with 0.41 m** — five orders
+  CMA-ES 0.980 with 0.18 m, and **Nelder-Mead 0.995 with 0.41 m**: five orders
   behind on the objective, identical purity, wider margin. In engineering units
   the 3.9-order loss gap is 0.34 mm against 31 mm with bins 1600 mm
   apart. (This entry first quoted 12.6 mm, which came from the multi-seed
@@ -168,6 +198,11 @@ figure changed, this says what it was and what it became.
   colours are unchanged, so the figures are otherwise identical.
 
 ### Added
+
+- An [artifacts and provenance page](https://impact-adjoint.vercel.app/artifacts.html)
+  indexing every committed artifact against the script that writes it and the
+  claim it backs, with a test that fails if an artifact is added without a row
+  or a row points at a file that is gone.
 
 - Documentation site at <https://impact-adjoint.vercel.app>, with a component
   reference generated from the Tesseract schemas, an interactive step-size

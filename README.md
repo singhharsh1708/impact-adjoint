@@ -169,7 +169,12 @@ CPU, dev mode, `dt` 1e-3, `t_final` 2.0 s, four impacts; the container adds
 | ratio | 6.2× | 8.5× | 7.9× |
 
 Gradients are forward-variational, so VJP cost grows with parameter count:
-93 µs per parameter, affine out to 581 parameters at R² = 0.998. That 8.5×
+93 µs per parameter, affine out to 581 parameters at R² = 0.998. These are
+wall-clock figures from one run on a shared laptop, and repeat runs move them:
+the slope re-measured at 81 µs with R² 0.997, and the gradient charge below
+re-measured at 5.5 forward solves rather than 6.8. The affine shape holds; the
+absolute figures carry ten to twenty percent of run to run spread, and the
+conclusions resting on them are hedged accordingly. That 8.5×
 is a VJP over all 77 sensitivity columns; `study_optimizers.py` measures its
 own charge against the 24 columns its objective actually differentiates, which
 comes out at 6.8 forward solves.

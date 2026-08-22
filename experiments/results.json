@@ -93,5 +93,6 @@
   "SCALE_us_per_param": 93.11700239409824,
   "SCALE_vjp_ms_14": 11.3651249994291,
   "SCALE_vjp_ms_581": 64.72054199548438,
-  "SCALE_vjp_ms_77": 19.815958999970462
+  "SCALE_vjp_ms_77": 19.815958999970462,
+  "TIMING_checks_total_s": 24.8
 }

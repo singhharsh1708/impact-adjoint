@@ -28,7 +28,9 @@ the gradient error rather than by the step.
 
 **Cost scaling.** Affine in parameter count out to 581 parameters, 93
 microseconds per parameter, R² = 0.998. This is what makes the reverse-mode
-extension a measured argument rather than a preference.
+extension a measured argument rather than a preference. The slope is
+wall-clock on one shared laptop and moves between runs: a repeat measured 81
+microseconds per parameter at R² = 0.997. The affine shape is what holds.
 
 ## Optimizer benchmark
 
@@ -58,7 +60,10 @@ on the ratio of medians and 6.3x on the paired per-seed median. That is not
 resolved at this sample size: CMA-ES is ahead on 4 of 5 seeds and behind on 1, a sign test gives
 p = 0.375, and a bootstrap interval on the median per-seed ratio spans both
 sides of parity. The honest statement is that under wall-clock accounting the
-ordering is not established at n = 5, not that it reverses.
+ordering is not established at n = 5, not that it reverses. The charge is
+itself a wall-clock measurement on a shared machine: a repeat run measured 5.5
+solves rather than 6.8 and moved the ratio of medians to 1.3x, which is one
+more reason to read this as unresolved rather than as a result.
 
 :::{important}
 The wall-clock accounting is reported rather than hidden. What it exposes is

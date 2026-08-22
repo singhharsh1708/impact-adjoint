@@ -8,6 +8,16 @@
 set -euo pipefail
 HOST="${1:-http://127.0.0.1:8123}"
 
+# Without this, running the script before starting a server fails inside
+# json.tool with "Expecting value: line 1 column 1", which says nothing about
+# the actual problem.
+if ! curl -sf -o /dev/null "$HOST/health"; then
+  echo "No Tesseract is answering at $HOST." >&2
+  echo "Start one in another shell first:" >&2
+  echo "    tesseract serve -p 8123 contact-sim" >&2
+  exit 1
+fi
+
 INPUTS='{
   "v0": [2.0, 0.5], "y0": 1.0, "e": 0.7, "mu": 0.1,
   "amp": [0.2, 0.1, 0.15], "ctr": [1.0, 2.5, 4.0], "wid": [0.5, 0.4, 0.6],

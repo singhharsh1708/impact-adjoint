@@ -94,7 +94,12 @@ def main():
     b_side = ES[frac_a == 0.0]
     print(f"\nunanimous bin A up to e = {a_side.max() if len(a_side) else float('nan'):.3f}")
     print(f"unanimous bin B from e = {b_side.min() if len(b_side) else float('nan'):.3f}")
-    print(f"transition band under {V_SD*100:.0f} cm/s inlet jitter: e in [{band[0]:.3f}, {band[1]:.3f}]")
+    if len(unsure):
+        print(f"transition band under {V_SD*100:.0f} cm/s inlet jitter: "
+              f"e in [{band[0]:.3f}, {band[1]:.3f}]")
+    else:
+        print(f"no transition band under {V_SD*100:.0f} cm/s inlet jitter: "
+              "every restitution sampled classifies unanimously")
 
     # Each design sets its own threshold, so scoring both against one fixed
     # cut would be meaningless. The quantity that compares them fairly is

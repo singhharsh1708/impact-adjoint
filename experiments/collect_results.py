@@ -158,6 +158,11 @@ def main():
         r["CHECKGRAD_checks"] = int(d["checks"])
         r["CHECKGRAD_endpoints"] = int(d["endpoints"])
 
+    tm = E / "timing.json"
+    if tm.exists():
+        d = json.loads(tm.read_text())
+        r["TIMING_checks_total_s"] = float(d["total_median_s"])
+
     (E / "results.json").write_text(json.dumps(r, indent=2, sort_keys=True))
 
     def f(x, n=3):

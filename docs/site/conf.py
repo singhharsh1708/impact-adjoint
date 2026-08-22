@@ -4,6 +4,7 @@ Stack chosen to match the Tesseract projects' own docs (Sphinx + Furo + MyST)
 so the pages sit naturally alongside docs.pasteurlabs.ai.
 """
 
+import json
 import sys
 from datetime import date
 from pathlib import Path
@@ -35,6 +36,8 @@ extensions = [
     "schema_reference",
     "figure_source",
     "diffrax_table",
+    "stat_cards",
+    "artifact_index",
 ]
 
 myst_enable_extensions = ["dollarmath", "colon_fence", "deflist", "attrs_inline",
@@ -54,7 +57,16 @@ _private_note = (
     ":::"
 ) if repo_is_private else ""
 
-myst_substitutions = {"version": version, "repo_note": _private_note}
+# Read from the artifact rather than typed, for the same reason the stat cards
+# are: prose on this page is not covered by the drift test.
+_timing = json.loads((here.parent.parent / "experiments" / "timing.json").read_text())
+_checks_walltime = f"about {_timing['total_median_s']:.0f} seconds"
+
+myst_substitutions = {
+    "version": version,
+    "repo_note": _private_note,
+    "checks_walltime": _checks_walltime,
+}
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),

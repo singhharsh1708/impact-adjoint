@@ -148,21 +148,15 @@ The saltation matrix supplies the missing term at each impact. Exact at any
 </script>
 ```
 
-```{raw} html
-<dl class="ia-figures">
-  <div><dt>3.99</dt><dd>observed order of accuracy, against an analytic solution</dd></div>
-  <div><dt>10<sup>-12</sup></dt><dd>multi-bounce agreement with a symbolic closed form</dd></div>
-  <div><dt>0 / 50</dt><dd>failures in Tesseract's gradient checker, at 10<sup>-4</sup> relative tolerance</dd></div>
-  <div><dt>4.6e-9</dt><dd>analytic Jacobian vs an independent scipy reimplementation</dd></div>
-  <div><dt>~5 min</dt><dd>to re-run the four verification checks</dd></div>
-</dl>
+```{stat-cards}
 ```
 
-## Reproduce in five minutes
+## Reproduce it
 
-CPU only, no Docker, no GPU. The four checks themselves take about five
-minutes; the first run adds a few minutes of `pip install` and one Julia
-bootstrap, so budget nearer fifteen from a genuinely cold machine.
+CPU only, no Docker, no GPU. The four checks take {{ checks_walltime }} on a
+warm Julia depot; the first run adds a few minutes of `pip install` and one
+Julia bootstrap, so budget nearer fifteen minutes from a genuinely cold
+machine.
 
 {{ repo_note }}
 
@@ -256,6 +250,7 @@ results
 :caption: Reference
 
 reference
+artifacts
 related
 upstream
 limitations
