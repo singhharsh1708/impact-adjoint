@@ -42,7 +42,7 @@ myst_enable_extensions = ["dollarmath", "colon_fence", "deflist", "attrs_inline"
 myst_heading_anchors = 3
 # Flip to False the moment the repository is public; that is the only edit
 # needed to remove the notice from every page that carries it.
-repo_is_private = True
+repo_is_private = False
 
 _private_note = (
     ":::{warning}\n"
