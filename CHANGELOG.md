@@ -4,7 +4,7 @@ Notable changes to the solver, the experiments, and any number this project
 reports. Corrections are listed as prominently as features: where a published
 figure changed, this says what it was and what it became.
 
-## Unreleased
+## 0.1.0 (2026-08-24)
 
 ### Corrected
 
@@ -301,7 +301,8 @@ figure changed, this says what it was and what it became.
 - Every figure now names the artifact it was plotted from and the script that
   drew it.
 
-## 0.1.0
+### Baseline
 
 First complete entry: three Tesseracts, seven experiments, six verification
-studies, twelve golden tests, three independent oracles, and CI on every push.
+studies, three independent oracles, and CI on every push. The suite has grown
+to 41 tests since.
