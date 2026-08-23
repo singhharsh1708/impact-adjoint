@@ -166,7 +166,7 @@ def fig_stats():
     ax.set_title(f"classification under {float(g['v_sd'])*100:.0f} cm/s inlet jitter", loc="left")
     ax.legend(frameon=False, fontsize=9, loc="center left")
 
-    fig.suptitle("Robustness: the ensemble objective buys the low tail and decisiveness, and purity too",
+    fig.suptitle("Robustness: the ensemble objective buys purity and the whole margin distribution, not decisiveness under jitter",
                  x=0.01, ha="left", fontsize=12)
     fig.tight_layout(rect=(0, 0, 1, 0.90))
     fig.savefig(FIGS / "study_robustness.png")

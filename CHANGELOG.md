@@ -8,6 +8,96 @@ figure changed, this says what it was and what it became.
 
 ### Corrected
 
+- **The ensemble design was one Adam step past the last point it evaluated.**
+  E5 and E4 were fixed for this; `e5b_robust_separator.py` was not. Its
+  training ensemble is drawn once from a fixed seed, so the objective is
+  deterministic in the design and the best evaluated iterate is the right one
+  to keep. Correcting it moves published numbers in both directions. Held-out
+  purity over five ensembles goes **997/1000 to 1000/1000** and the worst case
+  **-0.35 m to +0.07 m**, out of the wrong bin rather than inside it; the
+  fifth-percentile margin goes 0.49 m to **0.40 m** and E5b's ensemble margin
+  0.43 m to **0.37 m**, which is now narrower than Nelder-Mead's 0.41 m. The
+  median margin no longer costs anything: it improves 1.8 cm, where the
+  previous design lost 2.7 cm.
+- **The jitter sweep no longer separates the two designs, and the pages said it
+  did.** The corrected ensemble design is decisive at 18 of 20 restitutions,
+  not 20 of 20. The point design is also 18 of 20. Two discordant pairs against
+  two gives exact McNemar **p = 1.0**, where the pages reported p = 0.50 and a
+  consistent direction. Robustness bought on the scatter ensemble did not
+  transfer to restitutions far from the training distribution, and that is
+  what the pages say now.
+- **The tolerance sweep counted failures over three endpoints against one
+  endpoint's checks.** `check_gradients.json` recorded 81 failures out of 50
+  checks at `rtol = 1e-7`, which is impossible and was the tell. The README
+  published "22 of 50" for a rate whose denominator is 150. The sweep records
+  the endpoint count and both denominators now, and re-measuring gives **15 of
+  150** at `rtol = 1e-5`.
+- **The docs CI gate was not a gate.** `docs.yaml` piped Sphinx through `tee`
+  with no `shell:` key, so Actions ran it under `bash -e` without `pipefail`
+  and the step took `tee`'s exit status. `-W` never failed a build, which
+  silently disarmed every provenance guard in `docs/site/_ext`, all of which
+  are `logger.warning` and only fatal under `-W`. The drift test explicitly
+  delegates to this gate.
+- **Two drift tests passed when the collector did nothing.** They compared
+  `RESULTS.md` and `results.json` before against after, so stubbing
+  `collect_results.main()` with a bare `return` made all twenty pass. Both
+  files are deleted before the run now.
+- **Seven of thirteen prose guards were checking a generated file against its
+  own generator**, and the search took the first match anywhere in the file, so
+  a nearby number satisfied it: README quotes 81 as a repeat measurement two
+  lines under the 93 the test guards. Each entry now names the sentence the
+  number belongs to. Setting `point_k` to 900 previously left five pages
+  publishing 983 with the suite green; it fails now.
+- **`drag` and `dt` were validated independently, never their product.** The
+  integrator is fixed-step explicit RK4, so it is stable only while
+  `drag * dt` stays under about 2.785. Past that a purely dissipative force
+  gains energy, sensitivities change sign, and the run still reports status 0.
+  Rejected at validation now.
+- **`abstract_eval` accepted a negative `n_samples`** and returned a shape of
+  `(-3, 5)`, disagreeing with `apply` on the same input. `n_samples` is a plain
+  int and stays concrete on the abstract path, so it is checked before the
+  early return.
+- **The writeup contradicted the repository's own related-work page on two
+  cited works.** DiffTaichi was filed under engines that trade away
+  event-gradient fidelity, when it documents this exact failure and repairs it
+  with a precise time of impact, and is the closest prior art here. Roussel et
+  al. and Berkowitz & Canny were described as differentiating a smoothed model
+  against a bulk flow statistic; both are non-gradient, and Berkowitz & Canny's
+  objective is per-object. The withdrawn "our contribution is the packaging"
+  claim was also still standing.
+- **"tuned CMA-ES" described an untuned design.** The CMA-ES design E5b scores
+  comes from a single hardcoded `sigma0 = 0.05, seed = 3` in `e5_separator.py`,
+  not from the tuning grid. Only `study_optimizers.py` tunes.
+- `collect_results.py` wrote the E2b draw count as a literal `2000` disguised
+  as `r.get(...) and 2000`, in the table whose header says nothing is retyped.
+  `n_draws` was in the artifact all along.
+- The E2b wall time was labelled "sampling" in the writeup and the generated
+  table; it covers warmup plus sampling. The leapfrog count is the sampling
+  phase alone, and `experiments.md` had paired the two.
+- `time_checks.py` wrote `"depot": "warm"` unconditionally, in a file whose
+  docstring says the depot state is recorded rather than assumed. It is derived
+  from whether the first repeat is anomalously slow.
+- The landing page's closed-form card floored the exponent, rendering 7.1e-12
+  as 10^-12 and claiming a tighter agreement than the artifact supports. It
+  shows the measured value, like the oracle card beside it.
+- Four regression tests were weak: a one-hot cotangent made the VJP check
+  algebraically identical to reading the first Jacobian row, two finite
+  difference comparisons sat inside an `if` that skipped them silently on a
+  topology shift, and the bounds test used a bare `Exception` over four of ten
+  validator branches. All eleven branches are exercised against their messages
+  now.
+- The landing-page timing test never read the landing page. Replacing the
+  substitution in `conf.py` with a literal passed it.
+- `study_generalization_stats.py` printed a self-contradicting verdict
+  ("unanimous at 18/20") once the design stopped being unanimous.
+- The `artifacts.md` page said only `check_gradients.json` needs Docker;
+  `e2b_posterior.npz` does too. Its regeneration note also credited the wrong
+  commands for `e3_rows.npy` and `timing.json`.
+- The second landing-page snippet is documented as running as written, but
+  needs `jax.config.update("jax_enable_x64", True)`; the component returns
+  Float64 and JAX refuses without it.
+- Test counts read 33 against 36 collected, in the README and getting started.
+
 - **The wall-clock optimizer comparison rests on one measured scalar, and that
   scalar moves.** The gradient charge re-measured at 5.5 forward solves rather
   than 6.8 on a repeat run, which moves the ratio of medians from 2.3x to 1.3x.

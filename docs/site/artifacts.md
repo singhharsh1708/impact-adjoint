@@ -10,17 +10,20 @@ a tolerance sweep that was three hardcoded literals, a wall-clock charge
 measured over the wrong columns, and a run time on the landing page that read
 five minutes against a measured twenty five seconds.
 
-Nothing here needs Docker except `check_gradients.json`, which comes from
-Tesseract's own checker running against the built `contact-sim` image.
+Two of these need Docker: `check_gradients.json`, from Tesseract's own checker
+running against the built `contact-sim` image, and `e2b_posterior.npz`, whose
+chains run over HTTP against that same container. Everything else regenerates
+in process.
 
 ```{artifact-index}
 ```
 
 ## Regenerating them
 
-The four checks in [getting started](getting-started.md) rewrite
-`oracle_results.json`, `e3_rows.npy` and `timing.json`. The experiments and
-studies rewrite the rest; [run the experiments](getting-started.md#run-the-experiments)
+The validation block in [getting started](getting-started.md#validate)
+rewrites `oracle_results.json`; `e3_naive_vs_saltation.py` writes `e3_rows.npy`,
+and `scripts/time_checks.py` writes `timing.json`. The experiments and studies
+rewrite the rest; [run the experiments](getting-started.md#run-the-experiments)
 lists them with their run times. `collect_results.py` then rebuilds
 `results.json` and `docs/RESULTS.md` from whatever is on disk, and the drift
 test fails if the prose no longer matches.

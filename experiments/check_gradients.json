@@ -26,19 +26,27 @@
   "tolerance_sweep": {
     "1e-4": {
       "checks": 150,
+      "checks_per_endpoint": 50,
+      "endpoints": 3,
       "failures": 0
     },
     "1e-5": {
       "checks": 150,
-      "failures": 22
+      "checks_per_endpoint": 50,
+      "endpoints": 3,
+      "failures": 15
     },
     "1e-6": {
       "checks": 150,
-      "failures": 47
+      "checks_per_endpoint": 50,
+      "endpoints": 3,
+      "failures": 51
     },
     "1e-7": {
       "checks": 150,
-      "failures": 81
+      "checks_per_endpoint": 50,
+      "endpoints": 3,
+      "failures": 83
     }
   }
 }

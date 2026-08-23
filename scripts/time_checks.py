@@ -62,11 +62,21 @@ def main():
     }
     total = sum(v["median_s"] for v in per_check.values())
 
+    # A cold depot shows up as a first repeat far slower than the rest, since
+    # only that one pays the bootstrap. Deriving the label from the samples
+    # keeps it a measurement; writing "warm" unconditionally would have
+    # published a cold number under a warm label.
+    first_run_ratio = max(
+        samples[rel][0] / statistics.median(samples[rel][1:])
+        for rel, _ in CHECKS
+    ) if REPEATS > 1 else float("nan")
+
     out = {
         "checks": per_check,
         "total_median_s": round(total, 1),
         "repeats": REPEATS,
-        "depot": "warm",
+        "depot": "warm" if first_run_ratio < 3.0 else "cold on first repeat",
+        "first_run_ratio": round(first_run_ratio, 2),
         "platform": f"{platform.system()} {platform.machine()}",
         "python": platform.python_version(),
     }
@@ -75,7 +85,7 @@ def main():
 
     for rel, v in per_check.items():
         print(f"{v['median_s']:6.2f}s  {rel}")
-    print(f"{total:6.1f}s  total, median of {REPEATS} runs, warm depot")
+    print(f"{total:6.1f}s  total, median of {REPEATS} runs, depot {out['depot']}")
     print(f"wrote {path.relative_to(ROOT)}")
 
 

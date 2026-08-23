@@ -82,12 +82,18 @@ def main():
     for rt in ("1e-4", "1e-5", "1e-6", "1e-7"):
         rows_rt = LINE.findall(_run(rt))
         if rows_rt:
-            # failures sum over every endpoint, so the denominator has to as
-            # well. Taking it from one row published 81 failures out of 50.
+            # The checker emits one line per endpoint. Summing failures across
+            # them while taking the check count from a single line mixes two
+            # populations: it published "22 of 50" for a rate that is 22 of
+            # 150, and made the 1e-7 row read 81 failures out of 50 checks.
+            per_endpoint = int(rows_rt[0][3])
             sweep[rt] = {"failures": sum(int(f) for _, _, f, _ in rows_rt),
-                         "checks": sum(int(c) for _, _, _, c in rows_rt)}
+                         "checks": per_endpoint * len(rows_rt),
+                         "endpoints": len(rows_rt),
+                         "checks_per_endpoint": per_endpoint}
             print(f"  rtol {rt}: {sweep[rt]['failures']} failures / "
-                  f"{sweep[rt]['checks']} checks")
+                  f"{sweep[rt]['checks']} checks "
+                  f"({len(rows_rt)} endpoints x {per_endpoint})")
     failing = [k for k, v in sweep.items() if v["failures"] > 0]
 
     data = {

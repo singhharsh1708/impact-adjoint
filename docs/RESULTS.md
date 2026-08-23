@@ -46,7 +46,7 @@ not retyped, so this file cannot drift from what was measured.
 | E2b split r_hat, e and mu | 1.01 / 1.01 |
 | E2b effective sample size of 2000 draws | 344 / 330 |
 | E2b leapfrog steps, 2 chains (apply + VJP each) | 23440 |
-| E2b sampling wall time | 23 min |
+| E2b warmup plus sampling wall time | 23 min |
 
 ## Multi-seed benchmark and robustness
 
@@ -61,8 +61,8 @@ not retyped, so this file cannot drift from what was measured.
 | CMA / Adam, ratio of medians (unpaired, for reference) | 917x, 0.433x |
 | per-seed eval ratio span | 11.5x to 1.4e+05x |
 | held-out purity, point design | 983/1000 (Wilson 97.29 to 98.94 %) |
-| held-out purity, ensemble design | 997/1000 (Wilson 99.12 to 99.90 %) |
-| 5th-percentile margin, point to ensemble | 0.05 m to 0.494 m |
-| worst-case margin, point to ensemble | -0.12 m to -0.353 m |
+| held-out purity, ensemble design | 1000/1000 (Wilson 99.62 to 100.00 %) |
+| 5th-percentile margin, point to ensemble | 0.05 m to 0.404 m |
+| worst-case margin, point to ensemble | -0.12 m to 0.0667 m |
 | decisive under jitter, point design | 18/20 restitutions |
-| decisive under jitter, ensemble design | 20/20 restitutions |
+| decisive under jitter, ensemble design | 18/20 restitutions |

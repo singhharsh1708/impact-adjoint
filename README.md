@@ -79,7 +79,7 @@ raw `curl` client, unchanged.
 |---|---|
 | **E3**, the failure measured | Grid-reset autodiff gives `d x(T)/d v0y` = **exactly 0.0 at every dt** (truth +0.0904; the exact zero is specific to this flat-terrain case, on curved terrain it is nonzero and wrong). The pure-JAX repair converges only by hand-implementing event sensitivity. |
 | **E5**, 24-dim resilience separator | At a shared budget of 900 forward-solve units with a gradient charged as 2: Adam on saltation gradients **2×10⁻⁷** vs CMA-ES 2×10⁻³ vs Nelder-Mead 2×10⁻². Charged by measured wall-clock instead, CMA-ES is ahead on 4 of 5 seeds, which a sign test does not resolve at that sample size. The objective gap also does not translate: scored on held-out scatter, Nelder-Mead matches Adam's sorting purity with a wider margin. Both accountings and that comparison are in the writeup. |
-| **E5b**, design under uncertainty | Ensemble objective over inlet and restitution scatter. Held-out purity 199/200 for the point design and 200/200 after refinement on one draw; over five independent ensembles, 983/1000 against 997/1000 with non-overlapping Wilson intervals (McNemar p = 0.0026). The fifth-percentile margin improves 0.05 m to 0.49 m, though the worst case stays on the wrong side. |
+| **E5b**, design under uncertainty | Ensemble objective over inlet and restitution scatter. Held-out purity 199/200 for the point design and 200/200 after refinement on one draw; over five independent ensembles, 983/1000 against 1000/1000 with non-overlapping Wilson intervals (McNemar p = 1.5e-05). The fifth-percentile margin improves 0.05 m to 0.40 m, and the worst case moves from inside the wrong bin to 0.07 m clear of it. |
 | **E6**, zero-shot generalization | Trained on two materials, sorts the whole continuum e ∈ [0.35, 0.875] with **one threshold**. |
 | **E1**, inverse design | Miss **1.12 m → 2.7 cm** through 5 bounces, across bounce-count changes. |
 | **E2/E2b**, calibration | NUTS posterior `e = 0.697 ± 0.007`, `mu = 0.096 ± 0.009`; truth inside both 95% CIs, 0 divergences. |
@@ -116,7 +116,8 @@ as finite-difference gates through the solver itself:
   much larger check count made mostly of repeats compared at ten percent; that
   measures the sampler rather than the gradient, so this runs distinct entries
   at a tolerance the oracles justify. At the same `eps = 1e-6`, it first fails at
-  `rtol = 1e-5` (22 of 150), which is where the central difference
+  `rtol = 1e-5` (15 of 150 checks across the three endpoints), which is where
+  the central difference
   itself stops resolving rather than where the gradient does. The whole sweep
   is recorded in the artifact, measured rather than asserted.
 - `scripts/validate_contact.py` is an FD gate (rtol 1e-5) plus robustness
@@ -149,11 +150,11 @@ test does not resolve at n = 5. Both
 are reported; the reverse-mode adjoint in Future work is what closes it.*
 
 ![robustness](docs/figures/study_robustness.png)
-*Five independent ensembles: 983/1000 vs 997/1000 with non-overlapping
+*Five independent ensembles: 983/1000 vs 1000/1000 with non-overlapping
 Wilson intervals, and the fifth-percentile margin improving 0.05 m to
-0.49 m. The worst case stays inside the wrong bin for both. Under
-inlet jitter the point design is indecisive at 2 of 20 restitutions, including
-its own trained value; the ensemble design at none.*
+0.40 m. The worst case moves from -0.12 m to +0.07 m, out of the wrong bin. Under
+inlet jitter, though, both designs are indecisive at 2 of 20 restitutions and
+exact McNemar gives p = 1.0, so that sweep does not separate them.*
 
 ## Performance envelope
 
@@ -256,8 +257,8 @@ tesseract serve -p 8123 contact-sim &                 # the curl client needs th
 tesseracts/    contact_sim (Julia solver) · score_target (JAX objective) · julia_kernel (Day-1 proof)
 experiments/   e1-e6, e5b + figure/animation generators + committed result artifacts
 scripts/       three validation oracles · boundary proofs · curl client
-tests/         33 tests: golden regressions plus no-drift guards. One needs
-               Sphinx and skips without it; CI installs it so all 33 run
+tests/         41 tests: golden regressions plus no-drift guards. One needs
+               Sphinx and skips without it; CI installs it so all 41 run
 docs/          technical writeup, all figures, and the site source (docs/site)
 ```
 

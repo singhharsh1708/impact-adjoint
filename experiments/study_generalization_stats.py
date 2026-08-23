@@ -132,9 +132,12 @@ def main():
     kp, n, bad_p = stats["point"]
     kr, _, bad_r = stats["robust"]
     assert kr >= kp, "ensemble design should not be less decisive than the point design"
+    verdict = ("is unanimous at every restitution sampled"
+               if kr == n else
+               f"is decisive at {kr}/{n}, indecisive at {sorted(bad_r)}")
     print(f"\nGENERALIZATION STATS PASSED: the point design is indecisive under jitter at "
           f"{n-kp} of {n} restitutions (including its own trained e=0.8), while the "
-          f"ensemble design is unanimous at {kr}/{n}")
+          f"ensemble design {verdict}")
 
 
 if __name__ == "__main__":

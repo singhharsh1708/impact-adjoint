@@ -163,10 +163,25 @@ def test_composed_vjp_chain(tess):
 
 
 def test_input_bounds_rejected(tess):
-    for bad in (dict(BASE, e=1.3), dict(BASE, mu=-0.2), dict(BASE, dt=0.0),
-                dict(BASE, wid=np.array([0.5, -0.1, 0.6]))):
-        with pytest.raises(Exception):
+    cases = [
+        (dict(BASE, e=1.3), "e must be in"),
+        (dict(BASE, mu=-0.2), "mu must be in"),
+        (dict(BASE, dt=0.0), "dt must be > 0"),
+        (dict(BASE, wid=np.array([0.5, -0.1, 0.6])), "widths must be > 0"),
+        (dict(BASE, drag=-1.0), "drag must be >= 0"),
+        (dict(BASE, v_stop=-1.0), "v_stop must be >= 0"),
+        (dict(BASE, t_final=-1.0), "t_final must be >= 0"),
+        (dict(BASE, n_samples=-3), "n_samples must be >= 0"),
+        (dict(BASE, ctr=np.array([1.0, 2.5])), "must share one length"),
+        (dict(BASE, drag=float("nan")), "must be finite"),
+        (dict(BASE, drag=1e6), "stability limit"),
+    ]
+    for bad, expected in cases:
+        with pytest.raises(Exception) as excinfo:
             tess.apply(bad)
+        assert expected in str(excinfo.value), (
+            f"expected a message containing {expected!r}, got {excinfo.value}"
+        )
 
 
 def test_jvp_matches_jacobian(tess):
@@ -181,12 +196,17 @@ def test_jvp_matches_jacobian(tess):
 
 
 def test_vjp_matches_jacobian(tess):
+    # A one-hot cotangent on the first row makes ct @ J identical to J[0], so
+    # an endpoint that ignored the cotangent and returned the first row would
+    # pass. Every component is distinct and nonzero here.
+    ct = np.array([1.0, -2.0, 0.5, 3.0])
     j = tess.jacobian(BASE, jac_inputs={"e"}, jac_outputs={"qf"})
     v = tess.vector_jacobian_product(
         BASE, vjp_inputs={"e"}, vjp_outputs={"qf"},
-        cotangent_vector={"qf": np.array([1.0, 0.0, 0.0, 0.0])},
+        cotangent_vector={"qf": ct},
     )
-    assert abs(float(np.asarray(v["e"])) - float(np.asarray(j["qf"]["e"])[0])) < 1e-12
+    expect = float(ct @ np.asarray(j["qf"]["e"], float))
+    assert abs(float(np.asarray(v["e"])) - expect) < 1e-12
 
 def test_large_bump_count_jacobian(tess):
     """nb=24 (77 theta) is the E5 configuration and the only one that exercises
@@ -209,9 +229,12 @@ def test_large_bump_count_jacobian(tess):
     up[k] += h
     dn[k] -= h
     ru, rd = tess.apply({**cfg, "amp": up}), tess.apply({**cfg, "amp": dn})
-    if int(ru["n_events"]) == int(rd["n_events"]) == int(tess.apply(cfg)["n_events"]):
-        fd = (np.asarray(ru["qf"], float) - np.asarray(rd["qf"], float)) / (2 * h)
-        assert np.max(np.abs(a[:, k] - fd)) / max(1.0, np.max(np.abs(fd))) < 2e-5
+    assert int(ru["n_events"]) == int(rd["n_events"]) == int(tess.apply(cfg)["n_events"]), (
+        "the probe crossed a bounce-count boundary, so this test compared "
+        "nothing; pick a smaller h or a different configuration"
+    )
+    fd = (np.asarray(ru["qf"], float) - np.asarray(rd["qf"], float)) / (2 * h)
+    assert np.max(np.abs(a[:, k] - fd)) / max(1.0, np.max(np.abs(fd))) < 2e-5
 
 
 def test_impact_x_padding_is_exactly_zero(tess):
@@ -240,6 +263,9 @@ def test_drag_is_differentiated_consistently(tess):
     h = 1e-6
     up = tess.apply({**cfg, "v0": np.asarray(cfg["v0"]) + np.array([0.0, h])})
     dn = tess.apply({**cfg, "v0": np.asarray(cfg["v0"]) - np.array([0.0, h])})
-    if int(up["n_events"]) == int(dn["n_events"]) == int(r["n_events"]):
-        fd = (np.asarray(up["qf"], float) - np.asarray(dn["qf"], float)) / (2 * h)
-        assert np.max(np.abs(a[:, 1] - fd)) / max(1.0, np.max(np.abs(fd))) < 2e-5
+    assert int(up["n_events"]) == int(dn["n_events"]) == int(r["n_events"]), (
+        "the probe crossed a bounce-count boundary, so this test compared "
+        "nothing; pick a smaller h or a different configuration"
+    )
+    fd = (np.asarray(up["qf"], float) - np.asarray(dn["qf"], float)) / (2 * h)
+    assert np.max(np.abs(a[:, 1] - fd)) / max(1.0, np.max(np.abs(fd))) < 2e-5

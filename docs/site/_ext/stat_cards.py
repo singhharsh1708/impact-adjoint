@@ -13,7 +13,6 @@ what the artifacts say.
 """
 
 import json
-import math
 from pathlib import Path
 
 from docutils import nodes
@@ -24,11 +23,6 @@ logger = logging.getLogger(__name__)
 ARTIFACT = "experiments/results.json"
 
 
-def _order(v):
-    """Order of magnitude, for figures where the exponent is the whole point."""
-    return f"10<sup>{math.floor(math.log10(abs(v)))}</sup>"
-
-
 def _sci(v):
     mantissa, exponent = f"{v:.1e}".split("e")
     return f"{mantissa}e{int(exponent)}"
@@ -37,10 +31,11 @@ def _sci(v):
 CARDS = [
     (("CONV_order",), lambda v: f"{v:.2f}",
      "observed order of accuracy, against an analytic solution"),
-    (("CLOSED_FORM_jacobian_worst",), _order,
+    (("CLOSED_FORM_jacobian_worst",), _sci,
      "multi-bounce agreement with a symbolic closed form"),
     (("CHECKGRAD_failures", "CHECKGRAD_checks"), lambda f, c: f"{int(f)} / {int(c)}",
-     "failures in Tesseract's gradient checker, at 10<sup>-4</sup> relative tolerance"),
+     "failures per endpoint in Tesseract's gradient checker, at "
+     "10<sup>-4</sup> relative tolerance"),
     (("REFERENCE_jacobian_worst",), _sci,
      "analytic Jacobian vs an independent scipy reimplementation"),
     (("TIMING_checks_total_s",), lambda v: f"{v:.0f} s",

@@ -99,6 +99,7 @@ def main():
             r["E2b_ess_mu"] = float(e2b["ess_mu"])
         r["E2b_leapfrog_steps"] = int(e2b["n_leapfrog"])
         r["E2b_wall_s"] = float(e2b["wall_s"])
+        r["E2b_n_draws"] = int(e2b["n_draws"])
 
     rb = load("robustness_stats.npz")
     if rb is not None:
@@ -222,10 +223,10 @@ def main():
     ] + ([
         f"| E2b divergences | {r['E2b_divergences']} |",
         f"| E2b split r_hat, e and mu | {f(r['E2b_r_hat_e'], 3)} / {f(r['E2b_r_hat_mu'], 3)} |",
-        f"| E2b effective sample size of {r.get('E2b_leapfrog_steps') and 2000} draws | "
+        f"| E2b effective sample size of {r['E2b_n_draws']:.0f} draws | "
         f"{r.get('E2b_ess_e', float('nan')):.0f} / {r.get('E2b_ess_mu', float('nan')):.0f} |",
         f"| E2b leapfrog steps, 2 chains (apply + VJP each) | {r['E2b_leapfrog_steps']} |",
-        f"| E2b sampling wall time | {r['E2b_wall_s'] / 60:.0f} min |",
+        f"| E2b warmup plus sampling wall time | {r['E2b_wall_s'] / 60:.0f} min |",
     ] if "E2b_leapfrog_steps" in r else []) + [
         "",
         "## Multi-seed benchmark and robustness",

@@ -84,9 +84,9 @@ def main():
         return float(np.mean(margins(amp, ensemble) > 0))
 
     # The gradient-free designs were never evaluated on the metric this
-    # project says matters. A four-order gap in loss units is 0.34 mm against
-    # 12.6 mm with bins 1600 mm apart, so both may sort perfectly; the
-    # question is whether they hold up under scatter.
+    # project says matters. The loss gap is 0.34 mm against 31 mm with bins
+    # 1600 mm apart, so both may sort perfectly; the question is whether they
+    # hold up under scatter.
     e5 = np.load(ROOT / "experiments" / "e5_result.npz")
     rival_purity = {}
     for rival in ("cma-es", "nelder-mead"):
@@ -104,14 +104,20 @@ def main():
     state = opt.init(amp)
     grad_fn = jax.value_and_grad(loss_fn)
     n_iters = 80
+    # Keep the best point the loop actually evaluated. Returning `amp` after
+    # the final update saves a vector whose objective was never computed, which
+    # is the defect E5 and E4 were already fixed for.
+    best, best_amp = np.inf, np.asarray(amp)
     for it in range(n_iters):
         val, g = grad_fn(amp)
+        if float(val) < best:
+            best, best_amp = float(val), np.asarray(amp)
         if it % 10 == 0 or it == n_iters - 1:
             print(f"iter {it:3d}  expected loss {float(val):.5f}")
         updates, state = opt.update(g, state)
         amp = jnp.clip(optax.apply_updates(amp, updates), 0.0, AMP_MAX)
 
-    robust_amp = np.asarray(amp)
+    robust_amp = best_amp
     p_robust_train = purity(robust_amp, train)
     p_robust_test = purity(robust_amp, test)
     print(f"\nrobust design: train purity {p_robust_train:.3f}  test purity {p_robust_test:.3f}")

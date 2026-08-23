@@ -27,7 +27,14 @@ jobs:
                       sphinxext-opengraph sphinxcontrib-mermaid matplotlib pillow \
                       sphinx-sitemap
       - name: Build site
-        run: python -m sphinx -b html docs/site docs/site/build -W --keep-going -n 2>&1 | tee build.log
+        # Without an explicit shell, Actions runs `bash -e` with no pipefail,
+        # so `| tee` swallowed Sphinx's exit status and -W never failed the
+        # build. Every provenance guard in docs/site/_ext is a logger.warning,
+        # which is only fatal under -W, so this gate was holding nothing up.
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m sphinx -b html docs/site docs/site/build -W --keep-going -n 2>&1 | tee build.log
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

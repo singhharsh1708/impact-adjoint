@@ -152,7 +152,7 @@ VJP recovers `e` to 0.002 and `μ` to 0.009 from a distant start. For the
 posterior, NumPyro's NUTS sampler runs directly against the *containerized*
 solver. Every leapfrog step calls the Tesseract's apply and saltation-VJP
 endpoints over HTTP: 23,440 steps across two chains, measured and recorded in
-`e2b_posterior.npz`, in about 23 minutes of sampling. Two
+`e2b_posterior.npz`, in about 23 minutes of warmup plus sampling. Two
 chains, zero divergences, split r̂ = 1.01 with an effective sample size of
 344 and 330 of 2000 draws. Two chains estimate the between-chain variance on
 one degree of freedom, so r̂ here is a weak check rather than a passed one,
@@ -238,10 +238,12 @@ above what Adam attains per evaluation.
 
 That gap does not survive translation into engineering units, and we checked
 rather than assumed. Scoring every design on E5b's held-out scatter ensemble,
-Adam reaches 0.995 purity with a 0.07 m fifth-percentile margin, tuned CMA-ES
+Adam reaches 0.995 purity with a 0.07 m fifth-percentile margin, CMA-ES
 0.980 with 0.18 m, and Nelder-Mead 0.995 with 0.41 m: five orders behind on
 the objective, identical purity, and a wider margin. The ensemble-refined
-design reaches 1.000 with 0.43 m. Minimising the point objective further does
+design reaches 1.000 with 0.37 m, the only design to sort every held-out
+particle, though Nelder-Mead's 0.41 m tail is wider. Minimising the point
+objective further does
 not produce a better separator at this scale; optimising the ensemble
 objective does, and that is a gradient through many trajectories at once.
 
@@ -319,7 +321,7 @@ a real limitation rather than a handled case, and it is stated as one in
 
 Six studies check the machinery itself rather than any application, each
 writing an artifact that `experiments/collect_results.py` reads into
-`docs/RESULTS.md`, so no number in this document is retyped by hand.
+`docs/RESULTS.md`, so no number in that table is retyped by hand.
 
 ![verification](figures/study_verification.png)
 
@@ -338,37 +340,45 @@ argument rather than a preference.
 
 Two robustness studies replace single draws with statistics. Over five
 independent 200-particle ensembles, the point design classifies 983 of 1000
-and the ensemble design 997 of 1000, with non-overlapping Wilson intervals
-(McNemar on the paired outcomes gives p = 0.0026);
-more usefully, the fifth-percentile separation margin improves from 0.05 m to
-0.49 m (paired bootstrap 95% interval [+0.39, +0.47] m). The worst case does
-not improve, going from -0.12 m to -0.35 m, both inside the wrong bin: the
-ensemble objective buys the low tail rather than the extreme. Sweeping
-restitution under inlet jitter shows what the deterministic sweep hid: the
-point design is indecisive at 2 of 20 restitutions, including its own trained
-value of 0.8, where 12.5% of jittered draws cross into the wrong bin. The
-ensemble design is unanimous at all 20. Both designs see the same restitutions
-and the same jitter draws, so that is a paired comparison of two discordant
-points, and exact McNemar gives p = 0.50, the floor for two discordant pairs:
-the direction is consistent but the comparison cannot establish it. Unanimity
-here also means 0 failures in 40 draws, which bounds the per-restitution
-failure rate at about 7.5% rather than at zero. It costs a little median
-margin: 2.7 cm, with a paired bootstrap interval of
-[-0.040, -0.009] m that excludes zero, so the trade is measurable.
+and the ensemble design 1000 of 1000, with non-overlapping Wilson intervals
+(McNemar on the paired outcomes gives p = 1.5e-05); the fifth-percentile
+separation margin improves from 0.05 m to 0.40 m (paired bootstrap 95%
+interval [+0.31, +0.38] m), the worst case moves from -0.12 m to +0.07 m and
+so out of the wrong bin, and the median improves as well, by 1.8 cm with a
+paired interval of [+0.006, +0.036] m. The refinement is not a tail-for-middle
+trade on this ensemble; it is better everywhere we measured.
+
+Sweeping restitution under inlet jitter is where the result stops. The point
+design is indecisive at 2 of 20 restitutions, including its own trained value
+of 0.8, where 12.5% of jittered draws cross into the wrong bin. The ensemble
+design is indecisive at 2 of 20 as well, at 0.625 and 0.650, neither of them a
+value it was trained on. Both designs see the same restitutions and the same
+jitter draws, so this is a paired comparison, and it is two discordant pairs
+against two: exact McNemar gives p = 1.0. On this sweep the two designs are
+indistinguishable, and the only honest reading is that robustness bought on
+the scatter ensemble did not transfer to restitutions far from the training
+distribution. Decisiveness here also means 0 failures in 40 draws, which
+bounds the per-restitution failure rate at about 7.5% rather than at zero.
 
 ## 5. Related work: how everyone else gets contact gradients
 
 Existing engines obtain contact gradients by AD through smoothed/penalty
-stepping (Brax, NeurIPS 2021; DiffTaichi, ICLR 2020; gradSim, ICLR 2021), by
+stepping (Brax, NeurIPS 2021; gradSim, ICLR 2021), by
 implicit differentiation of a relaxed complementarity solve (Dojo, arXiv
 2022; Nimble, RSS 2021), or by learning the parameters of an analytic contact
 model embedded in a differentiable simulator (Zhong et al., NeurIPS 2021),
 each trading event-gradient fidelity for what the host framework can express; Suh et al. (ICML 2022) document the resulting bias.
+DiffTaichi (ICLR 2020) is the exception, and the closest prior art to the
+mechanism used here: it documents this exact failure, that differentiating the
+discretized program returns 1 instead of the correct -1 because "time
+discretization itself is not differentiated by the compiler", and repairs it
+with a precise time of impact.
 The exact alternative is classical: the **saltation matrix** (Aizerman &
 Gantmacher 1958; Hiskens & Pai, IEEE TCAS 2000; surveyed by Kong et al.,
-Proc. IEEE 2024). Our contribution is not the formula but the *packaging*:
-exact event sensitivities behind Tesseract endpoints, consumable by
-frameworks that cannot express them natively. The closest JAX-native
+Proc. IEEE 2024). We claim neither the formula nor the boundary: FMI has
+carried derivatives across a component boundary since 2014, and Tesseract's
+own `fortran_enzyme` example is that pattern in another language. What is
+claimed is the conjunction stated at the end of this section. The closest JAX-native
 alternative is Diffrax (Kidger, 2021), which does differentiate event times
 correctly, by implicit differentiation of a root find, and tests that
 derivative against a hand-derived reference. The gap is not the event time
@@ -379,10 +389,11 @@ request (issue #423).
 Designing fixed environment geometry through contact-driven simulation is not
 itself new. Choi & Kumar (2024) optimize baffle placement by AD through a
 differentiable granular simulator, Liu et al. (AIChE J., 2025) optimize
-hopper shape the same way, and non-gradient scene and part-feeder design goes
-back further (Roussel et al., SIGGRAPH 2019; Berkowitz & Canny, ICRA 1996).
-Those works differentiate a smoothed or learned model of contact and target a
-bulk flow statistic. What we could not find in the literature is design that
+hopper shape the same way; both differentiate a smoothed model of contact and
+target a bulk flow statistic. Scene and part-feeder design goes back further by
+non-gradient means: Roussel et al. (SIGGRAPH 2019) is sampling-based, and
+Berkowitz & Canny (ICRA 1996) enumerate a grid, though their objective is
+per-object rather than bulk. What we could not find in the literature is design that
 uses *exact event-time sensitivities* and targets *per-impact routing* of
 individual trajectories, which is the combination E4 and E5 exercise.
 

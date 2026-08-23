@@ -59,8 +59,13 @@ class InputSchema(BaseModel):
         na, nc, nw = self.amp.shape[0], self.ctr.shape[0], self.wid.shape[0]
         if not (na == nc == nw >= 1):
             raise ValueError(f"amp/ctr/wid must share one length >= 1, got {na}/{nc}/{nw}")
+        if self.n_samples < 0:
+            raise ValueError(f"n_samples must be >= 0, got {self.n_samples}")
         if isinstance(self.e, ShapeDType):
-            # abstract evaluation: shapes only, no values to check
+            # abstract evaluation: shapes only, no values to check. n_samples
+            # is checked above rather than below, because it is a plain int and
+            # stays concrete here, where a negative value would otherwise reach
+            # _abstract_shapes and be published as a negative array dimension.
             return self
         if not (0.0 < float(self.e) <= 1.0):
             raise ValueError(f"e must be in (0, 1], got {float(self.e)} (e > 1 would gain energy)")
@@ -79,8 +84,16 @@ class InputSchema(BaseModel):
             raise ValueError(f"t_final must be >= 0, got {float(self.t_final)}")
         if np.any(np.asarray(self.wid) <= 0.0):
             raise ValueError("all terrain widths must be > 0")
-        if self.n_samples < 0:
-            raise ValueError(f"n_samples must be >= 0, got {self.n_samples}")
+        stiffness = float(self.drag) * float(self.dt)
+        if stiffness > 2.7:
+            raise ValueError(
+                f"drag * dt must stay below the explicit RK4 stability limit, "
+                f"got {stiffness:.3g} (drag={float(self.drag):.6g}, "
+                f"dt={float(self.dt):.6g}). Past roughly 2.785 the fixed step "
+                "amplifies instead of damping: energy grows under a purely "
+                "dissipative force and the sensitivities change sign, while "
+                "the run still reports status 0. Reduce dt or drag."
+            )
         for name in ("v0", "y0", "e", "mu", "amp", "ctr", "wid", "drag", "t_final", "dt", "v_stop"):
             if not np.all(np.isfinite(np.asarray(getattr(self, name), dtype=np.float64))):
                 raise ValueError(f"{name} must be finite")

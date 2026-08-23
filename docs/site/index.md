@@ -90,6 +90,8 @@ what the component removes is the derivation, not the last three digits.
 The impact is applied at the crossing, and its time carries a derivative.
 
 ```python
+jax.config.update("jax_enable_x64", True)
+
 API = ("tesseracts/contact_sim"
        "/tesseract_api.py")
 sim = Tesseract.from_tesseract_api(API)

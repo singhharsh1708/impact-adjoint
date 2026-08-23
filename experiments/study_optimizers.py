@@ -7,7 +7,8 @@ BOTH cost accountings:
 
   eval-count : a gradient call charged as 2 forward solves (generous to us)
   wall-clock : a gradient call charged at its measured cost, remeasured here
-               solves at 77 parameters (generous to the gradient-free methods)
+               against the 24 sensitivity columns this objective actually
+               differentiates (generous to the gradient-free methods)
 
 Both methods get the same tuning treatment: CMA-ES over a sigma0 grid and
 Adam over a learning-rate grid, best of each per seed. Tuning only the
