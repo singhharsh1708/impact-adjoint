@@ -4,7 +4,14 @@ Notable changes to the solver, the experiments, and any number this project
 reports. Corrections are listed as prominently as features: where a published
 figure changed, this says what it was and what it became.
 
-## 0.1.0 (2026-08-24)
+## 0.1.1 (2026-08-24)
+
+### Note on 0.1.0
+
+0.1.0 was tagged earlier the same day and is superseded. Its E5b figures came
+from a design the optimizer never scored, and its gradient-checker sweep was
+sampled without a seed. Both are corrected here; the tag stays where it is
+rather than being moved, so the record of what it published survives.
 
 ### Corrected
 

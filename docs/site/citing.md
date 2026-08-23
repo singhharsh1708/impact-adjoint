@@ -12,14 +12,14 @@ in the repository. There is no preprint and no journal version.
   title   = {impact-adjoint: exact gradients through impact
              events across a Julia and JAX Tesseract boundary},
   year    = {2026},
-  version = {0.1.0},
+  version = {0.1.1},
   license = {Apache-2.0},
   url     = {https://github.com/singhharsh1708/impact-adjoint}
 }
 ```
 
 :::{note}
-A DOI is not yet minted. `v0.1.0` is tagged and released, and the repository
+A DOI is not yet minted. `v0.1.1` is tagged and released, and the repository
 is public, so the remaining step is connecting the repository to Zenodo and
 cutting a release it can see. The entry above will gain a `doi` field and this
 page will name it when that is done.
