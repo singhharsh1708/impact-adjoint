@@ -116,7 +116,7 @@ as finite-difference gates through the solver itself:
   much larger check count made mostly of repeats compared at ten percent; that
   measures the sampler rather than the gradient, so this runs distinct entries
   at a tolerance the oracles justify. At the same `eps = 1e-6`, it first fails at
-  `rtol = 1e-5` (22 of 50), which is where the central difference
+  `rtol = 1e-5` (22 of 150), which is where the central difference
   itself stops resolving rather than where the gradient does. The whole sweep
   is recorded in the artifact, measured rather than asserted.
 - `scripts/validate_contact.py` is an FD gate (rtol 1e-5) plus robustness

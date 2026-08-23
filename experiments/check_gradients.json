@@ -25,19 +25,19 @@
   "rtol": 0.0001,
   "tolerance_sweep": {
     "1e-4": {
-      "checks": 50,
+      "checks": 150,
       "failures": 0
     },
     "1e-5": {
-      "checks": 50,
+      "checks": 150,
       "failures": 22
     },
     "1e-6": {
-      "checks": 50,
+      "checks": 150,
       "failures": 47
     },
     "1e-7": {
-      "checks": 50,
+      "checks": 150,
       "failures": 81
     }
   }

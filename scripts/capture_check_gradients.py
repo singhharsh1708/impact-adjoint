@@ -82,8 +82,10 @@ def main():
     for rt in ("1e-4", "1e-5", "1e-6", "1e-7"):
         rows_rt = LINE.findall(_run(rt))
         if rows_rt:
+            # failures sum over every endpoint, so the denominator has to as
+            # well. Taking it from one row published 81 failures out of 50.
             sweep[rt] = {"failures": sum(int(f) for _, _, f, _ in rows_rt),
-                         "checks": int(rows_rt[0][3])}
+                         "checks": sum(int(c) for _, _, _, c in rows_rt)}
             print(f"  rtol {rt}: {sweep[rt]['failures']} failures / "
                   f"{sweep[rt]['checks']} checks")
     failing = [k for k, v in sweep.items() if v["failures"] > 0]
