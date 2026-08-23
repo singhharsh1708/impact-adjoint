@@ -25,8 +25,6 @@ ROOT = Path(__file__).parent.parent
 
 D = np.load(ROOT / "experiments" / "e5_result.npz")
 AMP, CTR, WID = D["adam_amp"], D["ctr"], D["wid"]
-V0 = np.array([2.0, 0.4])
-BIN_RUBBER, BIN_PET = 2.8, 4.4
 X_MID = 0.5 * (BIN_RUBBER + BIN_PET)
 # the separator is defined at E5's horizon: its output is "where the particle
 # is when the run ends", so evaluating past t_final measures a different
@@ -34,7 +32,7 @@ X_MID = 0.5 * (BIN_RUBBER + BIN_PET)
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
-from e5_separator import FIXED  # noqa: E402
+from e5_separator import BIN_PET, BIN_RUBBER, FIXED, V0  # noqa: E402
 
 
 def landing_x(t, e, v0):

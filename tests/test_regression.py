@@ -269,3 +269,37 @@ def test_drag_is_differentiated_consistently(tess):
     )
     fd = (np.asarray(up["qf"], float) - np.asarray(dn["qf"], float)) / (2 * h)
     assert np.max(np.abs(a[:, 1] - fd)) / max(1.0, np.max(np.abs(fd))) < 2e-5
+
+
+def test_rk4_stability_bound_is_pinned_to_the_real_limit(tess):
+    """The drag*dt bound sits at RK4's stability boundary, not near it.
+
+    Replacing the threshold with 999.0 or with 0.001 both left the suite
+    green: the only case exercising it used a product of 1000, which pins the
+    constant to six orders of free play. These straddle it.
+    """
+    from tesseract_core.runtime.core import load_module_from_path
+
+    api = load_module_from_path(str(API_PATH))
+    limit = api.RK4_STABILITY_LIMIT
+    assert abs(limit - 2.785293563405281) < 1e-12, (
+        f"RK4_STABILITY_LIMIT is {limit}, not the real root of "
+        "z^3 + 4z^2 + 12z + 24"
+    )
+
+    dt = 1e-3
+    tess.apply(dict(BASE, drag=(limit - 1e-6) / dt, dt=dt, t_final=0.05))
+
+    with pytest.raises(Exception) as excinfo:
+        tess.apply(dict(BASE, drag=(limit + 1e-6) / dt, dt=dt, t_final=0.05))
+    assert "stability limit" in str(excinfo.value)
+
+
+def test_non_finite_inputs_report_finiteness_not_stability(tess):
+    """An infinite drag is an infinite drag, not a stability-limit violation."""
+    for bad in (dict(BASE, drag=float("inf")), dict(BASE, dt=float("inf"))):
+        with pytest.raises(Exception) as excinfo:
+            tess.apply(bad)
+        assert "must be finite" in str(excinfo.value), (
+            f"expected a finiteness error, got {excinfo.value}"
+        )

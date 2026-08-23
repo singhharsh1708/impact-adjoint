@@ -91,7 +91,7 @@ scatter ensemble that E5b uses:
 | Adam | 199/200 (97–100%) | +0.07 (+0.06 to +0.32) |
 | CMA-ES | 196/200 (95–99%) | +0.18 (+0.11 to +0.25) |
 | Nelder-Mead | 199/200 (97–100%) | +0.41 (+0.33 to +0.51) |
-| ensemble-refined | 200/200 (98–100%) | +0.37 (+0.34 to +0.45) |
+| ensemble-refined | 200/200 (98–100%) | +0.43 (+0.40 to +0.52) |
 
 All four are scored on the same 200 particles, so the columns are paired.
 The purity intervals overlap for every pair, so purity does not separate
@@ -110,10 +110,12 @@ from each other.
 
 Nelder-Mead is five orders behind on the objective and sorts exactly as well
 as Adam, with a *wider* margin. Minimising the point objective further does
-not buy a better separator at this scale. What buys one is optimising the
-ensemble objective, which needs a gradient through many trajectories at once,
-and that is where the gradient actually pays here, not in the last four orders
-of a point fit.
+not buy a better separator at this scale. Optimising the ensemble objective
+does separate from Adam, whose margin interval it clears, and it needs a
+gradient through many trajectories at once, which is where the gradient pays
+here rather than in the last four orders of a point fit. It does not separate
+from Nelder-Mead on the margin: those two intervals overlap, and on this
+ensemble the honest claim stops there.
 :::
 
 ## Robustness and generalization
@@ -127,26 +129,26 @@ of a point fit.
 ```
 
 **Purity with intervals.** Over five independent 200-particle ensembles the
-point design classifies 983 of 1000 and the ensemble design 1000 of 1000, with
+point design classifies 983 of 1000 and the ensemble design 997 of 1000, with
 non-overlapping Wilson intervals. More useful than the headline percentage is
-the separation margin: its fifth percentile improves from 0.05 m to 0.40 m
-(paired bootstrap 95% interval [+0.31, +0.38] m), the worst case goes from
--0.12 m to +0.07 m and so out of the wrong bin, and the median improves too,
-by 1.8 cm with a paired interval of [+0.006, +0.036] m. On this ensemble the
-refinement is not a tail-for-centre trade: it is better everywhere measured.
+the separation margin: its fifth percentile improves from 0.05 m to 0.49 m
+(paired bootstrap 95% interval [+0.39, +0.47] m). The worst case does **not**
+improve: it goes from -0.12 m to -0.35 m, both inside the wrong bin. The
+ensemble objective buys the low tail, not the extreme, and it pays in the
+centre: the median margin drops 2.7 cm, with a paired 95% interval of
+[-0.040, -0.009] m that excludes zero.
 
-**Decisiveness under jitter.** Sweeping restitution with inlet jitter is where
-the result stops. The point design is indecisive at 2 of 20 restitutions,
-including its own trained value of 0.8, where 12.5% of jittered draws cross
-into the wrong bin. The ensemble design is indecisive at 2 of 20 as well, at
-0.625 and 0.650, neither of them a value it was trained on.
+**Decisiveness under jitter.** Sweeping restitution with inlet jitter shows
+what the deterministic sweep hid. The point design is indecisive at 2 of 20
+restitutions, including its own trained value of 0.8, where 12.5% of jittered
+draws cross into the wrong bin. The ensemble design is decisive at all 20.
 
-The two designs are scored on the same restitutions and the same jitter draws,
-so the comparison is paired, and it is two discordant restitutions against
-two: exact McNemar gives **p = 1.0**. On this sweep the designs are
-indistinguishable. The robustness bought on the scatter ensemble did not
-transfer to restitutions far from the training distribution, and that is the
-honest reading. Decisiveness here also means 0 failures in 40 draws per
-restitution, which bounds the per-restitution failure rate at about **7.5%**,
-not at zero.
+Two honest limits on that. The designs are scored on the same restitutions and
+the same jitter draws, so the comparison is paired: two discordant
+restitutions against none, and exact McNemar gives **p = 0.50**, the smallest
+value two discordant pairs can produce. The direction is consistent and the
+failure at the trained value is real, but this comparison has no power to
+establish it. And decisiveness means 0 failures in 40 draws per restitution,
+which bounds the per-restitution failure rate at about **7.5%**, not at
+zero.
 

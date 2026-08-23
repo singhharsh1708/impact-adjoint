@@ -38,12 +38,13 @@ jax.config.update("jax_enable_x64", True)
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
-from e5_separator import AMP_MAX, NB, make_objective
+from e5_separator import AMP_MAX, BUDGET, NB, make_objective
 
 ROOT = Path(__file__).parent.parent
 
 SEEDS = [0, 1, 2, 3, 4]
-BUDGET = 900          # forward-solve units
+# BUDGET comes from e5_separator so the benchmark cannot silently run a
+# different budget than the design it benchmarks.
 GRAD_CHARGE_EVAL = 2  # units per gradient call, eval-count accounting
 
 

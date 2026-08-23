@@ -10,6 +10,13 @@ from juliacall import Main as jl
 
 jl.include(str(Path(__file__).parent / "julia" / "contact_solver.jl"))
 
+# RK4's stability boundary on the negative real axis: |R(z)| = 1 where
+# R(z) = 1 + z + z^2/2 + z^3/6 + z^4/24, which for real z < 0 reduces to
+# the real root of z^3 + 4z^2 + 12z + 24. Computed rather than typed.
+RK4_STABILITY_LIMIT = float(
+    -min(r.real for r in np.roots([1.0, 4.0, 12.0, 24.0]) if abs(r.imag) < 1e-12)
+)
+
 MAX_EVENTS = 8
 DIFF_OUTPUTS = {"qf": (0, 4), "impact_x": (4, MAX_EVENTS)}
 NROWS = 4 + MAX_EVENTS
@@ -42,10 +49,10 @@ class InputSchema(BaseModel):
     )
     ctr: Differentiable[Array[(None,), Float64]] = Field(description="Terrain bump centers.")
     wid: Differentiable[Array[(None,), Float64]] = Field(description="Terrain bump widths (> 0).")
-    drag: Float64 = Field(description="Linear drag coefficient, >= 0 (negative drag would add energy without bound). Not differentiated.", default=0.0)
+    drag: Float64 = Field(description="Linear drag coefficient, >= 0 (negative drag would add energy without bound). Also bounded jointly with dt: drag * dt must not exceed 2.785293563, the explicit RK4 stability limit, past which a dissipative force gains energy. Not differentiated.", default=0.0)
     t_final: Float64 = Field(description="Simulation end time.", default=2.0)
     dt: Float64 = Field(
-        description="Integrator step size. Terrain features narrower than |vx|*dt/3 can be stepped over; choose dt <= min(wid)/(3 |vx|).",
+        description="Integrator step size. Terrain features narrower than |vx|*dt/3 can be stepped over; choose dt <= min(wid)/(3 |vx|). With drag, dt is also bounded by drag * dt <= 2.785293563, the explicit RK4 stability limit.",
         default=1e-3,
     )
     n_samples: int = Field(description="Trajectory sample rows returned for visualization.", default=0)
@@ -84,19 +91,25 @@ class InputSchema(BaseModel):
             raise ValueError(f"t_final must be >= 0, got {float(self.t_final)}")
         if np.any(np.asarray(self.wid) <= 0.0):
             raise ValueError("all terrain widths must be > 0")
-        stiffness = float(self.drag) * float(self.dt)
-        if stiffness > 2.7:
-            raise ValueError(
-                f"drag * dt must stay below the explicit RK4 stability limit, "
-                f"got {stiffness:.3g} (drag={float(self.drag):.6g}, "
-                f"dt={float(self.dt):.6g}). Past roughly 2.785 the fixed step "
-                "amplifies instead of damping: energy grows under a purely "
-                "dissipative force and the sensitivities change sign, while "
-                "the run still reports status 0. Reduce dt or drag."
-            )
         for name in ("v0", "y0", "e", "mu", "amp", "ctr", "wid", "drag", "t_final", "dt", "v_stop"):
             if not np.all(np.isfinite(np.asarray(getattr(self, name), dtype=np.float64))):
                 raise ValueError(f"{name} must be finite")
+        # Drag is the only stiff mode: the flow is linear with eigenvalues
+        # {0, 0, -drag, -drag}, so the fixed RK4 step is stable exactly while
+        # drag * dt stays under the real root of z^3 + 4z^2 + 12z + 24, which
+        # is RK4_STABILITY_LIMIT. Past it a purely dissipative force gains
+        # energy and the sensitivities change sign while the run still reports
+        # status 0. This bounds stability, not accuracy: well inside it the
+        # step can still be far too coarse to resolve the decay.
+        stiffness = float(self.drag) * float(self.dt)
+        if stiffness > RK4_STABILITY_LIMIT:
+            raise ValueError(
+                f"drag * dt must stay at or below the explicit RK4 stability "
+                f"limit {RK4_STABILITY_LIMIT:.9f}, got {stiffness:.9g} "
+                f"(drag={float(self.drag):.6g}, dt={float(self.dt):.6g}). "
+                "Past it the fixed step amplifies instead of damping. "
+                "Reduce dt or drag."
+            )
         return self
 
 

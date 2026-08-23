@@ -1,5 +1,6 @@
 {
-  "checks": 50,
+  "checks": 150,
+  "checks_per_endpoint": 50,
   "endpoints": 3,
   "eps": 1e-06,
   "failures": 0,
@@ -23,6 +24,7 @@
     }
   },
   "rtol": 0.0001,
+  "seed": 7,
   "tolerance_sweep": {
     "1e-4": {
       "checks": 150,
@@ -34,19 +36,19 @@
       "checks": 150,
       "checks_per_endpoint": 50,
       "endpoints": 3,
-      "failures": 15
+      "failures": 14
     },
     "1e-6": {
       "checks": 150,
       "checks_per_endpoint": 50,
       "endpoints": 3,
-      "failures": 51
+      "failures": 35
     },
     "1e-7": {
       "checks": 150,
       "checks_per_endpoint": 50,
       "endpoints": 3,
-      "failures": 83
+      "failures": 76
     }
   }
 }

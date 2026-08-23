@@ -2,32 +2,33 @@
   "checks": {
     "scripts/proof_local.py": {
       "label": "boundary proof",
-      "median_s": 3.4,
-      "min_s": 3.33,
-      "max_s": 4.22
+      "median_s": 4.2,
+      "min_s": 3.6,
+      "max_s": 5.66
     },
     "scripts/validate_closed_form.py": {
       "label": "symbolic oracle",
-      "median_s": 6.17,
-      "min_s": 6.14,
-      "max_s": 6.19
+      "median_s": 7.79,
+      "min_s": 7.06,
+      "max_s": 8.59
     },
     "scripts/validate_reference.py": {
       "label": "scipy oracle",
-      "median_s": 6.32,
-      "min_s": 6.3,
-      "max_s": 6.35
+      "median_s": 8.36,
+      "min_s": 7.34,
+      "max_s": 9.22
     },
     "experiments/e3_naive_vs_saltation.py": {
       "label": "naive vs saltation",
-      "median_s": 8.87,
-      "min_s": 8.8,
-      "max_s": 9.2
+      "median_s": 11.21,
+      "min_s": 9.12,
+      "max_s": 13.39
     }
   },
-  "total_median_s": 24.8,
+  "total_median_s": 31.6,
   "repeats": 3,
   "depot": "warm",
+  "first_run_ratio": 1.45,
   "platform": "Darwin arm64",
   "python": "3.12.13"
 }

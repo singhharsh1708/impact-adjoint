@@ -8,6 +8,81 @@ figure changed, this says what it was and what it became.
 
 ### Corrected
 
+Every entry below is a correction made while building 0.1.0, written as "it
+was X, it is now Y". They are a record of what moved, not a statement of the
+current values: several entries quote figures that later entries supersede.
+For what the entry publishes today, read `docs/RESULTS.md`, which is generated
+from the committed artifacts, or the artifacts themselves.
+
+- **The E5b iterate fix was itself wrong, and is withdrawn.** Keeping the best
+  point scored inside the loop discarded Adam's final update, which the loop
+  never scored and which is 0.4% better on the objective. So the correction
+  published a worse design and moved five numbers for nothing. The loop now
+  scores the final iterate too and keeps the best of everything evaluated,
+  which restores the original design with real provenance: purity is
+  **997/1000**, the worst case **-0.35 m**, the fifth percentile **0.49 m**,
+  the ensemble margin **0.43 m**, and the jitter sweep **20 of 20**. Every
+  page that was changed for the bad fix is changed back.
+- **The gradient checker was sampling unseeded.** The same sweep re-measured
+  15, 17, 19 and 21 failures at `rtol = 1e-5` across four runs, so a published
+  count was one draw. The seed is pinned and recorded in the artifact now, and
+  two runs at the same seed agree exactly: **14 of 150**.
+- **The headline `checks` and `failures` still mixed populations.** The sweep
+  was fixed but the headline pair was not: `checks` counted one endpoint while
+  `failures` summed three, hidden only because the count is zero. Both are
+  totals now, and the pages say "across the three gradient endpoints".
+- **The prose guard accepted 11 of 19 wrong values.** Anchoring a bare value
+  to a context string within a two-line window was barely stronger than
+  matching it anywhere: the point-design purity guard was satisfied by the
+  ensemble design's number in the same sentence, and the 93-microsecond guard
+  by the 81 published two lines below it. Each entry now carries the phrase the
+  number belongs to, and the value has to appear inside it.
+- **A superseded purity survived in `docs/writeup.md` and the guard could not
+  see it.** The guard proves the current value appears somewhere; it cannot
+  detect a stale duplicate elsewhere in the same file. A second check now
+  requires every occurrence of a quantity written in a fixed shape to be
+  current.
+- **The drift test deleted two committed files in place.** SIGTERM, SIGHUP or
+  SIGKILL inside a 0.13 second window left the working tree with both gone,
+  a failed first restore skipped the second, and it broke under parallel
+  execution. It runs against a copy now and never writes the real tree.
+- **The landing-page timing test passed for "about 25 minutes" against 24.8
+  seconds**, because it compared digits and not the unit, and its stat-card
+  half only checked that a key name appeared in a table. Both halves render
+  and compare now, and it reads the page it is named for.
+- **Two tests failed under the install the README documents.** They import
+  `docutils`, which `requirements-repro.txt` does not carry; CI installs
+  Sphinx separately and hid it. They skip now, and the counts say three tests
+  need Sphinx rather than one.
+- **The RK4 stability bound was a rounded guess, untested, and misordered.**
+  2.7 rejected a genuinely stable band up to 2.785293563, the real root of
+  `z^3 + 4z^2 + 12z + 24`; replacing the constant with 999 or with 0.001 left
+  the suite green; and an infinite drag reported a stability violation rather
+  than a finiteness one. The limit is computed rather than typed, straddled by
+  a boundary test, checked after the finiteness loop, and stated in the schema
+  descriptions the reference page is generated from.
+- **Berkowitz and Canny's objective is not per-object rather than bulk.** They
+  score a per-trajectory metric alongside a feed-rate efficiency taken over
+  all initial orientations. Both the write-up and the related-work page said
+  otherwise, so making them agree had propagated the error rather than fixing
+  it.
+- The write-up's snippet claim that "the only difference is where the impact is
+  applied" stopped being true once the second snippet gained an x64 line, which
+  it needs because the component returns Float64.
+- `figure_source` indexed 10 of the 12 committed figures; the two it missed are
+  both displayed in the write-up. A test now fails if a figure has no source.
+- The README's figure tip named three scripts for what takes five, and called
+  twelve figures eight.
+- The median-margin interval was published with no code computing it. The
+  robustness study bootstraps it now, and `collect_results.py` collects the
+  McNemar p, the tail interval and the median interval it was already storing
+  but never reading.
+- `experiments/timing.json` predated its own generator, still carrying the
+  literal `depot` field the fix replaced with a derived one.
+- The `citing` page promised a DOI "as soon as v0.1.0 is tagged", after it was.
+- A dangling sentence fragment in this file, orphaned when the lines above it
+  were rewritten, pointed its "superseded by" at the wrong entry.
+
 - **The ensemble design was one Adam step past the last point it evaluated.**
   E5 and E4 were fixed for this; `e5b_robust_separator.py` was not. Its
   training ensemble is drawn once from a fixed seed, so the objective is
@@ -143,8 +218,8 @@ figure changed, this says what it was and what it became.
   check fails at `rtol = 1e-5`, and this entry claimed it passes there.
   **Both were wrong**: that sweep ran at a different `eps` than the headline
   configuration. At the published `eps = 1e-6` the checker does fail at
-  `1e-5`, with 22 of 50. Superseded by the entry above.
-  `check_gradients.json` now instead of asserted.
+  `1e-5`. Superseded by the sweep-denominator entry at the top of this
+  section, which re-measures it as 15 of 150 across the three endpoints.
 - **The results table published the statistic the prose calls wrong.** The
   seeds are paired, so the ratio of medians (917x) pairs one seed's CMA with
   another seed's Adam; every prose page already used the paired per-seed
@@ -304,5 +379,5 @@ figure changed, this says what it was and what it became.
 ### Baseline
 
 First complete entry: three Tesseracts, seven experiments, six verification
-studies, three independent oracles, and CI on every push. The suite has grown
-to 41 tests since.
+studies, twelve golden tests, three independent oracles, and CI on every push.
+The suite has grown since; the README states its current size.

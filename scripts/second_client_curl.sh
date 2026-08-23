@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Second-client demo: the solver's saltation gradients consumed with NOTHING
-# but curl: no Python, no JAX, no Julia on the client side. This is the
-# "reusable from any client" claim, demonstrated.
+# Second-client demo: the solver's saltation gradients fetched with nothing but
+# curl, over plain HTTP, with no JAX and no Julia on the client side. The
+# responses are piped through python3 -m json.tool purely to pretty-print them;
+# drop that and the gradients still come back. This is the "reusable from any
+# client" claim, demonstrated.
 #
 # Usage: tesseract serve -p 8123 contact-sim   (in another shell), then:
 #        ./scripts/second_client_curl.sh

@@ -45,8 +45,9 @@ fires is an integer and autodiff cannot differentiate it.
 
 ## See it fail, then see it fixed
 
-Both snippets below run as written. The only difference is where the impact
-is applied.
+Both snippets below run as written. What differs is where the impact is
+applied; the second also enables x64, because the component returns Float64
+and JAX refuses to hand those back without it.
 
 ::::{grid} 2
 :gutter: 3
@@ -79,7 +80,8 @@ jax.grad(bounce)(0.5)
 
 The step at which the event fires is an integer. Autodiff differentiates a
 staircase, and returns zero at every `dt`. Hand-writing an interpolated event
-inside the program does recover a converging gradient, to within 0.3% here;
+inside the program does recover a converging gradient, to within 0.05% at
+this step size and 0.3% across the whole sweep;
 what the component removes is the derivation, not the last three digits.
 :::
 
@@ -156,9 +158,10 @@ The saltation matrix supplies the missing term at each impact. Exact at any
 ## Reproduce it
 
 CPU only, no Docker, no GPU. The four checks take {{ checks_walltime }} on a
-warm Julia depot; the first run adds a few minutes of `pip install` and one
-Julia bootstrap, so budget nearer fifteen minutes from a genuinely cold
-machine.
+warm Julia depot, give or take what else the machine is doing. The first run
+adds a few minutes of `pip install` and a Julia bootstrap that runs in two
+stages, one on the first call and one the first time `ForwardDiff` is needed,
+so budget nearer fifteen minutes from a genuinely cold machine.
 
 {{ repo_note }}
 

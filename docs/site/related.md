@@ -164,8 +164,9 @@ impacts, as in DiffTaichi's `billiards` example, which backpropagates through
 a chain of collisions with a time-of-impact correction to steer one ball to
 one target; sampling-based design of passive geometry for per-object impact
 routing, in [Roussel et al. (SIGGRAPH 2019)](https://dl.acm.org/doi/10.1145/3306346.3322977)
-and in Berkowitz and Canny (ICRA 1996), whose objective is per-object and
-whose method is grid enumeration; and restitution-based separators as
+and in Berkowitz and Canny (ICRA 1996), whose method is grid enumeration and
+whose objectives are a per-trajectory metric alongside a feed-rate efficiency
+taken over all initial orientations; and restitution-based separators as
 physical devices, including US 8,640,879 for an inclined chute sorting rubber from plastic. That patent attributes the separation to rubber's higher friction and tackiness, which make it tumble and bounce where plastic slides, rather than to a difference in restitution, so it is a neighbouring mechanism rather than the same one.
 
 What appears unoccupied is their combination: gradient-based design of the

@@ -17,7 +17,7 @@
   "BENCH_ratio_wall": 0.4330307763707411,
   "BENCH_seeds": 5,
   "BENCH_wall_cma_worse_seeds": 1,
-  "CHECKGRAD_checks": 50,
+  "CHECKGRAD_checks": 150,
   "CHECKGRAD_endpoints": 3,
   "CHECKGRAD_failures": 0,
   "CLOSED_FORM_jacobian_worst": 7.1e-12,
@@ -49,7 +49,7 @@
   "E4_miss_slow_m": 0.021605657372062877,
   "E5B_p5_margin_adam": 0.071929,
   "E5B_p5_margin_cma_es": 0.178293,
-  "E5B_p5_margin_ensemble": 0.370103,
+  "E5B_p5_margin_ensemble": 0.425956,
   "E5B_p5_margin_nelder_mead": 0.414606,
   "E5B_purity_adam": 0.995,
   "E5B_purity_cma_es": 0.98,
@@ -66,24 +66,34 @@
   "E5_nelder_mead": 0.01862136758566685,
   "E5_ratio_cma_over_adam": 8788.122424902147,
   "GEN_point_unanimous": "18/20",
-  "GEN_robust_unanimous": "18/20",
+  "GEN_robust_unanimous": "20/20",
   "GRAD_best_agreement": 8.131393682333793e-09,
   "REFERENCE_jacobian_worst": 4.57e-09,
   "REFERENCE_primal_worst": 1.14e-10,
   "ROBUST_margin_min_point": -0.11990125032981958,
-  "ROBUST_margin_min_robust": 0.06674022779305355,
+  "ROBUST_margin_min_robust": -0.3525128960535975,
   "ROBUST_margin_p5_point": 0.050001780029808894,
-  "ROBUST_margin_p5_robust": 0.40424011160595724,
+  "ROBUST_margin_p5_robust": 0.49393028183673454,
+  "ROBUST_mcnemar_p": 0.0025768280029296875,
+  "ROBUST_median_change_cm": -2.6731600684112067,
+  "ROBUST_median_ci": [
+    -0.039781098236965934,
+    -0.009200043994781254
+  ],
   "ROBUST_point_ci": [
     0.9729438156287651,
     0.9893594003367818
   ],
   "ROBUST_point_correct": "983/1000",
   "ROBUST_robust_ci": [
-    0.9961731014136095,
-    1.0
+    0.9912168282105721,
+    0.9989792345945557
   ],
-  "ROBUST_robust_correct": "1000/1000",
+  "ROBUST_robust_correct": "997/1000",
+  "ROBUST_tail_ci": [
+    0.392626299328374,
+    0.46803773832866746
+  ],
   "SCALE_apply_ms_14": 1.8277080016559921,
   "SCALE_apply_ms_581": 8.240041002864018,
   "SCALE_apply_ms_77": 2.337291000003461,
@@ -95,5 +105,5 @@
   "SCALE_vjp_ms_14": 11.3651249994291,
   "SCALE_vjp_ms_581": 64.72054199548438,
   "SCALE_vjp_ms_77": 19.815958999970462,
-  "TIMING_checks_total_s": 24.8
+  "TIMING_checks_total_s": 31.6
 }

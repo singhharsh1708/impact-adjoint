@@ -111,6 +111,13 @@ def main():
         r["ROBUST_margin_p5_robust"] = float(np.percentile(rb["robust_margins"], 5))
         r["ROBUST_margin_min_point"] = float(rb["point_margins"].min())
         r["ROBUST_margin_min_robust"] = float(rb["robust_margins"].min())
+        # These were computed and stored but never collected, so the pages
+        # quoting them had nothing guarding the values.
+        r["ROBUST_mcnemar_p"] = float(rb["mcnemar_p"])
+        r["ROBUST_tail_ci"] = [float(x) for x in rb["tail_ci"]]
+        if "median_change" in rb.files:
+            r["ROBUST_median_change_cm"] = float(rb["median_change"]) * 100
+            r["ROBUST_median_ci"] = [float(x) for x in rb["median_ci"]]
 
     gs = load("generalization_stats.npz")
     if gs is not None:

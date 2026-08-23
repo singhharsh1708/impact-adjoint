@@ -28,6 +28,11 @@ LINE = re.compile(r"Gradient check for (\w+) (passed|failed).*?\((\d+) failures?
 # difference itself stops resolving below that.
 RTOL = "1e-4"
 EPS = "1e-6"
+# The checker samples indices, and without a seed it draws a fresh set each
+# run: the same sweep re-measured 15, 17, 19 and 21 failures at rtol 1e-5 on
+# four consecutive runs. Published counts have to be reproducible, so the seed
+# is pinned and recorded in the artifact.
+SEED = "7"
 MAX_EVALS = "30"
 
 
@@ -37,6 +42,7 @@ def _run(rtol):
         "TESSERACT_RUNTIME_CHECK_GRADIENTS_RTOL": rtol,
         "TESSERACT_RUNTIME_CHECK_GRADIENTS_EPS": EPS,
         "TESSERACT_RUNTIME_CHECK_GRADIENTS_MAX_EVALS": MAX_EVALS,
+        "TESSERACT_RUNTIME_CHECK_GRADIENTS_SEED": SEED,
     }
     cmd = ["tesseract", "run"]
     for k, v in env.items():
@@ -51,6 +57,7 @@ def main():
         "TESSERACT_RUNTIME_CHECK_GRADIENTS_RTOL": RTOL,
         "TESSERACT_RUNTIME_CHECK_GRADIENTS_EPS": EPS,
         "TESSERACT_RUNTIME_CHECK_GRADIENTS_MAX_EVALS": MAX_EVALS,
+        "TESSERACT_RUNTIME_CHECK_GRADIENTS_SEED": SEED,
     }
     cmd = ["tesseract", "run"]
     for k, v in env.items():
@@ -74,6 +81,7 @@ def main():
     counts = {v["checks"] for v in endpoints.values()}
     if len(counts) != 1:
         raise SystemExit(f"endpoints disagree on check count: {counts}")
+    counts_value = next(iter(counts))
 
     # the tolerance sweep was previously written here as three literals, which
     # published numbers nobody had measured in the artifact whose whole point is
@@ -102,8 +110,14 @@ def main():
         "first_failing_rtol": float(failing[0]) if failing else None,
         "eps": float(EPS),
         "max_evals": int(MAX_EVALS),
+        "seed": int(SEED),
         "endpoints": len(endpoints),
-        "checks": counts.pop(),
+        # Both totals, over the same population. Recording failures summed
+        # across endpoints against one endpoint's check count is what made the
+        # sweep publish 81 failures out of 50; the headline had the same
+        # mismatch, hidden only because the failure count is zero.
+        "checks": counts.pop() * len(endpoints),
+        "checks_per_endpoint": counts_value,
         "failures": sum(v["failures"] for v in endpoints.values()),
         "per_endpoint": endpoints,
     }

@@ -18,7 +18,7 @@ not retyped, so this file cannot drift from what was measured.
 | scipy reference oracle, worst primal | 1.14e-10 |
 | scipy reference oracle, worst Jacobian vs FD | 4.57e-09 |
 | energy drift at e=1, mu=0 | 4.63e-13 |
-| Tesseract check-gradients | 0 failures / 50 checks on 3 endpoints |
+| Tesseract check-gradients | 0 failures / 150 checks on 3 endpoints |
 
 
 ## Warm per-call cost (dt 1e-3, t_final 2.0 s, four impacts)
@@ -61,8 +61,8 @@ not retyped, so this file cannot drift from what was measured.
 | CMA / Adam, ratio of medians (unpaired, for reference) | 917x, 0.433x |
 | per-seed eval ratio span | 11.5x to 1.4e+05x |
 | held-out purity, point design | 983/1000 (Wilson 97.29 to 98.94 %) |
-| held-out purity, ensemble design | 1000/1000 (Wilson 99.62 to 100.00 %) |
-| 5th-percentile margin, point to ensemble | 0.05 m to 0.404 m |
-| worst-case margin, point to ensemble | -0.12 m to 0.0667 m |
+| held-out purity, ensemble design | 997/1000 (Wilson 99.12 to 99.90 %) |
+| 5th-percentile margin, point to ensemble | 0.05 m to 0.494 m |
+| worst-case margin, point to ensemble | -0.12 m to -0.353 m |
 | decisive under jitter, point design | 18/20 restitutions |
-| decisive under jitter, ensemble design | 18/20 restitutions |
+| decisive under jitter, ensemble design | 20/20 restitutions |

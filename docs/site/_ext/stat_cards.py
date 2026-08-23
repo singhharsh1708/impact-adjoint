@@ -34,8 +34,8 @@ CARDS = [
     (("CLOSED_FORM_jacobian_worst",), _sci,
      "multi-bounce agreement with a symbolic closed form"),
     (("CHECKGRAD_failures", "CHECKGRAD_checks"), lambda f, c: f"{int(f)} / {int(c)}",
-     "failures per endpoint in Tesseract's gradient checker, at "
-     "10<sup>-4</sup> relative tolerance"),
+     "failures in Tesseract's gradient checker across its three gradient "
+     "endpoints, at 10<sup>-4</sup> relative tolerance"),
     (("REFERENCE_jacobian_worst",), _sci,
      "analytic Jacobian vs an independent scipy reimplementation"),
     (("TIMING_checks_total_s",), lambda v: f"{v:.0f} s",

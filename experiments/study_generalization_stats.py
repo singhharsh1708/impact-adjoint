@@ -4,10 +4,11 @@ E6 shows one deterministic sweep and a 12-draw jitter check at three
 restitutions. This repeats the jitter test over many draws at every restitution on a grid,
 for BOTH the point design (E5) and the ensemble-refined design (E5b), so the
 classification boundary is measured with confidence intervals instead of
-asserted from one pass. The comparison is the point: the point design is
-jitter-fragile on the high-restitution side, where trajectories take many
-impacts and small inlet changes compound, and the ensemble objective is what
-repairs it.
+asserted from one pass. The comparison is the point, and on the corrected
+designs it comes out even: the point design is indecisive at two restitutions
+on the high side, including its own trained value, and the ensemble design at
+two on the low side. Two discordant pairs against two is McNemar p = 1.0, so
+this sweep does not establish that the ensemble objective repairs anything.
 
 Writes experiments/generalization_stats.npz.
 """
@@ -25,11 +26,10 @@ from tesseract_core import Tesseract
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
-from e5_separator import BIN_PET, BIN_RUBBER, CTR, WID
+from e5_separator import BIN_PET, BIN_RUBBER, CTR, V0, WID
 
 ROOT = Path(__file__).parent.parent
 X_MID = 0.5 * (BIN_RUBBER + BIN_PET)
-V0 = np.array([2.0, 0.4])
 # the design's own horizon: evaluating past it measures a different quantity
 # than the one that was designed, so import rather than restate
 from e5_separator import FIXED  # noqa: E402

@@ -99,15 +99,23 @@ def main():
     rng = np.random.default_rng(0)
     n = len(p["margins"])
     assert len(r["margins"]) == n, "designs must be scored on the same particles"
-    diffs = []
+    diffs, med_diffs = [], []
     for _ in range(4000):
         idx = rng.integers(0, n, size=n)
         diffs.append(np.percentile(r["margins"][idx], 5)
                      - np.percentile(p["margins"][idx], 5))
+        # The median change is published alongside the tail. It was quoted
+        # from an ad-hoc run before this existed, which is the one thing this
+        # repository is not allowed to do.
+        med_diffs.append(np.median(r["margins"][idx]) - np.median(p["margins"][idx]))
     diffs = np.array(diffs)
+    med_diffs = np.array(med_diffs)
     lo_d, hi_d = np.percentile(diffs, [2.5, 97.5])
+    lo_m, hi_m = np.percentile(med_diffs, [2.5, 97.5])
+    med_change = float(np.median(r["margins"]) - np.median(p["margins"]))
     print(f"\nmedian margin {np.median(p['margins']):.3f} m -> {np.median(r['margins']):.3f} m "
-          f"(slightly lower: the centre is traded away)")
+          f"(change {100*med_change:+.2f} cm, paired 95% CI "
+          f"[{lo_m:+.3f}, {hi_m:+.3f}] m)")
     print(f"5th percentile {np.percentile(p['margins'],5):.3f} m -> "
           f"{np.percentile(r['margins'],5):.3f} m")
     # Purity is a paired binary outcome on the same particles, so the
@@ -136,6 +144,7 @@ def main():
              point_ci=np.array([p["lo"], p["hi"]]), robust_ci=np.array([r["lo"], r["hi"]]),
              point_per_ens=p["per_ens"], robust_per_ens=r["per_ens"],
              tail_ci=np.array([lo_d, hi_d]),
+             median_change=med_change, median_ci=np.array([lo_m, hi_m]),
              mcnemar_b01=b01, mcnemar_b10=b10, mcnemar_p=pval, n_ensembles=ENSEMBLES, n_per_mat=N_PER_MAT)
 
     assert r["k"] >= p["k"], "robust design should not classify worse overall"

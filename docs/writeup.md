@@ -152,7 +152,8 @@ VJP recovers `e` to 0.002 and `μ` to 0.009 from a distant start. For the
 posterior, NumPyro's NUTS sampler runs directly against the *containerized*
 solver. Every leapfrog step calls the Tesseract's apply and saltation-VJP
 endpoints over HTTP: 23,440 steps across two chains, measured and recorded in
-`e2b_posterior.npz`, in about 23 minutes of warmup plus sampling. Two
+`e2b_posterior.npz`, in the sampling phase, with warmup and sampling together
+taking about 23 minutes. Two
 chains, zero divergences, split r̂ = 1.01 with an effective sample size of
 344 and 330 of 2000 draws. Two chains estimate the between-chain variance on
 one degree of freedom, so r̂ here is a weak check rather than a passed one,
@@ -241,8 +242,9 @@ rather than assumed. Scoring every design on E5b's held-out scatter ensemble,
 Adam reaches 0.995 purity with a 0.07 m fifth-percentile margin, CMA-ES
 0.980 with 0.18 m, and Nelder-Mead 0.995 with 0.41 m: five orders behind on
 the objective, identical purity, and a wider margin. The ensemble-refined
-design reaches 1.000 with 0.37 m, the only design to sort every held-out
-particle, though Nelder-Mead's 0.41 m tail is wider. Minimising the point
+design reaches 1.000 with 0.43 m, the widest tail of the four, though that is
+a one-particle purity lead and the margin intervals do not separate it from
+Nelder-Mead's 0.41 m. Minimising the point
 objective further does
 not produce a better separator at this scale; optimising the ensemble
 objective does, and that is a gradient through many trajectories at once.
@@ -340,25 +342,25 @@ argument rather than a preference.
 
 Two robustness studies replace single draws with statistics. Over five
 independent 200-particle ensembles, the point design classifies 983 of 1000
-and the ensemble design 1000 of 1000, with non-overlapping Wilson intervals
-(McNemar on the paired outcomes gives p = 1.5e-05); the fifth-percentile
-separation margin improves from 0.05 m to 0.40 m (paired bootstrap 95%
-interval [+0.31, +0.38] m), the worst case moves from -0.12 m to +0.07 m and
-so out of the wrong bin, and the median improves as well, by 1.8 cm with a
-paired interval of [+0.006, +0.036] m. The refinement is not a tail-for-middle
-trade on this ensemble; it is better everywhere we measured.
+and the ensemble design 997 of 1000, with non-overlapping Wilson intervals
+(McNemar on the paired outcomes gives p = 0.0026); the fifth-percentile
+separation margin improves from 0.05 m to 0.49 m (paired bootstrap 95%
+interval [+0.39, +0.47] m). The worst case does not improve, going from
+-0.12 m to -0.35 m, both inside the wrong bin: the ensemble objective buys the
+low tail, not the extreme, and it pays for it in the middle, where the median
+margin drops 2.7 cm with a paired interval of [-0.040, -0.009] m that excludes
+zero.
 
-Sweeping restitution under inlet jitter is where the result stops. The point
-design is indecisive at 2 of 20 restitutions, including its own trained value
-of 0.8, where 12.5% of jittered draws cross into the wrong bin. The ensemble
-design is indecisive at 2 of 20 as well, at 0.625 and 0.650, neither of them a
-value it was trained on. Both designs see the same restitutions and the same
-jitter draws, so this is a paired comparison, and it is two discordant pairs
-against two: exact McNemar gives p = 1.0. On this sweep the two designs are
-indistinguishable, and the only honest reading is that robustness bought on
-the scatter ensemble did not transfer to restitutions far from the training
-distribution. Decisiveness here also means 0 failures in 40 draws, which
-bounds the per-restitution failure rate at about 7.5% rather than at zero.
+Sweeping restitution under inlet jitter shows what the deterministic sweep
+hid. The point design is indecisive at 2 of 20 restitutions, including its own
+trained value of 0.8, where 12.5% of jittered draws cross into the wrong bin.
+The ensemble design is decisive at all 20. Both designs see the same
+restitutions and the same jitter draws, so this is a paired comparison of two
+discordant points against none, and exact McNemar gives p = 0.50, the floor
+for two discordant pairs: the direction is consistent but this comparison
+cannot establish it. Decisiveness here also means 0 failures in 40 draws,
+which bounds the per-restitution failure rate at about 7.5% rather than at
+zero.
 
 ## 5. Related work: how everyone else gets contact gradients
 
@@ -392,8 +394,9 @@ differentiable granular simulator, Liu et al. (AIChE J., 2025) optimize
 hopper shape the same way; both differentiate a smoothed model of contact and
 target a bulk flow statistic. Scene and part-feeder design goes back further by
 non-gradient means: Roussel et al. (SIGGRAPH 2019) is sampling-based, and
-Berkowitz & Canny (ICRA 1996) enumerate a grid, though their objective is
-per-object rather than bulk. What we could not find in the literature is design that
+Berkowitz & Canny (ICRA 1996) enumerate a grid, scoring both a per-trajectory
+metric and a feed-rate efficiency over all initial orientations. What we could
+not find in the literature is design that
 uses *exact event-time sensitivities* and targets *per-impact routing* of
 individual trajectories, which is the combination E4 and E5 exercise.
 

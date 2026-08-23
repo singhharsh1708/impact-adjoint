@@ -117,6 +117,15 @@ def main():
         updates, state = opt.update(g, state)
         amp = jnp.clip(optax.apply_updates(amp, updates), 0.0, AMP_MAX)
 
+    # Adam's last update lands on a point the loop never scored. Tracking the
+    # best iterate alone therefore discards it, which here meant keeping a
+    # design 0.4% worse on the objective than the one the old code returned.
+    # Score it, then keep the best of everything actually evaluated: the
+    # provenance rule and the better design are not in conflict.
+    final_val = float(loss_fn(amp))
+    if final_val < best:
+        best, best_amp = final_val, np.asarray(amp)
+    print(f"final iterate scored {final_val:.6f}; keeping best evaluated {best:.6f}")
     robust_amp = best_amp
     p_robust_train = purity(robust_amp, train)
     p_robust_test = purity(robust_amp, test)

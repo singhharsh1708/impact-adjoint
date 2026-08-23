@@ -35,6 +35,14 @@ SOURCES = {
         "experiments/make_e5_figure.py",
         ["experiments/e5_result.npz"],
     ),
+    "e1_convergence.png": (
+        "experiments/make_figures.py",
+        ["experiments/e1_history.npy"],
+    ),
+    "e2b_posterior.png": (
+        "experiments/make_figures.py",
+        ["experiments/e2b_posterior.npz"],
+    ),
     "e5b_purity.png": (
         "experiments/make_e5b_figure.py",
         ["experiments/e5b_result.npz"],

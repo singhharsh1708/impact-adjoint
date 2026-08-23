@@ -62,7 +62,7 @@ def make_ref(ctr, wid):
     def hp(x, amp):
         return float(np.sum(amp * np.exp(-((x - ctr) ** 2) / (2 * wid**2)) * (-(x - ctr) / wid**2)))
 
-    def simulate(v0, y0, e, mu, amp, drag, t_final, max_events=8):
+    def simulate(v0, y0, e, mu, amp, drag, t_final, max_events=MAX_EVENTS):
         amp = np.asarray(amp, float)
 
         def rhs(t, q):

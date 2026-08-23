@@ -31,11 +31,15 @@ from juliacall import Main as _jl
 _jl.seval('import Pkg; haskey(Pkg.project().dependencies, "ForwardDiff") || Pkg.add(Pkg.PackageSpec(name="ForwardDiff", version="1.4.5"))')
 
 from tesseract_core import Tesseract  # noqa: E402
+from tesseract_core.runtime.core import load_module_from_path  # noqa: E402
 
 ROOT = Path(__file__).parent.parent
 API = ROOT / "tesseracts" / "contact_sim" / "tesseract_api.py"
 G = 9.81
-MAX_EVENTS = 8
+# The event budget lives on the schema. Restating it would make the
+# over-budget check below fire spuriously if the cap rose, or stop catching
+# anything if it fell.
+MAX_EVENTS = load_module_from_path(API).MAX_EVENTS
 
 
 def draw(rng):
