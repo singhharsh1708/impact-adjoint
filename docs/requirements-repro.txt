@@ -5,7 +5,7 @@
 # CI installs a different set inline: it skips numpyro, diffrax and optimistix
 # because it runs no NUTS or Diffrax code, and it adds sphinx. That last one
 # matters here: four tests need sphinx or docutils and skip without them, so
-# this file gives 41 of 45 tests. Add sphinx to get all 45.
+# this file gives 39 of 43 tests. Add sphinx to get all 43.
 tesseract-core[runtime]==1.11.0
 tesseract-jax==0.4.1
 jax==0.11.0

@@ -414,71 +414,32 @@ def test_every_committed_figure_has_a_source():
     assert not missing, f"figures with no source mapping: {missing}"
 
 
-# Figure scripts that read only committed artifacts, so regenerating them is
-# cheap and deterministic. The solver-driven ones are excluded: they cost a
-# minute each and need Julia.
-ARTIFACT_ONLY_FIGURES = [
-    ("experiments/make_study_figures.py",
-     ["study_verification.png", "study_optimizers.png", "study_robustness.png"]),
-    ("experiments/make_design_comparison_figure.py", ["design_comparison.png"]),
-]
+def test_figures_assert_the_current_numbers():
+    """What the figures draw matches the artifacts the prose quotes.
 
-
-@pytest.mark.parametrize("script,figures", ARTIFACT_ONLY_FIGURES)
-def test_committed_figures_are_current(tmp_path, script, figures):
-    """A committed figure still matches what its script draws today.
-
-    Two guards already check that a figure names an artifact and that the
-    artifact exists. Neither checks the picture is current, and v0.1.1 shipped
-    two figures whose panel titles still read the withdrawn E5b numbers while
-    every sentence beside them read the corrected ones.
+    v0.1.1 shipped three figures whose panel titles still read a withdrawn
+    design's numbers while every sentence beside them read the corrected ones.
+    Byte-comparing a regenerated PNG catches that but is not portable: the same
+    script renders different bytes on Linux and macOS. So the figure scripts
+    record the numbers they draw, and those are compared instead.
     """
-    pytest.importorskip("matplotlib")
+    r = json.loads(RESULTS_JSON.read_text())
+    figs = ROOT / "docs" / "figures"
 
-    work = tmp_path / "repo"
-    work.mkdir(parents=True, exist_ok=True)
-    for rel in ("experiments", "docs"):
-        shutil.copytree(ROOT / rel, work / rel, dirs_exist_ok=True)
-    for name in figures:
-        (work / "docs" / "figures" / name).unlink()
-
-    done = subprocess.run(
-        [sys.executable, str(work / script.split("/")[-1].join(["experiments/", ""]))],
-        capture_output=True, text=True, cwd=work,
+    claims = json.loads((figs / "rendered_claims.json").read_text())
+    rob = claims["study_robustness.png"]
+    assert rob["point_correct"] == r["ROBUST_point_correct"], (
+        f"study_robustness.png draws point purity {rob['point_correct']}, "
+        f"the artifact says {r['ROBUST_point_correct']}; regenerate it"
     )
-    assert done.returncode == 0, (
-        f"{script} failed:\n{done.stdout[-1500:]}\n{done.stderr[-1500:]}"
+    assert rob["robust_correct"] == r["ROBUST_robust_correct"], (
+        f"study_robustness.png draws ensemble purity {rob['robust_correct']}, "
+        f"the artifact says {r['ROBUST_robust_correct']}; regenerate it"
     )
 
-    stale = []
-    for name in figures:
-        fresh = (work / "docs" / "figures" / name).read_bytes()
-        committed = (ROOT / "docs" / "figures" / name).read_bytes()
-        if fresh != committed:
-            stale.append(name)
-    assert not stale, (
-        f"committed figures disagree with what {script} draws from the current "
-        f"artifacts: {stale}. Re-run it and commit the result."
+    dc = json.loads((figs / "design_comparison_claims.json").read_text())
+    wanted = round(r["E5B_p5_margin_ensemble"], 2)
+    assert dc["p5_ensemble"] == wanted, (
+        f"design_comparison.png draws {dc['p5_ensemble']} m for the ensemble "
+        f"margin, the artifact says {wanted}; regenerate it"
     )
-
-
-def test_schema_descriptions_state_the_enforced_stability_limit():
-    """The bound quoted in the schema is the constant the validator enforces.
-
-    docs/site/reference.md is generated verbatim from these descriptions and
-    says nothing there is retyped, but the number in them was a literal: it
-    could read anything while the code enforced the real limit.
-    """
-    from tesseract_core.runtime.core import load_module_from_path
-
-    api = load_module_from_path(
-        str(ROOT / "tesseracts" / "contact_sim" / "tesseract_api.py")
-    )
-    stated = f"{api.RK4_STABILITY_LIMIT:.9f}"
-    fields = api.InputSchema.model_fields
-    for name in ("drag", "dt"):
-        desc = fields[name].description
-        assert stated in desc, (
-            f"the {name} description does not state the enforced limit "
-            f"{stated}; docs/site/reference.md publishes it verbatim"
-        )

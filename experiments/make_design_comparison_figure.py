@@ -98,6 +98,11 @@ def main():
     # the ensemble design minimises a different objective, so it has no
     # comparable point on this axis; say so rather than leave a gap
     p5_ens = float(np.percentile(e5b["margins_ensemble"], 5))
+    # what this picture asserts, checked against the artifacts by the suite
+    import json
+    (FIGS / "design_comparison_claims.json").write_text(
+        json.dumps({"p5_ensemble": round(p5_ens, 2)}, indent=2) + "\n"
+    )
     ax2.axhline(p5_ens, color=AQUA, lw=1.4, ls=(0, (4, 3)))
     ax2.annotate("ensemble-refined (E5b): optimises a different objective,\n"
                  f"reaches {p5_ens:.2f} m and 100% correct",

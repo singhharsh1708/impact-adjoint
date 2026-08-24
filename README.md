@@ -268,8 +268,8 @@ tesseract serve -p 8123 contact-sim &                 # the curl client needs th
 tesseracts/    contact_sim (Julia solver) · score_target (JAX objective) · julia_kernel (Day-1 proof)
 experiments/   e1-e6, e5b + figure/animation generators + committed result artifacts
 scripts/       three validation oracles · boundary proofs · curl client
-tests/         45 tests: golden regressions plus no-drift guards. Four need
-               Sphinx and skip without it; CI installs it so all 45 run
+tests/         43 tests: golden regressions plus no-drift guards. Four need
+               Sphinx and skip without it; CI installs it so all 43 run
 docs/          technical writeup, all figures, and the site source (docs/site)
 ```
 

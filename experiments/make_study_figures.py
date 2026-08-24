@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).parent.parent
 FIGS = ROOT / "docs" / "figures"
+_rendered = {}
 E = ROOT / "experiments"
 
 SURFACE = "#fcfcfb"
@@ -148,6 +149,11 @@ def fig_stats():
     ax.set_xlabel("separation margin [m]  (negative = misclassified)")
     ax.set_ylabel("particles")
     ax.set_title(f"held-out purity {pk}/{pn} vs {rk}/{rn}", loc="left")
+    # Record what the picture asserts, so a figure left behind by an artifact
+    # change is caught. Byte-comparing the PNG cannot do this across platforms.
+    _rendered["study_robustness.png"] = {
+        "point_correct": f"{pk}/{pn}", "robust_correct": f"{rk}/{rn}"
+    }
     ax.legend(frameon=False, fontsize=9)
 
     ax = axes[1]
@@ -174,8 +180,16 @@ def fig_stats():
     print("wrote study_robustness.png")
 
 
+
+def _dump_rendered():
+    import json
+    (FIGS / "rendered_claims.json").write_text(
+        json.dumps(_rendered, indent=2, sort_keys=True) + "\n"
+    )
+
 if __name__ == "__main__":
     fig_verification()
     fig_stats()
     if (E / "optimizer_benchmark.npz").exists():
         fig_benchmark()
+    _dump_rendered()
