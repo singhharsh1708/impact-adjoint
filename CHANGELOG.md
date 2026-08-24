@@ -4,7 +4,12 @@ Notable changes to the solver, the experiments, and any number this project
 reports. Corrections are listed as prominently as features: where a published
 figure changed, this says what it was and what it became.
 
-## 0.1.1 (2026-08-24)
+## 0.1.2 (2026-08-25)
+
+### Note on 0.1.0 and 0.1.1
+
+0.1.1 shipped a crashing command and three stale figures, both fixed here; it
+is superseded but its tag is left where it is.
 
 ### Note on 0.1.0
 
