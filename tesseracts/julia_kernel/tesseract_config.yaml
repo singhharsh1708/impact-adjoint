@@ -1,5 +1,5 @@
 name: "julia-kernel"
-version: "0.1.2"
+version: "0.1.3"
 description: |
   Boundary proof: a Julia kernel with a hand-written analytic adjoint,
   exposed as a differentiable Tesseract and driven by jax.grad through
