@@ -244,9 +244,11 @@ tesseract serve -p 8123 contact-sim &                 # the curl client needs th
 ```
 
 > [!NOTE]
-> The first Julia call bootstraps a project environment (and Julia itself if
-> absent), so expect 1 to 5 minutes and a wall of `[juliapkg]` output the first
-> time; warm runs take seconds. Measured budget: about 5 minutes for the
+> The Julia bootstrap runs in two stages: the first call builds a project
+> environment (and installs Julia itself if absent), and the first script that
+> needs `ForwardDiff` pays a second install and precompile. A cold clone
+> measured about eight minutes across the validation block; warm runs take
+> seconds. Measured budget: about 5 minutes for the
 > validation block and experiments E1 to E6, plus ~10 minutes for
 > `e5b_robust_separator.py`, plus ~10 minutes to build the contact-sim image
 > and ~23 minutes for the two NUTS chains.

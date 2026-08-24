@@ -36,9 +36,11 @@ pip install -r docs/requirements-repro.txt
 ```
 
 :::{note}
-The first Julia call bootstraps a project environment, and Julia itself if it
-is absent. Expect one to five minutes and a wall of `[juliapkg]` output the
-first time. Warm runs take seconds.
+The Julia bootstrap runs in two stages: the first call builds a project
+environment, and installs Julia itself if it is absent; the first script that
+needs `ForwardDiff` pays a second install and precompile. A cold clone
+measured about eight minutes across the validation block. Warm runs take
+seconds.
 :::
 
 ## Validate

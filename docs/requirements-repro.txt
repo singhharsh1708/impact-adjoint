@@ -1,7 +1,11 @@
-# Pinned environment for reproducing the results in this repository.
-# Julia itself is bootstrapped by juliacall on first call; nothing to install
-# by hand. CI installs an equivalent set inline; it skips matplotlib and
-# numpyro because it runs no figure or NUTS code.
+# Environment for reproducing the results in this repository. The versions
+# that carry the numbers are pinned; the rest float. Julia itself is
+# bootstrapped by juliacall on first call, so nothing to install by hand.
+#
+# CI installs a different set inline: it skips numpyro, diffrax and optimistix
+# because it runs no NUTS or Diffrax code, and it adds sphinx. That last one
+# matters here: four tests need sphinx or docutils and skip without them, so
+# this file gives 41 of 45 tests. Add sphinx to get all 45.
 tesseract-core[runtime]==1.11.0
 tesseract-jax==0.4.1
 jax==0.11.0

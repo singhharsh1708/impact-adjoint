@@ -13,7 +13,7 @@ charged as 2 forward evaluations here. The gradients are forward-variational,
 so their cost scales with parameter count; study_optimizers.py measures the
 wall-clock charge against the 24 columns this objective actually
 differentiates and reports the comparison under both accountings. The result
-is NOT the same either way: per evaluation the gradient wins by about 900x,
+is NOT the same either way: per evaluation the gradient wins by roughly four orders on this run,
 and under measured wall-clock CMA-ES is ahead at this budget.
   - Adam on the saltation gradients (ours)
   - Nelder-Mead (scipy), objective-only

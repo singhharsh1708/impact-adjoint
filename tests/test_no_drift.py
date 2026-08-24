@@ -433,6 +433,8 @@ def test_committed_figures_are_current(tmp_path, script, figures):
     two figures whose panel titles still read the withdrawn E5b numbers while
     every sentence beside them read the corrected ones.
     """
+    pytest.importorskip("matplotlib")
+
     work = tmp_path / "repo"
     work.mkdir(parents=True, exist_ok=True)
     for rel in ("experiments", "docs"):
