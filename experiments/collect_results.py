@@ -165,6 +165,15 @@ def main():
         r["CHECKGRAD_failures"] = int(d["failures"])
         r["CHECKGRAD_checks"] = int(d["checks"])
         r["CHECKGRAD_endpoints"] = int(d["endpoints"])
+        # the sweep the seeding entry is about: published, previously collected
+        # nowhere, so no guard could reach it
+        if d.get("first_failing_rtol") and "tolerance_sweep" in d:
+            first = f"{d['first_failing_rtol']:.0e}".replace("e-0", "e-")
+            row = d["tolerance_sweep"].get(first)
+            if row:
+                r["CHECKGRAD_first_failing_rtol"] = first
+                r["CHECKGRAD_first_failing_count"] = int(row["failures"])
+                r["CHECKGRAD_first_failing_checks"] = int(row["checks"])
 
     tm = E / "timing.json"
     if tm.exists():

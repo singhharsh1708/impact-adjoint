@@ -50,7 +50,7 @@ python scripts/proof_local.py         # 5 s boundary proof
 python scripts/validate_contact.py    # FD gate, robustness
 python scripts/validate_closed_form.py  # symbolic oracle
 python scripts/validate_reference.py  # independent scipy impl
-pytest tests/                          # 40; 3 skip without Sphinx
+pytest tests/                          # 45; 4 skip without Sphinx
 ```
 
 ## Run the experiments
@@ -72,6 +72,7 @@ tesseract build tesseracts/contact_sim
 tesseract build tesseracts/score_target
 tesseract run contact-sim check-gradients \
     @tesseracts/contact_sim/check_payload.json
+python scripts/capture_check_gradients.py   # same check, seeded, writes the artifact
 python experiments/e2b_bayesian.py                   # NUTS, 2 chains
 python experiments/e1_inverse_design.py --container  # served
 tesseract serve -p 8123 contact-sim &                # curl client needs a server

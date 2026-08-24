@@ -19,10 +19,14 @@
   signalling anything. Optimizing bump amplitudes can steer a design toward
   tangency, so this is reachable rather than theoretical.
 - Grazing impacts carry an inherent `δ^(-1/2)` sensitivity growth near
-  tangency. The solver has a guard on the saltation denominator, but since
-  that denominator scales as `δ^(1/2)` the guard is effectively unreachable:
-  in practice you get a large finite gradient, and closer to tangency a
-  silently missed event, rather than an error.
+  tangency. The solver raises if the saltation denominator falls below
+  `1e-12`, but that denominator scales as `δ^(1/2)` and `δ` cannot fall below
+  the guard's own floating-point resolution, so on metre-scale terrain it
+  floors near `1e-7`, five orders above the threshold. Tangency therefore
+  never raises. What you get instead is a large finite gradient, measured
+  growing from 54 to 8e6 as `δ` falls from `1e-2` to `1e-13`; then, for grazes
+  shallow enough that the rebound falls under `v_stop`, a `status = 2` report;
+  and below that a silently missed event at `status = 0`.
 - The Jacobian is discontinuous across the `status` boundary as well as across
   bounce-count changes. A run that ends at `t_final` differentiates the state
   at a fixed time; a run truncated at the event budget differentiates it at a
@@ -59,10 +63,23 @@ These were found by audit rather than by a failing test, and are recorded
 because none of them is currently guarded:
 
 - A degenerate crossing raises a Julia exception rather than returning a
-  status code, so an optimizer line-search that overshoots into a graze kills
-  the evaluation instead of getting a flagged result. `v_stop = 0` is a legal
-  input that makes the settling branch unreachable and steers chatter toward
-  that error.
+  status code. Tangency does not reach it, for the reason given above, and
+  neither does chatter: the `1e-13` lift applied after each reset so detection
+  re-arms also floors the approach speed at `1.4e-6`, which is where a
+  settling sequence's denominator stops falling. What does reach it is a
+  launch height small enough that the first impact speed `sqrt(2 g y0)` falls
+  under `1e-12`. `y0 = 1e-26` is accepted by the schema and raises instead of
+  returning a status, and `y0` is checked only for finiteness. `v_stop = 0` is
+  separately a legal input that makes the settling branch unreachable, so a
+  run that would have settled reports `status = 1` at the event budget.
+- A second guard rejects a crossing whose velocity is not approaching. It
+  fires only when the fixed RK4 step amplifies the drag mode instead of
+  damping it, so the located crossing is an artifact of the integrator rather
+  than of the trajectory. Bisecting the threshold gives `drag * dt = 2.7898`
+  at `dt = 1e-3` and `2.7859` at `dt = 1e-4`, converging on the RK4 stability
+  limit `2.785293563`. The schema rejects `drag * dt` past that limit, so this
+  one is a backstop for direct Julia use rather than a reachable client
+  failure.
 - The trajectory history is accumulated on every step even when
   `n_samples = 0`, which is what every gradient call uses, and the step count
   is unbounded. A request with a very small `dt` and a long `t_final` will

@@ -20,7 +20,7 @@
   --ia-paper-alt: #f4f4f1;
   --ia-ink: #16161a;
   --ia-ink-soft: #52514e;
-  --ia-ink-faint: #898781;
+  --ia-ink-faint: #6e6c67;
   --ia-rule: #e3e2dc;
   --ia-rule-soft: #edece7;
 
@@ -30,6 +30,10 @@
   --ia-blue-text: #2166c2;
   --ia-orange: #eb6834;
   --ia-teal: #1baf7a;
+  /* the same split: the figure hues are 2.90:1 and 2.55:1 as text on the
+     panel, so text uses these darkened steps and the hues stay for marks */
+  --ia-orange-text: #b23c11;
+  --ia-teal-text: #0f7a54;
 
   --ia-accent: var(--ia-blue-text);
   --ia-measure: 46rem;
@@ -844,11 +848,11 @@ article figcaption .caption-number {
 }
 
 .ia-sweep-cell[data-kind="wrong"] b {
-  color: var(--ia-orange);
+  color: var(--ia-orange-text);
 }
 
 .ia-sweep-cell[data-kind="exact"] b {
-  color: var(--ia-teal);
+  color: var(--ia-teal-text);
 }
 
 .ia-sweep-dt {

@@ -33,6 +33,8 @@ EPS = "1e-6"
 # four consecutive runs. Published counts have to be reproducible, so the seed
 # is pinned and recorded in the artifact.
 SEED = "7"
+# the checker reports one summary line per differentiable endpoint
+EXPECTED_ENDPOINTS = 3
 MAX_EVALS = "30"
 
 
@@ -89,14 +91,23 @@ def main():
     sweep = {}
     for rt in ("1e-4", "1e-5", "1e-6", "1e-7"):
         rows_rt = LINE.findall(_run(rt))
+        # Skipping a tolerance that produced no parseable output would drop the
+        # key and silently move first_failing_rtol to a different tolerance.
+        if not rows_rt:
+            raise SystemExit(f"no check-gradients summary parsed at rtol {rt}")
         if rows_rt:
             # The checker emits one line per endpoint. Summing failures across
             # them while taking the check count from a single line mixes two
             # populations: it published "22 of 50" for a rate that is 22 of
             # 150, and made the 1e-7 row read 81 failures out of 50 checks.
-            per_endpoint = int(rows_rt[0][3])
+            counts_rt = {int(c) for _, _, _, c in rows_rt}
+            if len(counts_rt) != 1:
+                raise SystemExit(
+                    f"endpoints disagree on check count at rtol {rt}: {counts_rt}"
+                )
+            per_endpoint = counts_rt.pop()
             sweep[rt] = {"failures": sum(int(f) for _, _, f, _ in rows_rt),
-                         "checks": per_endpoint * len(rows_rt),
+                         "checks": sum(int(c) for _, _, _, c in rows_rt),
                          "endpoints": len(rows_rt),
                          "checks_per_endpoint": per_endpoint}
             print(f"  rtol {rt}: {sweep[rt]['failures']} failures / "
@@ -121,12 +132,24 @@ def main():
         "failures": sum(v["failures"] for v in endpoints.values()),
         "per_endpoint": endpoints,
     }
+    # Validate before writing. Writing first meant a failing run replaced the
+    # committed artifact with its own failures and only then raised, so the
+    # good file was already gone.
+    if len(endpoints) != EXPECTED_ENDPOINTS:
+        raise SystemExit(
+            f"expected {EXPECTED_ENDPOINTS} gradient endpoints, parsed "
+            f"{len(endpoints)}: {sorted(endpoints)}"
+        )
+    if data["failures"] != 0:
+        raise SystemExit(
+            f"{data['failures']} gradient checks failed at rtol {RTOL}; "
+            "the committed artifact is left alone"
+        )
+
     path = ROOT / "experiments" / "check_gradients.json"
     path.write_text(json.dumps(data, indent=2, sort_keys=True))
     print(f"\nwrote {path.name}: {data['failures']} failures / {data['checks']} checks "
           f"on {data['endpoints']} endpoints")
-
-    assert data["failures"] == 0, f"{data['failures']} gradient checks failed"
 
 
 if __name__ == "__main__":

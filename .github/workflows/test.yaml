@@ -28,6 +28,16 @@ jobs:
         run: python scripts/validate_closed_form.py
       - name: Cross-implementation reference
         run: python scripts/validate_reference.py
+      - name: Fast experiments actually run
+        # v0.1.1 shipped e6_generalization.py with a NameError at import: a
+        # published README command that crashed, because CI ran the tests and
+        # the validators but never an experiment. These four take about a
+        # minute between them.
+        run: |
+          python experiments/e1_inverse_design.py
+          python experiments/e3_naive_vs_saltation.py
+          python experiments/e4_terrain_design.py
+          python experiments/e6_generalization.py
       - name: Randomized property sweep over the declared input space
         # seeded from the run id, not a constant: a fixed seed makes this 100
         # extra golden configurations that can never find anything new after

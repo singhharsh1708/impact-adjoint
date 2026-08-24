@@ -31,8 +31,9 @@ ARTIFACTS = [
     ("experiments/oracle_results.json",
      ["scripts/validate_closed_form.py", "scripts/validate_contact.py",
       "scripts/validate_reference.py"],
-     "The three independent oracles: a symbolic multi-bounce closed form, an "
-     "energy and robustness gate, and a scipy reimplementation of the Jacobian."),
+     "Two solver-independent oracles, a symbolic multi-bounce closed form and "
+     "a scipy reimplementation of the Jacobian, plus a finite-difference and "
+     "robustness gate through the solver itself."),
     ("experiments/gradient_accuracy_result.npz",
      ["experiments/study_gradient_accuracy.py"],
      "Agreement between the analytic Jacobian and finite differences, swept "

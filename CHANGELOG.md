@@ -8,23 +8,90 @@ figure changed, this says what it was and what it became.
 
 ### Note on 0.1.0
 
-0.1.0 was tagged earlier the same day and is superseded. Its E5b figures came
-from a design the optimizer never scored, and its gradient-checker sweep was
-sampled without a seed. Both are corrected here; the tag stays where it is
-rather than being moved, so the record of what it published survives.
+0.1.0 was tagged earlier the same day and is superseded. Its E5b design was
+scored, but it was not the best available: the correction it shipped discarded
+Adam's final update, which the loop never scored and which is better, so 0.1.0
+published a worse design than the one it replaced. Its three E5b figures were
+also never regenerated after that correction, so they drew the numbers of a
+still earlier design, and its gradient-checker sweep was sampled without a
+seed. All of that is corrected here. The tag stays where it is rather than
+being moved, so the record of what it published survives.
 
 ### Corrected
 
-Every entry below is a correction made while building 0.1.0, written as "it
-was X, it is now Y". They are a record of what moved, not a statement of the
-current values: several entries quote figures that later entries supersede.
+Every entry below is a correction made while building 0.1.0 or 0.1.1, written
+as "it was X, it is now Y", newest first. They are a record of what moved, not
+a statement of the current values: several entries quote figures that later
+entries supersede, and one correction is itself withdrawn further up.
 For what the entry publishes today, read `docs/RESULTS.md`, which is generated
 from the committed artifacts, or the artifacts themselves.
+
+- **A published README command crashed.** `e6_generalization.py` used
+  `BIN_RUBBER` and `BIN_PET` seven lines above the import that defines them,
+  so it died with a `NameError` before doing anything. It is the seventh
+  command a reader following the README types, and it shipped because CI ran
+  the tests, the validators and the fuzzer but never an experiment. The four
+  fast experiments run in CI now.
+- **Three figures published the numbers of a withdrawn design.** The artifacts
+  were restored and the prose rewritten, but `study_robustness.png`,
+  `design_comparison.png` and `e5b_purity.png` were never regenerated, so the
+  first read "983/1000 vs 1000/1000" against an artifact saying 997, and the
+  second drew the ensemble design at 0.37 m below Nelder-Mead while the
+  sentence above it said 0.43 m and "the widest tail of the four". Two guards
+  checked that a figure names an artifact and that the artifact exists; neither
+  checked the picture was current. A test regenerates the artifact-only figures
+  and compares bytes now.
+- **The 0.1.0 note had the defect backwards, in three places.** The changelog,
+  the annotated tag and the release body all said 0.1.0 shipped "a design the
+  optimizer never scored". It did not: 0.1.0's design was scored, and was the
+  best point inside the loop. The unscored one was Adam's final update, which
+  0.1.0 discarded and which is better. The design shipping now is bit-identical
+  to the one predating both corrections.
+- **The README's justification for the gradient-checker settings was false.**
+  It claimed the run uses "distinct entries" against the CLI default's repeats.
+  The checker samples with replacement whatever the budget, and the payload has
+  14 differentiable elements over two output paths, so 150 checks are about 76
+  distinct comparisons. Seeding fixed repeatability, not representativeness:
+  other seeds give 12, 20 and 21 failures at `rtol = 1e-5` where this one gives
+  14. Both are stated now, and the seed is disclosed.
+- **The capture script could destroy the artifact it exists to produce.** It
+  wrote the file and then asserted the run was clean, so a failing run replaced
+  the committed artifact with its own failures before raising. It validates
+  first now, checks every endpoint reported, sums the sweep denominator from
+  the rows it parsed rather than multiplying one of them, and fails loudly
+  instead of silently dropping a tolerance that produced no output.
+- **Whether a degenerate crossing raises was documented two contradictory
+  ways**, and both were wrong. Tangency cannot reach the guard: the denominator
+  floors near `1e-7` on metre-scale terrain, five orders above the `1e-12`
+  threshold, and chatter cannot either, because the re-arm lift floors the
+  approach speed at `1.4e-6`. The guard is reachable, through a launch height
+  small enough that the first impact speed falls under `1e-12`. The second
+  guard, on non-approaching velocity, fires only past the RK4 stability limit
+  and is unreachable through the schema. All of that is written down now.
+- The drift guard lost coverage in its rewrite: the checker's denominator could
+  be republished as the old single-endpoint 50 with the suite green, and the
+  "14 of 150" headline was guarded nowhere. Both are pinned now, as is the
+  stability limit quoted in the schema descriptions.
+- Light-mode contrast: the sweep widget's two value colours sat at 2.55:1 and
+  2.90:1, and the footer provenance, sidebar captions and figure-source lines
+  at 3.26:1 and 3.50:1, all under the 4.5:1 threshold for text. The text tones
+  are darkened; the figure hues are unchanged.
+- The artifacts page named "three independent oracles" where the write-up says
+  two solver-independent ones plus a finite-difference gate, and rendered that
+  on the live site.
+- Four tests skip without Sphinx, not three; the run time moved 24.8 s to
+  31.6 s on a busier machine; and `make_study_figures.py`'s title and
+  `study_generalization_stats.py`'s docstring were both left describing the
+  withdrawn design.
 
 - **The E5b iterate fix was itself wrong, and is withdrawn.** Keeping the best
   point scored inside the loop discarded Adam's final update, which the loop
   never scored and which is 0.4% better on the objective. So the correction
-  published a worse design and moved five numbers for nothing. The loop now
+  published a worse design and moved eight numbers for nothing: the five below
+  plus the five-ensemble McNemar p (1.5e-05 back to 0.0026), the jitter-sweep
+  McNemar p (1.0 back to 0.50), and the median margin (+1.8 cm back to
+  -2.7 cm). The design that ships now is bit-identical to the one that
+  predates both corrections; what changed is that it is scored. The loop now
   scores the final iterate too and keeps the best of everything evaluated,
   which restores the original design with real provenance: purity is
   **997/1000**, the worst case **-0.35 m**, the fifth percentile **0.49 m**,
@@ -386,5 +453,6 @@ from the committed artifacts, or the artifacts themselves.
 ### Baseline
 
 First complete entry: three Tesseracts, seven experiments, six verification
-studies, twelve golden tests, three independent oracles, and CI on every push.
+studies, twelve golden tests, two solver-independent oracles plus a
+finite-difference gate, and CI on every push.
 The suite has grown since; the README states its current size.

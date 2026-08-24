@@ -4,11 +4,12 @@ E6 shows one deterministic sweep and a 12-draw jitter check at three
 restitutions. This repeats the jitter test over many draws at every restitution on a grid,
 for BOTH the point design (E5) and the ensemble-refined design (E5b), so the
 classification boundary is measured with confidence intervals instead of
-asserted from one pass. The comparison is the point, and on the corrected
-designs it comes out even: the point design is indecisive at two restitutions
-on the high side, including its own trained value, and the ensemble design at
-two on the low side. Two discordant pairs against two is McNemar p = 1.0, so
-this sweep does not establish that the ensemble objective repairs anything.
+asserted from one pass. The comparison is the point: the point design is
+indecisive on the high-restitution side, where trajectories take many impacts
+and small inlet changes compound, including at its own trained value, while
+the ensemble design is decisive at every restitution sampled. Two discordant
+restitutions against none is McNemar p = 0.50, the floor for two discordant
+pairs, so the direction is consistent but this sweep cannot establish it.
 
 Writes experiments/generalization_stats.npz.
 """

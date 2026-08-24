@@ -313,9 +313,13 @@ event-capacity truncation, sub-step terrain-feature detection, and
 Near tangency the impact sensitivities grow as `δ^(−1/2)` (the saltation
 denominator `g_q · f⁻` vanishes at grazing), a property of the physics, not
 an artifact. The solver does not defend against this: it carries a guard on
-the saltation denominator, but since that denominator scales as `δ^(1/2)` the
-guard is effectively unreachable, and what happens in practice is a large
-finite gradient and then, closer to tangency, a silently missed event. This is
+the saltation denominator, but since that denominator scales as `δ^(1/2)` and
+`δ` bottoms out at the guard's own floating-point resolution, tangency on
+metre-scale terrain floors the denominator near `1e-7`, five orders above the
+`1e-12` threshold. What happens in practice is a large finite gradient, then a
+`status = 2` settling report, then a silently missed event. The guard is not
+dead code: it is reachable through a different degeneracy, an impact speed
+under `1e-12`, which the limitations page records. This is
 a real limitation rather than a handled case, and it is stated as one in
 [limitations](https://impact-adjoint.vercel.app/limitations).
 
@@ -335,8 +339,9 @@ expected V in the step size on all four probes, bottoming below 10⁻⁸: a
 wrong analytic gradient would show a flat floor instead of a V, because the
 disagreement would be dominated by the gradient error rather than the step.
 Cost is affine in parameter count (R² = 0.998, 93 microseconds per
-parameter), which is what makes the reverse-mode extension a measured
-argument rather than a preference.
+parameter, both wall-clock on one machine and worth about ten percent of run
+to run spread; the affine shape is the part that holds), which is what makes
+the reverse-mode extension a measured argument rather than a preference.
 
 ![robustness](figures/study_robustness.png)
 

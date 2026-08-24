@@ -92,8 +92,8 @@ only the saltation endpoint is exact at any dt (right).*
 
 ![E5 separator](docs/figures/e5_separator.png)
 *The designed separator (left) and the 24-dimensional head-to-head (right):
-at equal budget the gradient-free runs end 1.1 to 8.0 orders above Adam on
-objective value; on held-out sorting purity the gap nearly vanishes.*
+at equal budget, on this run, CMA-ES ends 3.9 and Nelder-Mead 4.9 orders above
+Adam on objective value; on held-out sorting purity the gap nearly vanishes.*
 
 ## Correctness
 
@@ -113,14 +113,19 @@ as finite-difference gates through the solver itself:
   **0 failures / 150 checks** across the three gradient endpoints at
   `rtol = 1e-4`, captured by
   `scripts/capture_check_gradients.py` into `experiments/check_gradients.json`.
-  The CLI defaults to `rtol = 0.1` and samples with replacement, which yields a
-  much larger check count made mostly of repeats compared at ten percent; that
-  measures the sampler rather than the gradient, so this runs distinct entries
-  at a tolerance the oracles justify. At the same `eps = 1e-6`, it first fails at
+  The CLI defaults to `rtol = 0.1`, which measures the sampler rather than the
+  gradient, so this runs at a tolerance the oracles justify instead. Two
+  caveats on the count. The checker samples with replacement whatever the
+  budget, and the payload has 14 differentiable elements across two output
+  paths, so those 150 checks are about 76 distinct comparisons and the rest
+  are repeats; the denominator is the checker's, not a count of independent
+  tests. And the draw is seeded (`SEED = 7`, recorded in the artifact) so the
+  numbers reproduce, which fixes repeatability rather than making one draw
+  representative: at `rtol = 1e-5` other seeds give 12, 20 and 21 failures
+  where this one gives 14. At the same `eps = 1e-6` it first fails at
   `rtol = 1e-5` (14 of 150 checks across the three endpoints), which is where
-  the central difference
-  itself stops resolving rather than where the gradient does. The whole sweep
-  is recorded in the artifact, measured rather than asserted.
+  the central difference itself stops resolving rather than where the gradient
+  does. The whole sweep is recorded in the artifact.
 - `scripts/validate_contact.py` is an FD gate (rtol 1e-5) plus robustness
   regressions: chatter/settle termination, event-capacity truncation,
   sub-step-width terrain features, energy conservation at `e=1` (relative
@@ -261,8 +266,8 @@ tesseract serve -p 8123 contact-sim &                 # the curl client needs th
 tesseracts/    contact_sim (Julia solver) · score_target (JAX objective) · julia_kernel (Day-1 proof)
 experiments/   e1-e6, e5b + figure/animation generators + committed result artifacts
 scripts/       three validation oracles · boundary proofs · curl client
-tests/         40 tests: golden regressions plus no-drift guards. Three need
-               Sphinx and skip without it; CI installs it so all 40 run
+tests/         45 tests: golden regressions plus no-drift guards. Four need
+               Sphinx and skip without it; CI installs it so all 45 run
 docs/          technical writeup, all figures, and the site source (docs/site)
 ```
 

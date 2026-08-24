@@ -13,9 +13,20 @@ jl.include(str(Path(__file__).parent / "julia" / "contact_solver.jl"))
 # RK4's stability boundary on the negative real axis: |R(z)| = 1 where
 # R(z) = 1 + z + z^2/2 + z^3/6 + z^4/24, which for real z < 0 reduces to
 # the real root of z^3 + 4z^2 + 12z + 24. Computed rather than typed.
-RK4_STABILITY_LIMIT = float(
-    -min(r.real for r in np.roots([1.0, 4.0, 12.0, 24.0]) if abs(r.imag) < 1e-12)
-)
+_rk4_real_roots = [
+    r.real for r in np.roots([1.0, 4.0, 12.0, 24.0]) if abs(r.imag) < 1e-12
+]
+if not _rk4_real_roots:
+    raise RuntimeError(
+        "no real root found for the RK4 stability polynomial; numpy returned "
+        f"{np.roots([1.0, 4.0, 12.0, 24.0])}"
+    )
+RK4_STABILITY_LIMIT = float(-min(_rk4_real_roots))
+if not 2.78 < RK4_STABILITY_LIMIT < 2.79:
+    raise RuntimeError(
+        f"RK4_STABILITY_LIMIT computed as {RK4_STABILITY_LIMIT}, which is not "
+        "the expected real root near 2.7853"
+    )
 
 MAX_EVENTS = 8
 DIFF_OUTPUTS = {"qf": (0, 4), "impact_x": (4, MAX_EVENTS)}

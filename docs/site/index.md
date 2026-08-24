@@ -229,7 +229,7 @@ committed artifact.
   - forward variational sensitivities with analytic saltation updates at events
 * - Checked against
   - a symbolic closed form and an independent scipy reimplementation, plus
-    fifteen golden tests on every push
+    golden regression tests on every push
 ```
 
 ```{toctree}

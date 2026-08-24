@@ -20,8 +20,10 @@ in process.
 
 ## Regenerating them
 
-The validation block in [getting started](getting-started.md#validate)
-rewrites `oracle_results.json`; `e3_naive_vs_saltation.py` writes `e3_rows.npy`,
+`check_gradients.json` comes from `python scripts/capture_check_gradients.py`,
+which needs the built `contact-sim` image and pins the checker's sampling seed
+so the counts reproduce. The validation block in
+[getting started](getting-started.md#validate) rewrites `oracle_results.json`; `e3_naive_vs_saltation.py` writes `e3_rows.npy`,
 and `scripts/time_checks.py` writes `timing.json`. The experiments and studies
 rewrite the rest; [run the experiments](getting-started.md#run-the-experiments)
 lists them with their run times. `collect_results.py` then rebuilds

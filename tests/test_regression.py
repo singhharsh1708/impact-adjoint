@@ -278,10 +278,7 @@ def test_rk4_stability_bound_is_pinned_to_the_real_limit(tess):
     green: the only case exercising it used a product of 1000, which pins the
     constant to six orders of free play. These straddle it.
     """
-    from tesseract_core.runtime.core import load_module_from_path
-
-    api = load_module_from_path(str(API_PATH))
-    limit = api.RK4_STABILITY_LIMIT
+    limit = _api.RK4_STABILITY_LIMIT
     assert abs(limit - 2.785293563405281) < 1e-12, (
         f"RK4_STABILITY_LIMIT is {limit}, not the real root of "
         "z^3 + 4z^2 + 12z + 24"

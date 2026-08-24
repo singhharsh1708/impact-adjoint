@@ -39,6 +39,12 @@ def _regenerate(tmp_path):
     for rel in ("experiments", "docs"):
         shutil.copytree(ROOT / rel, work / rel, dirs_exist_ok=True)
 
+    # Copying brings the previous outputs along, so their presence proves
+    # nothing. Delete them inside the copy: a collector that writes nothing
+    # then leaves a missing file rather than passing on its own stale output.
+    (work / "docs" / "RESULTS.md").unlink()
+    (work / "experiments" / "results.json").unlink()
+
     done = subprocess.run(
         [sys.executable, str(work / "experiments" / "collect_results.py")],
         capture_output=True, text=True, cwd=work,
@@ -111,7 +117,7 @@ QUOTED = [
         ("README.md", "at R\u00b2 = {v}"),
         ("docs/writeup.md", "(R\u00b2 = {v}"),
         ("docs/site/studies.md", "R\u00b2 = {v}"),
-        ("docs/site/method.md", "R\u00b2 = {v})"),
+        ("docs/site/method.md", "R\u00b2 = {v},"),
     ]),
     ("SCALE_us_per_param", lambda v: f"{v:.0f}", [
         ("README.md", "{v} \u00b5s per parameter"),
@@ -125,6 +131,15 @@ QUOTED = [
     ]),
     ("CHECKGRAD_failures", lambda v: f"{int(v)} failures", [
         ("README.md", "**{v} /"),
+    ]),
+    # The denominator lost its guard in the rewrite: README could publish the
+    # old single-endpoint "50 checks" with the suite green.
+    ("CHECKGRAD_checks", lambda v: str(int(v)), [
+        ("README.md", "/ {v} checks** across the three gradient endpoints"),
+    ]),
+    # The seeded sweep's headline, previously guarded nowhere.
+    ("CHECKGRAD_first_failing_count", str, [
+        ("README.md", "({v} of 150 checks across the three endpoints)"),
     ]),
     ("CLOSED_FORM_jacobian_worst", lambda v: _sci(v, 0), [
         ("README.md", "Jacobian agreement **{v}**"),
@@ -397,3 +412,71 @@ def test_every_committed_figure_has_a_source():
     on_disk = {p.name for p in (ROOT / "docs" / "figures").glob("*.png")}
     missing = sorted(on_disk - set(SOURCES))
     assert not missing, f"figures with no source mapping: {missing}"
+
+
+# Figure scripts that read only committed artifacts, so regenerating them is
+# cheap and deterministic. The solver-driven ones are excluded: they cost a
+# minute each and need Julia.
+ARTIFACT_ONLY_FIGURES = [
+    ("experiments/make_study_figures.py",
+     ["study_verification.png", "study_optimizers.png", "study_robustness.png"]),
+    ("experiments/make_design_comparison_figure.py", ["design_comparison.png"]),
+]
+
+
+@pytest.mark.parametrize("script,figures", ARTIFACT_ONLY_FIGURES)
+def test_committed_figures_are_current(tmp_path, script, figures):
+    """A committed figure still matches what its script draws today.
+
+    Two guards already check that a figure names an artifact and that the
+    artifact exists. Neither checks the picture is current, and v0.1.1 shipped
+    two figures whose panel titles still read the withdrawn E5b numbers while
+    every sentence beside them read the corrected ones.
+    """
+    work = tmp_path / "repo"
+    work.mkdir(parents=True, exist_ok=True)
+    for rel in ("experiments", "docs"):
+        shutil.copytree(ROOT / rel, work / rel, dirs_exist_ok=True)
+    for name in figures:
+        (work / "docs" / "figures" / name).unlink()
+
+    done = subprocess.run(
+        [sys.executable, str(work / script.split("/")[-1].join(["experiments/", ""]))],
+        capture_output=True, text=True, cwd=work,
+    )
+    assert done.returncode == 0, (
+        f"{script} failed:\n{done.stdout[-1500:]}\n{done.stderr[-1500:]}"
+    )
+
+    stale = []
+    for name in figures:
+        fresh = (work / "docs" / "figures" / name).read_bytes()
+        committed = (ROOT / "docs" / "figures" / name).read_bytes()
+        if fresh != committed:
+            stale.append(name)
+    assert not stale, (
+        f"committed figures disagree with what {script} draws from the current "
+        f"artifacts: {stale}. Re-run it and commit the result."
+    )
+
+
+def test_schema_descriptions_state_the_enforced_stability_limit():
+    """The bound quoted in the schema is the constant the validator enforces.
+
+    docs/site/reference.md is generated verbatim from these descriptions and
+    says nothing there is retyped, but the number in them was a literal: it
+    could read anything while the code enforced the real limit.
+    """
+    from tesseract_core.runtime.core import load_module_from_path
+
+    api = load_module_from_path(
+        str(ROOT / "tesseracts" / "contact_sim" / "tesseract_api.py")
+    )
+    stated = f"{api.RK4_STABILITY_LIMIT:.9f}"
+    fields = api.InputSchema.model_fields
+    for name in ("drag", "dt"):
+        desc = fields[name].description
+        assert stated in desc, (
+            f"the {name} description does not state the enforced limit "
+            f"{stated}; docs/site/reference.md publishes it verbatim"
+        )
