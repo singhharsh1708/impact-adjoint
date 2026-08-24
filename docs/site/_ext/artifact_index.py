@@ -73,6 +73,12 @@ ARTIFACTS = [
     ("experiments/scaling_result.npz", ["experiments/study_scaling.py"],
      "Cost per parameter and the reverse-over-forward ratio, up to 581 "
      "parameters."),
+    ("experiments/scaling_repeats.json", ["experiments/study_scaling.py"],
+     "The same study measured twice, so the run-to-run spread on the slope is "
+     "a recorded number rather than a claim."),
+    ("experiments/design_table.json", ["experiments/study_design_table.py"],
+     "Per-design purity and fifth-percentile margin with Wilson and bootstrap "
+     "intervals, for the four-row table on the studies page."),
     ("experiments/timing.json", ["scripts/time_checks.py"],
      "How long the four documented checks take on a warm depot."),
     ("scripts/diffrax_event_gradient.json", ["scripts/diffrax_event_gradient.py"],

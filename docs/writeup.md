@@ -22,6 +22,17 @@ and bounce rollers are sold today to separate potatoes from stones.
 Simulating that class of machine differentiably is exactly where standard
 autodiff fails silently.
 
+Using Tesseract hard enough to build this broke it in four places, and the
+fixes are merged into Pasteur Labs' own repositories: two silent wrong-gradient
+bugs in Tesseract's AD path
+([tesseract-core#667](https://github.com/pasteurlabs/tesseract-core/pull/667),
+[tesseract-jax#236](https://github.com/pasteurlabs/tesseract-jax/pull/236))
+and two in the Mosaic harness
+([#126](https://github.com/pasteurlabs/mosaic/pull/126),
+[#141](https://github.com/pasteurlabs/mosaic/pull/141)). Section 7 has the
+detail. Every number below regenerates byte-identically from the committed
+artifacts; none is typed by hand.
+
 ## 1. The problem: gradients die at events, quietly
 
 Differentiable simulation has a well-known failure mode that is worse than
@@ -220,8 +231,8 @@ on the ratio of medians and 6.3x on the paired per-seed median. We report that
 as unresolved rather than as a reversal: CMA-ES is ahead on 4 of 5 seeds and behind on 1, the sign test
 gives p = 0.375, and the bootstrap interval on the median per-seed ratio
 covers parity. The charge is itself a wall-clock measurement on a shared
-machine: a repeat run measured 5.5 solves rather than 6.8 and moved the ratio
-of medians to 1.3x. What the wall-clock accounting does establish is that the
+machine, and the scaling study it rests on moves about 11% between runs. What
+the wall-clock accounting does establish is that the
 forward-variational cost is large enough to erase a three-order per-evaluation
 lead, which is the reason the reverse-mode adjoint is the first item in future
 work.

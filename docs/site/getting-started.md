@@ -52,7 +52,7 @@ python scripts/proof_local.py         # 5 s boundary proof
 python scripts/validate_contact.py    # FD gate, robustness
 python scripts/validate_closed_form.py  # symbolic oracle
 python scripts/validate_reference.py  # independent scipy impl
-pytest tests/                          # 43; 4 skip without Sphinx
+pytest tests/                          # 44; 4 skip without Sphinx
 ```
 
 ## Run the experiments

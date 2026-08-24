@@ -46,10 +46,20 @@ plt.rcParams.update({
 d = np.load(ROOT / "experiments" / "e5_result.npz")
 CTR, WID = d["ctr"], d["wid"]
 AMP = d["adam_amp"]
-V0 = np.array([2.0, 0.4])
-E_RUBBER, E_PET = 0.5, 0.8
-BIN_RUBBER, BIN_PET = 2.8, 4.4
-FIXED = {"y0": 1.0, "mu": 0.1, "drag": 0.0, "t_final": 2.2, "dt": 5e-4, "n_samples": 1400}
+# Import the design's configuration rather than restating it. The restated
+# copy had silently dropped v_stop, so the published figure re-solved under the
+# schema default instead of the value the design declares.
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent))
+from e5_separator import (  # noqa: E402
+    BIN_PET, BIN_RUBBER, E_PET, E_RUBBER, V0,
+)
+from e5_separator import FIXED as _FIXED  # noqa: E402
+
+# the figure draws trajectories, so it needs sampled points; everything else is
+# the design's own configuration
+FIXED = {**_FIXED, "n_samples": 1400}
 
 
 def h_of(x):

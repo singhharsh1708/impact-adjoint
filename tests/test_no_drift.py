@@ -443,3 +443,21 @@ def test_figures_assert_the_current_numbers():
         f"design_comparison.png draws {dc['p5_ensemble']} m for the ensemble "
         f"margin, the artifact says {wanted}; regenerate it"
     )
+
+
+def test_studies_design_table_matches_its_artifact():
+    """The four per-design rows are the generated ones.
+
+    Both interval columns were published with nothing computing them, so a
+    resample or a design change could not move the page.
+    """
+    table = json.loads(
+        (ROOT / "experiments" / "design_table.json").read_text()
+    )["designs"]
+    page = (ROOT / "docs" / "site" / "studies.md").read_text()
+    for name, d in table.items():
+        lo, hi = d["wilson_pct"]
+        blo, bhi = d["p5_ci_m"]
+        row = (f"| {name} | {d['correct']} ({lo}\u2013{hi}%) | "
+               f"{d['p5_margin_m']:+.2f} ({blo:+.2f} to {bhi:+.2f}) |")
+        assert row in page, f"studies.md is missing the generated row:\n  {row}"

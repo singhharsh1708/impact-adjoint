@@ -41,6 +41,18 @@ V_SD = 0.03
 TRAINED = (0.5, 0.8)
 
 
+def exact_mcnemar(b01, b10):
+    """Two-sided exact McNemar on the discordant pairs only."""
+    from math import comb
+
+    n = b01 + b10
+    if n == 0:
+        return 1.0
+    k = min(b01, b10)
+    tail = sum(comb(n, i) for i in range(k + 1)) / 2 ** n
+    return min(1.0, 2.0 * tail)
+
+
 def wilson(k, n, z=1.96):
     if n == 0:
         return (0.0, 1.0)
@@ -126,8 +138,18 @@ def main():
         if len(bad):
             print(f"         indecisive at e = {', '.join(f'{x:.3f}' for x in bad)}")
 
+    # The jitter-sweep McNemar p was published with nothing computing it.
+    # Discordant pairs: restitutions where exactly one design is decisive.
+    dec_p = (out["point"]["frac_a"] == 0.0) | (out["point"]["frac_a"] == 1.0)
+    dec_r = (out["robust"]["frac_a"] == 0.0) | (out["robust"]["frac_a"] == 1.0)
+    b01 = int((~dec_p & dec_r).sum())
+    b10 = int((dec_p & ~dec_r).sum())
+    mcnemar_p = float(exact_mcnemar(b01, b10))
+    print(f"\njitter decisiveness McNemar: b01={b01}, b10={b10}, exact p = {mcnemar_p:.4f}")
+
     np.savez(ROOT / "experiments" / "generalization_stats.npz",
              es=ES, n_draws=N_DRAWS, v_sd=V_SD, x_mid=X_MID, band=np.array(band),
+             mcnemar_b01=b01, mcnemar_b10=b10, mcnemar_p=mcnemar_p,
              **{f"{n}_{k}": v for n, d in out.items() for k, v in d.items()})
 
     kp, n, bad_p = stats["point"]

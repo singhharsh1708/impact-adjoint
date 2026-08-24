@@ -1,0 +1,54 @@
+{
+  "bootstrap": 10000,
+  "designs": {
+    "Adam": {
+      "correct": "199/200",
+      "p5_ci_m": [
+        0.06,
+        0.32
+      ],
+      "p5_margin_m": 0.07,
+      "wilson_pct": [
+        97,
+        100
+      ]
+    },
+    "CMA-ES": {
+      "correct": "196/200",
+      "p5_ci_m": [
+        0.11,
+        0.25
+      ],
+      "p5_margin_m": 0.18,
+      "wilson_pct": [
+        95,
+        99
+      ]
+    },
+    "Nelder-Mead": {
+      "correct": "199/200",
+      "p5_ci_m": [
+        0.33,
+        0.52
+      ],
+      "p5_margin_m": 0.41,
+      "wilson_pct": [
+        97,
+        100
+      ]
+    },
+    "ensemble-refined": {
+      "correct": "200/200",
+      "p5_ci_m": [
+        0.4,
+        0.52
+      ],
+      "p5_margin_m": 0.43,
+      "wilson_pct": [
+        98,
+        100
+      ]
+    }
+  },
+  "seed": 11
+}

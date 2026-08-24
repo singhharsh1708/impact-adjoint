@@ -134,7 +134,9 @@ def _fig_e3_inner():
     dts, naive, interp = rows[:, 0], rows[:, 1], rows[:, 2]
     # measured, not retyped: the mean of the per-dt saltation column, which
     # spans 6e-14 across the whole sweep
-    truth = float(rows[:, 3].mean()) if rows.shape[1] > 3 else 0.09037774
+    if rows.shape[1] <= 3:
+        raise SystemExit("e3_rows.npy has no truth column; re-run e3_naive_vs_saltation.py")
+    truth = float(rows[:, 3].mean())
     fig, (ax, ax2) = plt.subplots(1, 2, figsize=(8.6, 3.0), dpi=200)
 
     ax.axhline(truth, color=BLUE, lw=2.0)

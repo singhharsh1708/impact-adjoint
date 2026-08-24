@@ -31,6 +31,28 @@ entries supersede, and one correction is itself withdrawn further up.
 For what the entry publishes today, read `docs/RESULTS.md`, which is generated
 from the committed artifacts, or the artifacts themselves.
 
+- **Five published statistics had no code computing them.** The four per-design
+  rows on the studies page carried Wilson and bootstrap intervals that existed
+  only as typed text, and the jitter-sweep McNemar p was quoted in two places
+  with nothing producing it. `study_design_table.py` generates the table into
+  an artifact the suite compares the page against, and the McNemar is computed
+  where the sweep is. One published bound moved: Nelder-Mead's upper interval
+  is 0.52, not 0.51.
+- **The repeat-run figures were quoted from runs that were never recorded.**
+  A slope "re-measured at 81 µs", a gradient charge of "5.5 forward solves" and
+  a "ratio of medians of 1.3x" appeared across three pages with no artifact
+  behind any of them. The scaling study is run twice now and both runs are
+  committed: 93.1 µs and 83.0 µs, an 11% spread. The two figures that had no
+  second run are gone rather than restated.
+- `make_e5_figure.py` restated the entire E5 configuration instead of importing
+  it, and its copy had silently dropped `v_stop`, so the published figure
+  re-solved under the schema default rather than the value the design declares.
+- Two dead literal fallbacks, `... else 0.09037774` in the collector and the
+  figure script, were one three-column rewrite away from republishing a stale
+  truth value through every page that quotes it. They fail loudly now.
+- The entry has eight labelled experiments and seven verification studies, not
+  seven and six.
+
 - **A published README command crashed.** `e6_generalization.py` used
   `BIN_RUBBER` and `BIN_PET` seven lines above the import that defines them,
   so it died with a `NameError` before doing anything. It is the seventh
@@ -457,7 +479,7 @@ from the committed artifacts, or the artifacts themselves.
 
 ### Baseline
 
-First complete entry: three Tesseracts, seven experiments, six verification
+First complete entry: three Tesseracts, eight experiments, seven verification
 studies, twelve golden tests, two solver-independent oracles plus a
 finite-difference gate, and CI on every push.
 The suite has grown since; the README states its current size.

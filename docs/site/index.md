@@ -207,7 +207,7 @@ termination semantics that keep optimizers honest.
 :link: studies
 :link-type: doc
 
-Six verification studies and seven experiments, every number generated from a
+Seven verification studies and eight experiments, every number generated from a
 committed artifact.
 :::
 

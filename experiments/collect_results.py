@@ -28,7 +28,9 @@ def main():
     # measured, not retyped: the mean of the per-dt saltation column. The old
     # hardcoded literal meant a uniform solver shift would leave this constant
     # and both derived errors untouched.
-    r["E3_truth"] = round(float(e3[:, 3].mean()), 8) if e3.shape[1] > 3 else 0.09037774
+    if e3.shape[1] <= 3:
+        raise SystemExit("e3_rows.npy has no truth column; re-run e3_naive_vs_saltation.py")
+    r["E3_truth"] = round(float(e3[:, 3].mean()), 8)
     r["E3_interp_rel_err_coarse"] = float(abs(e3[0, 2] - r["E3_truth"]) / r["E3_truth"])
     r["E3_interp_rel_err_fine"] = float(abs(e3[-1, 2] - r["E3_truth"]) / r["E3_truth"])
     if e3.shape[1] > 3:

@@ -61,9 +61,9 @@ resolved at this sample size: CMA-ES is ahead on 4 of 5 seeds and behind on 1, a
 p = 0.375, and a bootstrap interval on the median per-seed ratio spans both
 sides of parity. The honest statement is that under wall-clock accounting the
 ordering is not established at n = 5, not that it reverses. The charge is
-itself a wall-clock measurement on a shared machine: a repeat run measured 5.5
-solves rather than 6.8 and moved the ratio of medians to 1.3x, which is one
-more reason to read this as unresolved rather than as a result.
+itself a wall-clock measurement on a shared machine, and the scaling study it
+rests on moves about 11% between runs, which is one more reason to read this
+as unresolved rather than as a result.
 
 :::{important}
 The wall-clock accounting is reported rather than hidden. What it exposes is
@@ -90,10 +90,13 @@ scatter ensemble that E5b uses:
 |---|---|---|
 | Adam | 199/200 (97–100%) | +0.07 (+0.06 to +0.32) |
 | CMA-ES | 196/200 (95–99%) | +0.18 (+0.11 to +0.25) |
-| Nelder-Mead | 199/200 (97–100%) | +0.41 (+0.33 to +0.51) |
+| Nelder-Mead | 199/200 (97–100%) | +0.41 (+0.33 to +0.52) |
 | ensemble-refined | 200/200 (98–100%) | +0.43 (+0.40 to +0.52) |
 
 All four are scored on the same 200 particles, so the columns are paired.
+The intervals come from `experiments/study_design_table.py` into
+`design_table.json`: Wilson on the purities, and 10,000 bootstrap
+resamples at a pinned seed on the fifth percentile.
 The purity intervals overlap for every pair, so purity does not separate
 these designs at this sample size; the margin intervals separate Adam from
 both Nelder-Mead and the ensemble design, and do not separate those two
