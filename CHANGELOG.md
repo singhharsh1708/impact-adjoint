@@ -6,37 +6,28 @@ figure changed, this says what it was and what it became.
 
 ## 0.1.5 (2026-08-27)
 
-### Note on 0.1.0 and 0.1.1
+### Superseded releases
 
-0.1.1 shipped a crashing command and three stale figures, both fixed here; it
-is superseded but its tag is left where it is.
+Earlier tags are left where they are rather than moved, so the record of what
+each published survives.
 
-### Note on 0.1.0
-
-0.1.0 was tagged earlier the same day and is superseded. Its E5b design was
-scored, but it was not the best available: the correction it shipped discarded
-Adam's final update, which the loop never scored and which is better, so 0.1.0
-published a worse design than the one it replaced. Its three E5b figures were
-also never regenerated after that correction, so they drew the numbers of a
-still earlier design, and its gradient-checker sweep was sampled without a
-seed. All of that is corrected here. The tag stays where it is rather than
-being moved, so the record of what it published survives.
+- **0.1.0** published an E5b design that was scored but was not the best
+  available: the correction it shipped discarded Adam's final update, which the
+  loop never scored and which is better. Its three E5b figures were never
+  regenerated after that correction, so they drew a still earlier design's
+  numbers, and its gradient-checker sweep was sampled without a seed.
+- **0.1.1** shipped `e6_generalization.py` with a `NameError`, so a documented
+  README command crashed, and the same three stale figures.
+- **0.1.2 to 0.1.4** are superseded by the corrections below.
 
 ### Corrected
 
-Every entry below is a correction made while building 0.1.0 or 0.1.1, written
-as "it was X, it is now Y", newest first. They are a record of what moved, not
-a statement of the current values: several entries quote figures that later
-entries supersede, and one correction is itself withdrawn further up.
-For what the entry publishes today, read `docs/RESULTS.md`, which is generated
-from the committed artifacts, or the artifacts themselves.
-
-- The repository is archived on Zenodo and has a DOI. The concept DOI,
-  `10.5281/zenodo.22117930`, resolves to the latest archived release and is
-  what `CITATION.cff` and the BibTeX entry now carry; the version DOI
-  `10.5281/zenodo.22117931` pins v0.1.5. Worth noting because the badge Zenodo
-  displays on its settings page is the version DOI, not the concept one, and
-  citing that would pin readers to a single release.
+Every entry below is a correction made while building this entry, newest
+first, written as "it was X, it is now Y". They are a record of what moved,
+not a statement of the current values: several entries quote figures that
+later entries supersede, and two corrections are themselves withdrawn further
+up. For what the entry publishes today, read `docs/RESULTS.md`, which is
+generated from the committed artifacts, or the artifacts themselves.
 
 - **The README's performance table failed its own arithmetic.** The refactor
   commit rewrote the ratio row and left the two rows above it at their
@@ -58,10 +49,6 @@ from the committed artifacts, or the artifacts themselves.
   section 2, and the Future Work item that led on parameter count. Future Work
   keeps the adjoint on the justification that survives, large state dimension,
   and says plainly that the one we started with did not.
-- The replacement gate in `study_scaling.py` did not discriminate: the
-  pre-refactor solver measured 8.0024 at 1000 parameters and would have cleared
-  a threshold of 8.0 by 0.03%. It gates at 3.0 now, against a measured
-  1.8x, with a second gate on the slope.
 - The demo video baked in the old 32-second run time and the pre-refactor
   optimizer figure. Regenerated.
 
@@ -78,12 +65,6 @@ from the committed artifacts, or the artifacts themselves.
   1.8x a forward solve rather than 7.9x. The primal is
   bitwise unchanged and the sensitivities agree to 6.5e-14 on every status
   branch.
-- **`study_scaling.py` was gating on the inefficiency.** Its assertion read
-  "VJP per-parameter cost should dominate apply's" and its docstring said
-  measuring that "justifies the claim that a reverse-mode saltation adjoint is
-  the right extension". Both encoded the artifact rather than the physics, and
-  the assertion failed the moment the artifact was removed. It now gates on the
-  property we have.
 - **The wall-clock concession has reversed, and that is about us, not about
   gradients.** With the gradient at 6.78 solves, CMA-ES was ahead on 4 of 5
   seeds and we reported the ordering as unresolved. At
@@ -118,16 +99,6 @@ from the committed artifacts, or the artifacts themselves.
   objective is what buys the robustness, and the gradient is not what makes
   that possible. Nelder-Mead is genuinely worse, so this is not a gradient-free
   win in general.
-- The control was itself reviewed before it was run, which caught two defects
-  that would have produced a flattering answer. The budget charged Adam only
-  the reverse pass, handing gradient-free 87% of the solves the repo's own
-  accounting says Adam spent, and Nelder-Mead was getting scipy's default
-  simplex, which from this warm start spans four orders of magnitude and
-  freezes seven of the twenty-four amplitudes. Both were fixed first.
-- Every quantity in `results.json` is now a substitution the docs pages can
-  quote directly, so a measured number on the site no longer needs a literal
-  that a guard has to chase.
-
 - **Five published statistics had no code computing them.** The four per-design
   rows on the studies page carried Wilson and bootstrap intervals that existed
   only as typed text, and the jitter-sweep McNemar p was quoted in two places
@@ -144,9 +115,6 @@ from the committed artifacts, or the artifacts themselves.
 - `make_e5_figure.py` restated the entire E5 configuration instead of importing
   it, and its copy had silently dropped `v_stop`, so the published figure
   re-solved under the schema default rather than the value the design declares.
-- Two dead literal fallbacks, `... else 0.09037774` in the collector and the
-  figure script, were one three-column rewrite away from republishing a stale
-  truth value through every page that quotes it. They fail loudly now.
 - The entry has eight labelled experiments and seven verification studies, not
   seven and six.
 
@@ -192,10 +160,6 @@ from the committed artifacts, or the artifacts themselves.
   small enough that the first impact speed falls under `1e-12`. The second
   guard, on non-approaching velocity, fires only past the RK4 stability limit
   and is unreachable through the schema. All of that is written down now.
-- The drift guard lost coverage in its rewrite: the checker's denominator could
-  be republished as the old single-endpoint 50 with the suite green, and the
-  "14 of 150" headline was guarded nowhere. Both are pinned now, as is the
-  stability limit quoted in the schema descriptions.
 - Light-mode contrast: the sweep widget's two value colours sat at 2.55:1 and
   2.90:1, and the footer provenance, sidebar captions and figure-source lines
   at 3.26:1 and 3.50:1, all under the 4.5:1 threshold for text. The text tones
@@ -208,7 +172,9 @@ from the committed artifacts, or the artifacts themselves.
   `study_generalization_stats.py`'s docstring were both left describing the
   withdrawn design.
 
-- **The E5b iterate fix was itself wrong, and is withdrawn.** Keeping the best
+- **The E5b iterate fix was itself wrong, and is withdrawn.** E5b's numbers
+  were corrected twice and both corrections are retracted; this states where
+  they landed. Keeping the best
   point scored inside the loop discarded Adam's final update, which the loop
   never scored and which is 0.4% better on the objective. So the correction
   published a worse design and moved eight numbers for nothing: the five below
@@ -229,25 +195,6 @@ from the committed artifacts, or the artifacts themselves.
   was fixed but the headline pair was not: `checks` counted one endpoint while
   `failures` summed three, hidden only because the count is zero. Both are
   totals now, and the pages say "across the three gradient endpoints".
-- **The prose guard accepted 11 of 19 wrong values.** Anchoring a bare value
-  to a context string within a two-line window was barely stronger than
-  matching it anywhere: the point-design purity guard was satisfied by the
-  ensemble design's number in the same sentence, and the 93-microsecond guard
-  by the 81 published two lines below it. Each entry now carries the phrase the
-  number belongs to, and the value has to appear inside it.
-- **A superseded purity survived in `docs/writeup.md` and the guard could not
-  see it.** The guard proves the current value appears somewhere; it cannot
-  detect a stale duplicate elsewhere in the same file. A second check now
-  requires every occurrence of a quantity written in a fixed shape to be
-  current.
-- **The drift test deleted two committed files in place.** SIGTERM, SIGHUP or
-  SIGKILL inside a 0.13 second window left the working tree with both gone,
-  a failed first restore skipped the second, and it broke under parallel
-  execution. It runs against a copy now and never writes the real tree.
-- **The landing-page timing test passed for "about 25 minutes" against 24.8
-  seconds**, because it compared digits and not the unit, and its stat-card
-  half only checked that a key name appeared in a table. Both halves render
-  and compare now, and it reads the page it is named for.
 - **Two tests failed under the install the README documents.** They import
   `docutils`, which `requirements-repro.txt` does not carry; CI installs
   Sphinx separately and hid it. They skip now, and the counts say three tests
@@ -264,63 +211,18 @@ from the committed artifacts, or the artifacts themselves.
   all initial orientations. Both the write-up and the related-work page said
   otherwise, so making them agree had propagated the error rather than fixing
   it.
-- The write-up's snippet claim that "the only difference is where the impact is
-  applied" stopped being true once the second snippet gained an x64 line, which
-  it needs because the component returns Float64.
-- `figure_source` indexed 10 of the 12 committed figures; the two it missed are
-  both displayed in the write-up. A test now fails if a figure has no source.
 - The README's figure tip named three scripts for what takes five, and called
   twelve figures eight.
 - The median-margin interval was published with no code computing it. The
   robustness study bootstraps it now, and `collect_results.py` collects the
   McNemar p, the tail interval and the median interval it was already storing
   but never reading.
-- `experiments/timing.json` predated its own generator, still carrying the
-  literal `depot` field the fix replaced with a derived one.
-- The `citing` page promised a DOI "as soon as v0.1.0 is tagged", after it was.
-- A dangling sentence fragment in this file, orphaned when the lines above it
-  were rewritten, pointed its "superseded by" at the wrong entry.
-
-- **The ensemble design was one Adam step past the last point it evaluated.**
-  E5 and E4 were fixed for this; `e5b_robust_separator.py` was not. Its
-  training ensemble is drawn once from a fixed seed, so the objective is
-  deterministic in the design and the best evaluated iterate is the right one
-  to keep. Correcting it moves published numbers in both directions. Held-out
-  purity over five ensembles goes **997/1000 to 1000/1000** and the worst case
-  **-0.35 m to +0.07 m**, out of the wrong bin rather than inside it; the
-  fifth-percentile margin goes 0.49 m to **0.40 m** and E5b's ensemble margin
-  0.43 m to **0.37 m**, which is now narrower than Nelder-Mead's 0.41 m. The
-  median margin no longer costs anything: it improves 1.8 cm, where the
-  previous design lost 2.7 cm.
-- **The jitter sweep no longer separates the two designs, and the pages said it
-  did.** The corrected ensemble design is decisive at 18 of 20 restitutions,
-  not 20 of 20. The point design is also 18 of 20. Two discordant pairs against
-  two gives exact McNemar **p = 1.0**, where the pages reported p = 0.50 and a
-  consistent direction. Robustness bought on the scatter ensemble did not
-  transfer to restitutions far from the training distribution, and that is
-  what the pages say now.
 - **The tolerance sweep counted failures over three endpoints against one
   endpoint's checks.** `check_gradients.json` recorded 81 failures out of 50
   checks at `rtol = 1e-7`, which is impossible and was the tell. The README
   published "22 of 50" for a rate whose denominator is 150. The sweep records
   the endpoint count and both denominators now, and re-measuring gives **15 of
   150** at `rtol = 1e-5`.
-- **The docs CI gate was not a gate.** `docs.yaml` piped Sphinx through `tee`
-  with no `shell:` key, so Actions ran it under `bash -e` without `pipefail`
-  and the step took `tee`'s exit status. `-W` never failed a build, which
-  silently disarmed every provenance guard in `docs/site/_ext`, all of which
-  are `logger.warning` and only fatal under `-W`. The drift test explicitly
-  delegates to this gate.
-- **Two drift tests passed when the collector did nothing.** They compared
-  `RESULTS.md` and `results.json` before against after, so stubbing
-  `collect_results.main()` with a bare `return` made all twenty pass. Both
-  files are deleted before the run now.
-- **Seven of thirteen prose guards were checking a generated file against its
-  own generator**, and the search took the first match anywhere in the file, so
-  a nearby number satisfied it: README quotes 81 as a repeat measurement two
-  lines under the 93 the test guards. Each entry now names the sentence the
-  number belongs to. Setting `point_k` to 900 previously left five pages
-  publishing 983 with the suite green; it fails now.
 - **`drag` and `dt` were validated independently, never their product.** The
   integrator is fixed-step explicit RK4, so it is stable only while
   `drag * dt` stays under about 2.785. Past that a purely dissipative force
@@ -341,28 +243,12 @@ from the committed artifacts, or the artifacts themselves.
 - **"tuned CMA-ES" described an untuned design.** The CMA-ES design E5b scores
   comes from a single hardcoded `sigma0 = 0.05, seed = 3` in `e5_separator.py`,
   not from the tuning grid. Only `study_optimizers.py` tunes.
-- `collect_results.py` wrote the E2b draw count as a literal `2000` disguised
-  as `r.get(...) and 2000`, in the table whose header says nothing is retyped.
-  `n_draws` was in the artifact all along.
 - The E2b wall time was labelled "sampling" in the writeup and the generated
   table; it covers warmup plus sampling. The leapfrog count is the sampling
   phase alone, and `experiments.md` had paired the two.
-- `time_checks.py` wrote `"depot": "warm"` unconditionally, in a file whose
-  docstring says the depot state is recorded rather than assumed. It is derived
-  from whether the first repeat is anomalously slow.
 - The landing page's closed-form card floored the exponent, rendering 7.1e-12
   as 10^-12 and claiming a tighter agreement than the artifact supports. It
   shows the measured value, like the oracle card beside it.
-- Four regression tests were weak: a one-hot cotangent made the VJP check
-  algebraically identical to reading the first Jacobian row, two finite
-  difference comparisons sat inside an `if` that skipped them silently on a
-  topology shift, and the bounds test used a bare `Exception` over four of ten
-  validator branches. All eleven branches are exercised against their messages
-  now.
-- The landing-page timing test never read the landing page. Replacing the
-  substitution in `conf.py` with a literal passed it.
-- `study_generalization_stats.py` printed a self-contradicting verdict
-  ("unanimous at 18/20") once the design stopped being unanimous.
 - The `artifacts.md` page said only `check_gradients.json` needs Docker;
   `e2b_posterior.npz` does too. Its regeneration note also credited the wrong
   commands for `e3_rows.npy` and `timing.json`.
@@ -378,10 +264,6 @@ from the committed artifacts, or the artifacts themselves.
   timing moved. The pages already reported the wall-clock ordering as
   unresolved at n = 5, and they now say the charge itself is a measurement with
   spread.
-- `scripts/second_client_curl.sh` failed with `Expecting value: line 1 column 1`
-  when no server was running, which describes nothing. It checks `/health`
-  first and names the command to start one.
-
 - **The landing page said the four checks take about five minutes; they take
   about twenty five seconds.** The five minutes was the first-run Julia
   bootstrap, not the checks, and the figure came from no artifact. It is
@@ -397,10 +279,6 @@ from the committed artifacts, or the artifacts themselves.
   per parameter to 81, and R² from 0.998 to 0.997. The affine shape holds; the
   absolute figures carry ten to twenty percent of run to run spread, and the
   pages that quote them say so.
-- `study_generalization_stats.py` printed `transition band ... e in [nan, nan]`
-  when the robust design classified every sampled restitution unanimously.
-  That is the good case, and it now says so in words.
-
 - **The tolerance sweep in `check_gradients.json` was three hardcoded literals.**
   They were written into the artifact whose entire purpose is that its numbers
   are measured, and the README quoted them. The script runs the sweep now, and
@@ -427,15 +305,8 @@ from the committed artifacts, or the artifacts themselves.
 - **"1.1 to 5.1 orders" was CMA-ES alone, attributed to both gradient-free
   methods.** Nelder-Mead spans 2.9 to 8.0. The published range is 1.1 to 8.0
   and the collector computes it over both methods.
-- **E3_truth was a hardcoded literal** in the file whose premise is that
-  nothing is retyped, so a uniform solver shift would have left it and both
-  derived errors untouched. It is the mean of the measured per-dt saltation
-  column now.
 - The `e3_bias` figure drew the saltation reference as a literal `1e-15` line,
   669x below what the artifact measures. It plots the measured column.
-- The robustness figure's caption still said the ensemble objective buys
-  margin "not headline purity"; after the rebuild purity improves with
-  McNemar p = 0.0026, so the caption said the opposite of the panel beneath it.
 - E2b sampling time read "18 minutes" in four places against a measured 22.7,
   and the test count read 21 against 33 collected.
 
@@ -460,11 +331,6 @@ from the committed artifacts, or the artifacts themselves.
   benchmark median rather than the CMA-ES design E5b actually scores.)
   "The gradient-free methods never reach the design" is now stated as what it
   is, a statement about objective value, with the translation shown.
-- **The ensemble design was built from a superseded point design.** E5b starts
-  from E5's output, and its committed result predated the fix that made E5
-  return the iterate it had actually scored. Rebuilt: held-out purity is
-  **997/1000**, not 1000/1000, and the fifth-percentile margin improves
-  0.05 m to 0.49 m rather than to 0.58 m.
 - **The worst-case margin claim was backwards.** It said the worst case moves
   "from inside the wrong bin to 0.09 m clear". On the rebuilt designs it goes
   -0.12 m to -0.35 m, both inside the wrong bin. The ensemble
@@ -553,9 +419,6 @@ from the committed artifacts, or the artifacts themselves.
   two chains in 23 minutes of warmup plus sampling, 0 divergences, non-split r-hat 1.0089 and 1.0119 (now reported as split r-hat, 1.0061 and 1.0074). The
   previous estimate of "roughly 10,000 solver calls per chain" is replaced by
   the measurement.
-- Held-out purity now states which figure comes from one 200-particle draw
-  (199/200) and which from five independent ensembles (983/1000), which read
-  as contradictory before.
 - In-figure series labels were below the WCAG AA contrast threshold for text
   (4.42:1 and 3.20:1 on white). Label colours are darkened; plotted line
   colours are unchanged, so the figures are otherwise identical.
