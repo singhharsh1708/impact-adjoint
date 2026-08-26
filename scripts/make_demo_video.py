@@ -124,6 +124,42 @@ def terminal_card(fig, writer, title, lines, seconds):
             writer.grab_frame()
 
 
+def _poster():
+    """A contact sheet of six frames, so the README can show the arc at a glance.
+
+    GitHub will not embed an mp4 from a repo path, so the README needs a still
+    that links to the video rather than a bare link.
+    """
+    tmp = ROOT / "_poster_frames"
+    tmp.mkdir(exist_ok=True)
+    for old in tmp.glob("*.png"):
+        old.unlink()
+    # six evenly spaced stills across the running time
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-y", "-i", str(OUT),
+         "-vf", "fps=6/73,scale=640:-1", str(tmp / "p%02d.png")],
+        check=True,
+    )
+    frames = sorted(tmp.glob("*.png"))[:6]
+    fig = plt.figure(figsize=(12.8, 5.4), dpi=100)
+    fig.patch.set_facecolor(PAPER)
+    for i, f in enumerate(frames):
+        ax = fig.add_subplot(2, 3, i + 1)
+        ax.imshow(mpimg.imread(f))
+        ax.set_xticks([]); ax.set_yticks([])
+        for s in ax.spines.values():
+            s.set_color("#e3e2dc")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01,
+                        wspace=0.03, hspace=0.03)
+    out = ROOT / "docs" / "figures" / "demo_poster.png"
+    fig.savefig(out, facecolor=PAPER)
+    plt.close(fig)
+    for f in tmp.glob("*.png"):
+        f.unlink()
+    tmp.rmdir()
+    print(f"wrote {out.relative_to(ROOT)}")
+
+
 def main():
     fig = _fig()
     writer = FFMpegWriter(fps=FPS, bitrate=2600,
@@ -226,6 +262,7 @@ def main():
         ], 6.0)
 
     plt.close(fig)
+    _poster()
     size = OUT.stat().st_size / 1e6
     dur = subprocess.run(
         ["ffprobe", "-v", "error", "-show_entries", "format=duration",

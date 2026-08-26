@@ -43,6 +43,10 @@ SOURCES = {
         "experiments/make_figures.py",
         ["experiments/e2b_posterior.npz"],
     ),
+    "demo_poster.png": (
+        "scripts/make_demo_video.py",
+        ["experiments/results.json"],
+    ),
     "e5b_purity.png": (
         "experiments/make_e5b_figure.py",
         ["experiments/e5b_result.npz"],
