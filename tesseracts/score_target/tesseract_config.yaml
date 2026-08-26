@@ -1,5 +1,5 @@
 name: "score-target"
-version: "0.1.4"
+version: "0.1.5"
 description: |
   Differentiable scoring of a contact-solver trajectory against a target cup:
   quadratic landing loss plus kinetic penalty, implemented in JAX. Composes

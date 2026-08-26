@@ -1,5 +1,5 @@
 name: "contact-sim"
-version: "0.1.4"
+version: "0.1.5"
 description: |
   Differentiable 2D ballistic flight over smooth terrain with impact events
   (normal restitution + tangential loss), implemented in Julia. Gradients via
