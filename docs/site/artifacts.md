@@ -20,6 +20,11 @@ in process.
 
 ## Regenerating them
 
+The walkthrough video, `docs/demo.mp4`, is generated the same way the figures
+are: `scripts/make_demo_video.py` reads every number on its cards from
+`results.json` and runs the boundary proof live, so re-running it after the
+artifacts change produces a video that agrees with them.
+
 `check_gradients.json` comes from `python scripts/capture_check_gradients.py`,
 which needs the built `contact-sim` image and pins the checker's sampling seed
 so the counts reproduce. The validation block in
