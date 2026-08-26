@@ -31,6 +31,33 @@ entries supersede, and one correction is itself withdrawn further up.
 For what the entry publishes today, read `docs/RESULTS.md`, which is generated
 from the committed artifacts, or the artifacts themselves.
 
+- **The README's performance table failed its own arithmetic.** The refactor
+  commit rewrote the ratio row and left the two rows above it at their
+  pre-refactor timings, so the table printed 11.4 ms over 1.8 ms and labelled
+  it 3.3x. Every column was wrong the same way, the VJP figures were about four
+  times too large, and `docs/RESULTS.md`, which is generated, already published
+  the right ones. The most checkable numbers in the entry disagreed with the
+  repo's own results page.
+- **A sentence the changelog listed as corrected was still standing.** The
+  README kept explaining the gradient charge as "measured against the 24
+  columns its objective actually differentiates", which the previous entry
+  retracted and `study_optimizers.py` retracts in its own docstring. Anyone who
+  read the changelog and grepped the README found a correction claimed but not
+  made.
+- The arguments the refactor invalidated were rewritten rather than
+  renumbered: the wall-clock section that called the ordering unresolved, the
+  scaling sentence that said the measurement made a reverse-mode extension "a
+  measured argument rather than a preference", the O(n_params) framing in
+  section 2, and the Future Work item that led on parameter count. Future Work
+  keeps the adjoint on the justification that survives, large state dimension,
+  and says plainly that the one we started with did not.
+- The replacement gate in `study_scaling.py` did not discriminate: the
+  pre-refactor solver measured 8.0024 at 1000 parameters and would have cleared
+  a threshold of 8.0 by 0.03%. It gates at 3.0 now, against a measured
+  1.8x, with a second gate on the slope.
+- The demo video baked in the old 32-second run time and the pre-refactor
+  optimizer figure. Regenerated.
+
 - **The gradient was 4x more expensive than it needed to be, and a study
   asserted that it should be.** The flow is affine in the state, so the RK4
   variational update collapses exactly to a fixed 4x4 tangent map; the solver

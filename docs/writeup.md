@@ -106,11 +106,15 @@ ForwardDiff dual numbers; the event structure is handled analytically. From the 
 `jacobian_vector_product`, and `vector_jacobian_product`, so `jax.grad`,
 `jax.jvp`, and `jax.jacrev` all work through it.
 
-On cost: the sensitivities are *forward*-variational, so a VJP costs
-O(n_params), measured at 3.3× a forward solve for 14 parameters and 2.8× for
-77 (apply 1.8 / 2.3 ms, VJP 11.4 / 19.8 ms warm). That is the right trade at
-tens of design variables. At thousands, the natural extension is a
-reverse-mode saltation adjoint behind the same endpoint.
+On cost: the sensitivities are *forward*-variational, but because the flow is
+affine in the state the per-step work is a fixed tangent map rather than one
+RK4 pass per parameter, so a VJP costs 3.3× a forward
+solve at 14 parameters and 2.8× at 77, with the residual
+growth coming from the per-event work. At 15
+microseconds per parameter this is a comfortable trade well past thousands of
+design variables. A reverse-mode saltation adjoint remains the right extension
+for large *state* dimension, a 3D or multi-body model, where the tangent map
+stops being 4x4.
 
 **score-target** (JAX): a differentiable landing objective (quadratic
 distance to a cup plus kinetic penalty), built with the `tesseract init
@@ -224,29 +228,30 @@ of the per-seed ratios, 347x, is the statistic that respects that; the
 ratio of medians would read 917x. Per-seed ratios span 12x to
 139843x, so the direction is unanimous across five seeds while the
 magnitude is not resolvable at n = 5. Nelder-Mead sits a further 3.5 orders
-behind CMA-ES. Charged by measured wall-clock, where each gradient call costs
-a measured 6.8 forward solves, the ordering at this budget is no longer in
-Adam's favour: Adam reaches 7.3e-04 against CMA-ES at 3.2e-04, which is 2.3x
-on the ratio of medians and 6.3x on the paired per-seed median. We report that
-as unresolved rather than as a reversal: CMA-ES is ahead on 4 of 5 seeds and behind on 1, the sign test
-gives p = 0.375, and the bootstrap interval on the median per-seed ratio
-covers parity. The charge is itself a wall-clock measurement on a shared
-machine, and the scaling study it rests on moves about 11% between runs. What
-the wall-clock accounting does establish is that the
-forward-variational cost is large enough to erase a three-order per-evaluation
-lead, which is the reason the reverse-mode adjoint is the first item in future
-work.
+behind CMA-ES. Charged by measured wall-clock the story changed under us, and the history is
+worth stating because it is the clearest thing this project learned about its
+own measurements. When a gradient call cost a measured 6.8 forward solves,
+CMA-ES was ahead on 4 of 5 seeds, the sign test gave p = 0.375, and the
+bootstrap interval on the median per-seed ratio covered parity; we reported the
+wall-clock ordering as unresolved rather than reversed, and named a
+reverse-mode saltation adjoint as the fix.
 
-We report the wall-clock accounting because it is the one that would govern a
-real run, and because what it exposes is an implementation property rather
-than a fact about gradients. The VJP is
-forward-variational, so it pays one variational column per parameter, 93
-microseconds each as measured in the scaling study. A reverse-mode saltation
-adjoint would return the same gradient for roughly the cost of one solve,
-which would make the wall-clock panel resemble the evaluation panel. What
-does not change under either accounting is that the gradient-free methods
-never reach the same objective value: in 24 dimensions they plateau 1.1 to 8.0 orders
-above what Adam attains per evaluation.
+That 6.8 was not a property of saltation gradients. It was a property of how
+this solver propagated them. The flow is affine in the state, so the RK4
+variational update collapses exactly to a fixed tangent map that can be
+composed across a smooth segment and applied to the sensitivity matrix only at
+events; the solver was instead rebuilding a constant Jacobian four times per
+step and running RK4 on every column. With that factored out a gradient costs
+1.61 solves, the scaling slope is
+15 microseconds per parameter rather than 93, and
+Adam is ahead on all five seeds under wall-clock as well as per evaluation.
+
+We are deliberately not presenting that as a result about methods. We made our
+own gradient cheaper and the accounting followed; the honest reading is that
+the earlier concession was measuring our implementation. What does not change
+under either accounting is that the gradient-free methods never reach the same
+objective value: in 24 dimensions they plateau 3.9 and
+4.9 orders above what Adam attains per evaluation on this run.
 
 That gap does not survive translation into engineering units, and we checked
 rather than assumed. Scoring every design on E5b's held-out scatter ensemble,
@@ -353,9 +358,12 @@ expected V in the step size on all four probes, bottoming below 10⁻⁸: a
 wrong analytic gradient would show a flat floor instead of a V, because the
 disagreement would be dominated by the gradient error rather than the step.
 Cost is affine in parameter count (R² = 0.998, 15 microseconds per
-parameter, both wall-clock on one machine and worth about ten percent of run
-to run spread; the affine shape is the part that holds), which is what makes
-the reverse-mode extension a measured argument rather than a preference.
+parameter, both wall-clock on one machine and worth a few percent of run to run
+spread; the affine shape is the part that holds). That slope used to be 93
+microseconds, and the sentence here used to say the measurement made a
+reverse-mode extension a measured argument rather than a preference. It did
+not: it was measuring an artifact of the variational step, and factoring the
+tangent map removed most of it.
 
 ![robustness](figures/study_robustness.png)
 
@@ -401,7 +409,7 @@ step sizes and three seeds rather than given one hardcoded configuration, since
 | warm start (E5 point design) | 7.3e-2 | 199/200 | +0.07 m |
 | Adam, published `lr = 0.004` | 1.83e-2 | 200/200 | +0.426 m |
 | Adam, best of 5 learning rates | 1.21e-2 | 200/200 | +0.600 m |
-| CMA-ES, best of 9 | **7.36e-3** | 200/200 | **+0.558 m** |
+| CMA-ES, best of 9 | **7.36e-3** | 200/200 | +0.558 m |
 | Nelder-Mead, best of 2 | 2.67e-2 | 188/200 | -0.005 m |
 
 The claim does not survive. CMA-ES reaches a better ensemble design than Adam

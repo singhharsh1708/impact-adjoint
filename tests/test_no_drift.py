@@ -126,7 +126,7 @@ QUOTED = [
         ("docs/site/method.md", "({v} microseconds per parameter"),
     ]),
     ("SCALE_ratio_77", lambda v: f"{v:.1f}", [
-        ("docs/writeup.md", "{v}\u00d7 for"),
+        ("docs/writeup.md", "{v}\u00d7 at 77"),
         ("docs/site/method.md", "{v}x for 77"),
     ]),
     ("CHECKGRAD_failures", lambda v: f"{int(v)} failures", [
@@ -143,7 +143,7 @@ QUOTED = [
         ("docs/writeup.md", "| CMA-ES, best of 9 | **{v}**"),
     ]),
     ("CTRL_cma_p5", lambda v: f"{v:.3f}", [
-        ("docs/writeup.md", "| **+{v} m**"),
+        ("docs/writeup.md", "| +{v} m |"),
     ]),
     ("SWEEP_best_loss", lambda v: f"{v:.2e}".replace("e-02", "e-2"), [
         ("docs/writeup.md", "| Adam, best of 5 learning rates | {v} |"),

@@ -49,9 +49,10 @@
   rather than by coming to rest, so its separation surface is "position after
   eight impacts", not "position at rest". A fixed-length chute imposes an
   analogous cut, though not the identical one.
-- Under wall-clock accounting the optimizer ordering is not resolved at five
-  seeds; the per-evaluation lead does not survive the forward-variational cost. Both
-  accountings are reported in [studies](studies.md).
+- The wall-clock ordering reversed when we made our own gradient cheaper: Adam
+  is ahead on all five seeds under both accountings now. That is evidence about
+  this implementation, not about gradient methods against gradient-free ones.
+  Both accountings are reported in [studies](studies.md).
 - Designing environment geometry through contact-driven simulation is not new
   in itself. What we could not find in the literature is design using exact
   event-time sensitivities and targeting per-impact routing rather than a bulk
@@ -87,18 +88,24 @@ because none of them is currently guarded:
 - `t_end == t_final` holds to floating-point accumulation, not exactly, so a
   client comparing them should use a tolerance. The solver's own status field
   is the reliable signal.
-- Four Jacobian evaluations per RK4 step recompute a matrix that is constant
-  for this flow. Correct, but it is the dominant cost of every sensitivity
-  call and the reason the VJP-to-apply ratio is as high as it is.
 
 ## Future work
 
-**Reverse-mode saltation adjoint.** The sensitivities here are forward
-variational, so VJP cost scales with parameter count, measured at 93
-microseconds per parameter. A backward costate integration with `Sᵀ` jumps at
-events would serve thousands of design variables behind the same endpoint,
-with no change for the client, and would close the wall-clock gap in the
-benchmark.
+**Reverse-mode saltation adjoint.** This used to head the list, on the grounds
+that forward-variational VJP cost scales with parameter count and was measured
+at 93 microseconds per parameter. That figure turned out to be an artifact of
+the implementation rather than of the method: the flow is affine in the state,
+so the RK4 variational update collapses to a fixed tangent map that can be
+composed across a smooth segment and applied only at events. With that
+factoring the slope is 15 microseconds per parameter
+and a VJP at 581 parameters costs 1.8x a forward solve,
+so the parameter-count argument for an adjoint is largely gone.
+
+It remains the right extension for large *state* dimension. The tangent map is
+4x4 here; in three dimensions with multiple bodies it is not, and a backward
+costate integration with `Sᵀ` jumps at events would then be the cheaper side of
+the trade. That is the justification to keep, and it is a different one from
+the one we started with.
 
 **Coulomb friction cone.** The impulse-ratio (Routh) reset is a small change
 to the reset map, at the cost of re-deriving the closed-form oracle, and would

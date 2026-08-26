@@ -29,7 +29,7 @@ the gradient error rather than by the step.
 **Cost scaling.** Affine in parameter count out to 581 parameters, 15
 microseconds per parameter, R² = 0.998. The slope is wall-clock on one
 shared laptop and moves between runs: a repeat measured 14.4 microseconds per
-parameter at R² = 0.9976, a 3.9%% spread. The affine shape is what holds.
+parameter at R² = 0.9976, a 3.9% spread. The affine shape is what holds.
 
 This slope used to be 93 microseconds, and the difference is not a faster
 machine. The flow is affine in the state, so the RK4 variational update
@@ -77,12 +77,13 @@ against gradient-free ones, and the E5b control below is where that second
 question actually gets answered.
 
 :::{important}
-The wall-clock accounting is reported rather than hidden. What it exposes is
-an implementation property, not a fact about gradients. The VJP is
-forward-variational, so it pays one variational column per parameter. A
-reverse-mode saltation adjoint would return the same gradient for roughly the
-cost of one solve, which would make the wall-clock panel resemble the
-evaluation panel.
+The wall-clock accounting is reported rather than hidden. What it exposed was
+an implementation property, not a fact about gradients, and we then fixed the
+implementation. The VJP is still forward-variational and still carries one
+column per parameter, but the per-step work no longer touches the parameter
+dimension; what is left is the per-event work, at 15
+microseconds per parameter. A reverse-mode saltation adjoint remains the right
+extension for large state dimension rather than for large parameter count.
 :::
 
 What does not change under either accounting is the objective value: at 24

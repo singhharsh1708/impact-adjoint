@@ -10,11 +10,12 @@ computable through the impact events the surface itself creates.
 
 Methods under one evaluation budget. Budget accounting: a gradient call is
 charged as 2 forward evaluations here. The gradients are forward-variational,
-so their cost scales with parameter count; study_optimizers.py measures the
-wall-clock charge against the 24 columns this objective actually
-differentiates and reports the comparison under both accountings. The result
-is NOT the same either way: per evaluation the gradient wins by roughly four orders on this run,
-and under measured wall-clock CMA-ES is ahead at this budget.
+but because the flow is affine in the state the per-step work is a fixed
+tangent map rather than one RK4 pass per parameter. study_optimizers.py
+measures the wall-clock cost of the endpoint as it is actually called and
+reports both accountings. Since that factoring the two agree: per evaluation
+the gradient wins by roughly four orders on this run, and under measured
+wall-clock, at 1.61 solves per gradient, Adam is ahead on all five seeds.
   - Adam on the saltation gradients (ours)
   - Nelder-Mead (scipy), objective-only
   - CMA-ES (cma), objective-only

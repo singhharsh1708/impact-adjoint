@@ -129,7 +129,7 @@ def main():
     print(f"  = {BUDGET_SOLVES} particle solves = {MAX_EVALS} ensemble evaluations")
     print(f"  (evaluation-count accounting, gradient charged as 2, would allow "
           f"{MAX_EVALS_EVAL})")
-    print(f"  the charge itself moves about 11% between runs\n")
+    print(f"  the charge itself moves a few percent between runs\n")
 
     out = {}
     print("reference designs (recomputed, gated against e5b_result.npz):")

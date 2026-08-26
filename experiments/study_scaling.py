@@ -98,9 +98,15 @@ def main():
     # one column per parameter. The tangent-map factoring removed that scaling,
     # so the gate now guards the property we actually have.
     ratio_1000 = (a_vjp + b_vjp * 1000) / max(a_apply + b_apply * 1000, 1e-12)
-    assert ratio_1000 < 8.0, (
-        f"VJP at 1000 parameters costs {ratio_1000:.1f}x apply; the tangent-map "
-        "factoring should keep this well under the 8.5x it was before"
+    # 8.0 would not discriminate: the pre-refactor solver measured 8.0024 at
+    # 1000 parameters and would have cleared it by 0.03%.
+    assert ratio_1000 < 3.0, (
+        f"VJP at 1000 parameters costs {ratio_1000:.1f}x apply; before the "
+        "tangent-map factoring this was 8.0x"
+    )
+    assert b_vjp * 1000 < 40.0, (
+        f"scaling slope is {b_vjp*1000:.1f} us per parameter; before the "
+        "tangent-map factoring this was 93 us"
     )
     print(f"\nSCALING STUDY PASSED: VJP cost is affine in parameter count with a "
           f"marginal {b_vjp*1000:.1f} us per parameter, and at 1000 parameters it "

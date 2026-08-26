@@ -89,7 +89,7 @@ raw `curl` client, unchanged.
 | Experiment | Headline |
 |---|---|
 | **E3**, the failure measured | Grid-reset autodiff gives `d x(T)/d v0y` = **exactly 0.0 at every dt** (truth +0.0904; the exact zero is specific to this flat-terrain case, on curved terrain it is nonzero and wrong). The pure-JAX repair converges only by hand-implementing event sensitivity. |
-| **E5**, 24-dim resilience separator | At a shared budget of 900 forward-solve units with a gradient charged as 2: Adam on saltation gradients reaches **2×10⁻⁷** against CMA-ES 2×10⁻³ and Nelder-Mead 2×10⁻², four to five orders on the objective it was given. Two caveats, both measured and both in the writeup: charged by wall-clock instead of per-evaluation the ordering is unresolved at n = 5, and the objective gap does not translate to held-out purity, where Nelder-Mead matches Adam with a wider margin. We claimed E5b was where the gradient pays; we measured it and it is not, so the claim is withdrawn. CMA-ES reaches a better ensemble design at a matched budget. What buys the robustness is the ensemble objective, not the gradient that optimises it. |
+| **E5**, 24-dim resilience separator | At a shared budget of 900 forward-solve units with a gradient charged as 2: Adam on saltation gradients reaches **2×10⁻⁷** against CMA-ES 2×10⁻³ and Nelder-Mead 2×10⁻², four to five orders on the objective it was given. One caveat, measured and in the writeup: the objective gap does not translate to held-out purity, where Nelder-Mead matches Adam with a wider margin. (Under wall-clock accounting the ordering reversed in our favour once the variational step was factored, a gradient costing 1.61 solves and Adam ahead on all 5 seeds, but that is a property of this implementation rather than of the methods.) We claimed E5b was where the gradient pays; we measured it and it is not, so the claim is withdrawn. CMA-ES reaches a better ensemble design at a matched budget. What buys the robustness is the ensemble objective, not the gradient that optimises it. |
 | **E5b**, design under uncertainty | Ensemble objective over inlet and restitution scatter. Held-out purity 199/200 for the point design and 200/200 after refinement on one draw; over five independent ensembles, 983/1000 against 997/1000 with non-overlapping Wilson intervals (McNemar p = 0.0026). The fifth-percentile margin improves 0.05 m to 0.49 m, though the worst case stays inside the wrong bin. |
 | **E6**, zero-shot generalization | Trained on two materials, sorts the whole continuum e ∈ [0.35, 0.875] with **one threshold**. |
 | **E1**, inverse design | Miss **1.12 m → 2.7 cm** through 5 bounces, across bounce-count changes. |
@@ -184,20 +184,19 @@ CPU, dev mode, `dt` 1e-3, `t_final` 2.0 s, four impacts; the container adds
 
 | call | 3 bumps, 14 params | 24 bumps, 77 params | 192 bumps, 581 params |
 |---|---|---|---|
-| `apply` | 1.8 ms | 2.3 ms | 8.2 ms |
-| `vector_jacobian_product` | 11.4 ms | 19.8 ms | 64.7 ms |
+| `apply` | 2.2 ms | 2.8 ms | 8.6 ms |
+| `vector_jacobian_product` | 7.2 ms | 8.0 ms | 15.8 ms |
 | ratio | 3.3× | 2.8× | 1.8× |
 
 Gradients are forward-variational, so VJP cost grows with parameter count:
 15 µs per parameter, affine out to 581 parameters at R² = 0.998. These are
 wall-clock figures from one run on a shared laptop, and repeat runs move them:
-a second run of the same study measured the slope at 83 µs with R² 0.996, an
-11% spread, both recorded in `experiments/scaling_repeats.json`. The affine
-shape holds; the absolute figures carry roughly ten percent of run to run
-spread, and the conclusions resting on them are hedged accordingly. That 8.5×
-is a VJP over all 77 sensitivity columns; `study_optimizers.py` measures its
-own charge against the 24 columns its objective actually differentiates, which
-comes out at 6.8 forward solves.
+a second run of the same study measured the slope at 14.4 µs with R² 0.998, a
+3.9% spread, both recorded in `experiments/scaling_repeats.json`. The affine
+shape holds; the absolute figures carry a few percent of run to run
+spread, and the conclusions resting on them are hedged accordingly. `study_optimizers.py` remeasures the charge for its own objective, as the
+wall-clock cost of the endpoint as it is actually called rather than a
+per-column figure, and gets 1.61 forward solves.
 
 ## Reproduce
 
@@ -300,10 +299,13 @@ docs/          technical writeup, all figures, and the site source (docs/site)
 
 ## Future work
 
-- **Reverse-mode saltation adjoint.** The sensitivities here are forward
-  variational, so VJP cost scales with parameter count. A backward costate
-  integration with `Sᵀ` jumps at events would serve thousands of design
-  variables behind the same endpoint, with no change for the client.
+- **Reverse-mode saltation adjoint.** The parameter-count argument for this is
+  largely gone: at 15 µs per parameter a VJP at 581
+  parameters costs 1.8x a forward solve. What remains is
+  state dimension. The tangent map is 4x4 here because the state is
+  four-dimensional; in 3D with multiple bodies it is not, and a backward
+  costate integration with `Sᵀ` jumps at events becomes the cheaper side of
+  the trade.
 - **Coulomb friction cone.** The impulse-ratio (Routh) reset is a ~4-line
   change to `reset_map`, at the cost of re-deriving the closed-form oracle;
   it would extend the model into sticking and sliding contact.
