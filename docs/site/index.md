@@ -43,6 +43,27 @@ The gradient is not noisy or approximate. It is confidently, silently wrong,
 and refining the step size does not help, because the step at which the event
 fires is an integer and autodiff cannot differentiate it.
 
+(demo)=
+## Demo
+
+```{raw} html
+<figure class="ia-video" id="fig-demo">
+  <video controls preload="metadata" width="892"
+         poster="_static/demo_poster.jpg"
+         aria-describedby="fig-demo-caption">
+    <source src="_static/demo.mp4" type="video/mp4">
+    <p>Your browser cannot play this video.
+       <a href="_static/demo.mp4">Download it instead.</a></p>
+  </video>
+  <figcaption id="fig-demo-caption">
+    A 73-second walkthrough: the silent failure, the Julia and JAX boundary,
+    the boundary proof run live, the two designs, and the four oracles. Every
+    number on every card is read from <code>results.json</code>, and the
+    terminal segment is a real run captured when the video is built.
+  </figcaption>
+</figure>
+```
+
 ## See it fail, then see it fixed
 
 Both snippets below run as written. What differs is where the impact is

@@ -23,7 +23,9 @@ from matplotlib.animation import FFMpegWriter
 
 ROOT = Path(__file__).parent.parent
 FIGS = ROOT / "docs" / "figures"
-OUT = ROOT / "docs" / "demo.mp4"
+# served from the docs site: GitHub's blob viewer will not play a video
+# from a repo path, it refuses binaries this size outright
+OUT = ROOT / "docs" / "site" / "_static" / "demo.mp4"
 
 W, H, DPI, FPS = 1280, 720, 100, 24
 
