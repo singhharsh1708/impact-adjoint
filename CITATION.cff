@@ -27,11 +27,14 @@ keywords:
   - contact dynamics
   - automatic differentiation
   - inverse design
-# Uncomment and fill once a Zenodo DOI is minted from a tagged release:
-# identifiers:
-#   - type: doi
-#     value: 10.5281/zenodo.XXXXXXX
-#     description: Archived release
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.22117930
+    description: Concept DOI, resolves to the latest archived release
+  - type: doi
+    value: 10.5281/zenodo.22117931
+    description: Version DOI for v0.1.5
+doi: 10.5281/zenodo.22117930
 license: Apache-2.0
 version: 0.1.5
 date-released: '2026-08-27'

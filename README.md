@@ -3,6 +3,7 @@
 [![CI](https://github.com/singhharsh1708/impact-adjoint/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/singhharsh1708/impact-adjoint/actions/workflows/test.yaml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-impact--adjoint.vercel.app-2a78d6.svg)](https://impact-adjoint.vercel.app)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22117930.svg)](https://doi.org/10.5281/zenodo.22117930)
 
 **Documentation: [impact-adjoint.vercel.app](https://impact-adjoint.vercel.app)**
 

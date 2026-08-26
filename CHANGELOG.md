@@ -31,6 +31,13 @@ entries supersede, and one correction is itself withdrawn further up.
 For what the entry publishes today, read `docs/RESULTS.md`, which is generated
 from the committed artifacts, or the artifacts themselves.
 
+- The repository is archived on Zenodo and has a DOI. The concept DOI,
+  `10.5281/zenodo.22117930`, resolves to the latest archived release and is
+  what `CITATION.cff` and the BibTeX entry now carry; the version DOI
+  `10.5281/zenodo.22117931` pins v0.1.5. Worth noting because the badge Zenodo
+  displays on its settings page is the version DOI, not the concept one, and
+  citing that would pin readers to a single release.
+
 - **The README's performance table failed its own arithmetic.** The refactor
   commit rewrote the ratio row and left the two rows above it at their
   pre-refactor timings, so the table printed 11.4 ms over 1.8 ms and labelled

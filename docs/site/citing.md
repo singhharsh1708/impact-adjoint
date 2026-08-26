@@ -14,15 +14,18 @@ in the repository. There is no preprint and no journal version.
   year    = {2026},
   version = {0.1.5},
   license = {Apache-2.0},
-  url     = {https://github.com/singhharsh1708/impact-adjoint}
+  doi     = {10.5281/zenodo.22117930},
+  url     = {https://doi.org/10.5281/zenodo.22117930}
 }
 ```
 
 :::{note}
-A DOI is not yet minted. `v0.1.5` is tagged and released, and the repository
-is public, so the remaining step is connecting the repository to Zenodo and
-cutting a release it can see. The entry above will gain a `doi` field and this
-page will name it when that is done.
+Two DOIs exist. Cite the **concept DOI**,
+[10.5281/zenodo.22117930](https://doi.org/10.5281/zenodo.22117930), which always
+resolves to the most recent archived release. The **version DOI** for v0.1.5
+specifically is [10.5281/zenodo.22117931](https://doi.org/10.5281/zenodo.22117931),
+and is the one to use if you need to pin the exact code a result came from.
+Both are recorded in `CITATION.cff`.
 :::
 
 ## Licence
