@@ -38,6 +38,7 @@ V_SD = 0.05   # m/s inlet scatter, both components
 E_SD = 0.03   # per-particle restitution scatter
 N_TRAIN = 12  # per material
 N_TEST = 100  # per material
+N_ITERS = 80  # Adam iterations; the control imports this to match the budget
 
 
 def draw_ensemble(rng, n):
@@ -103,7 +104,7 @@ def main():
     opt = optax.adam(learning_rate=0.004)
     state = opt.init(amp)
     grad_fn = jax.value_and_grad(loss_fn)
-    n_iters = 80
+    n_iters = N_ITERS
     # Keep the best point the loop actually evaluated. Returning `amp` after
     # the final update saves a vector whose objective was never computed, which
     # is the defect E5 and E4 were already fixed for.

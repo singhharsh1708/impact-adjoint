@@ -62,10 +62,18 @@ _private_note = (
 _timing = json.loads((here.parent.parent / "experiments" / "timing.json").read_text())
 _checks_walltime = f"about {_timing['total_median_s']:.0f} seconds"
 
+# Every quantity in results.json is available as a substitution, so a page can
+# quote a measured number without a literal that could drift. Keys are exposed
+# verbatim; formatting stays the page's business.
+_results = json.loads(
+    (Path(__file__).parent.parent.parent / "experiments" / "results.json").read_text()
+)
+
 myst_substitutions = {
     "version": version,
     "repo_note": _private_note,
     "checks_walltime": _checks_walltime,
+    **{k: str(v) for k, v in _results.items()},
 }
 
 intersphinx_mapping = {

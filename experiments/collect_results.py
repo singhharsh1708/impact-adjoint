@@ -169,7 +169,33 @@ def main():
         r["CHECKGRAD_endpoints"] = int(d["endpoints"])
         # the sweep the seeding entry is about: published, previously collected
         # nowhere, so no guard could reach it
-        if d.get("first_failing_rtol") and "tolerance_sweep" in d:
+        ctrl_path = E / "e5b_control_result.npz"
+    if ctrl_path.exists():
+        c = np.load(ctrl_path)
+        r["CTRL_max_evals"] = int(c["max_evals"])
+        r["CTRL_budget_solves"] = int(c["budget_solves"])
+        r["CTRL_adam_loss"] = round(float(c["adam_ensemble_loss"]), 8)
+        r["CTRL_adam_p5"] = round(float(c["adam_ensemble_p5"]), 4)
+        r["CTRL_cma_loss"] = round(float(c["cma_es_loss"]), 8)
+        r["CTRL_cma_p5"] = round(float(c["cma_es_p5"]), 4)
+        r["CTRL_cma_median_loss"] = round(float(c["cma_median_loss"]), 8)
+        r["CTRL_cma_grid_n"] = int(len(c["cma_grid_losses"]))
+        r["CTRL_cma_all_beat_adam"] = bool(
+            (c["cma_grid_losses"] < float(c["adam_ensemble_loss"])).all()
+        )
+        r["CTRL_nm_loss"] = round(float(c["nelder_mead_loss"]), 8)
+        r["CTRL_nm_correct"] = f"{int(c['nelder_mead_correct'])}/{int(c['nelder_mead_n'])}"
+        r["CTRL_nm_p5"] = round(float(c["nelder_mead_p5"]), 4)
+    sweep_path = E / "e5b_adam_sweep.npz"
+    if sweep_path.exists():
+        s = np.load(sweep_path)
+        r["SWEEP_n_lrs"] = int(len(s["lrs"]))
+        r["SWEEP_best_lr"] = float(s["best_lr"])
+        r["SWEEP_best_loss"] = round(float(s["best_loss"]), 8)
+        r["SWEEP_best_p5"] = round(float(s["best_p5"]), 4)
+        r["SWEEP_median_loss"] = round(float(s["median_loss"]), 8)
+
+    if d.get("first_failing_rtol") and "tolerance_sweep" in d:
             first = f"{d['first_failing_rtol']:.0e}".replace("e-0", "e-")
             row = d["tolerance_sweep"].get(first)
             if row:

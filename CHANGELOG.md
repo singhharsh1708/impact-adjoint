@@ -31,6 +31,31 @@ entries supersede, and one correction is itself withdrawn further up.
 For what the entry publishes today, read `docs/RESULTS.md`, which is generated
 from the committed artifacts, or the artifacts themselves.
 
+- **"E5b is where the gradient pays" was false, and is withdrawn.** It was the
+  entry's answer to its own most awkward measurement, that Nelder-Mead matches
+  Adam on held-out purity, and it rested on nobody having run a gradient-free
+  method on the ensemble objective. Running it: at a budget matched in particle
+  solves, CMA-ES reaches an ensemble design at 5.77e-3 against Adam's 1.83e-2,
+  with a fifth-percentile margin of +0.657 m against +0.426 m, on every one of
+  nine grid runs, its median still beating Adam's best. Because that gave
+  CMA-ES nine configurations and Adam one, Adam was then swept over five
+  learning rates fixed before the run; the ordering is unchanged, and the
+  published `lr = 0.004` turns out not to be Adam's best either (`lr = 0.001`
+  reaches 1.21e-2). The sentence is gone from the README, the studies page and
+  the write-up, replaced by what was measured: optimising the ensemble
+  objective is what buys the robustness, and the gradient is not what makes
+  that possible. Nelder-Mead is genuinely worse, so this is not a gradient-free
+  win in general.
+- The control was itself reviewed before it was run, which caught two defects
+  that would have produced a flattering answer. The budget charged Adam only
+  the reverse pass, handing gradient-free 87% of the solves the repo's own
+  accounting says Adam spent, and Nelder-Mead was getting scipy's default
+  simplex, which from this warm start spans four orders of magnitude and
+  freezes seven of the twenty-four amplitudes. Both were fixed first.
+- Every quantity in `results.json` is now a substitution the docs pages can
+  quote directly, so a measured number on the site no longer needs a literal
+  that a guard has to chase.
+
 - **Five published statistics had no code computing them.** The four per-design
   rows on the studies page carried Wilson and bootstrap intervals that existed
   only as typed text, and the jitter-sweep McNemar p was quoted in two places

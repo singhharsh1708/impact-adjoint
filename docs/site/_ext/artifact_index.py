@@ -73,6 +73,14 @@ ARTIFACTS = [
     ("experiments/scaling_result.npz", ["experiments/study_scaling.py"],
      "Cost per parameter and the reverse-over-forward ratio, up to 581 "
      "parameters."),
+    ("experiments/e5b_control_result.npz",
+     ["experiments/e5b_gradient_free_control.py"],
+     "CMA-ES and Nelder-Mead on the ensemble objective at a budget matched in "
+     "particle solves, with the grid each was swept over and the best-so-far "
+     "traces."),
+    ("experiments/e5b_adam_sweep.npz", ["experiments/e5b_adam_sweep.py"],
+     "Adam over a learning-rate grid on the same objective, so the comparison "
+     "is not decided by tuning one arm and not the other."),
     ("experiments/scaling_repeats.json", ["experiments/study_scaling.py"],
      "The same study measured twice, so the run-to-run spread on the slope is "
      "a recorded number rather than a claim."),

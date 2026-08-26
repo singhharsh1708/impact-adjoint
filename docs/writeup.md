@@ -258,7 +258,10 @@ a one-particle purity lead and the margin intervals do not separate it from
 Nelder-Mead's 0.41 m. Minimising the point
 objective further does
 not produce a better separator at this scale; optimising the ensemble
-objective does, and that is a gradient through many trajectories at once.
+objective does. We used to add that this is where the gradient pays, since the
+ensemble objective needs a gradient through many trajectories at once. We
+measured that in the end and it is not true: CMA-ES reaches a better ensemble
+design at a matched budget (section 4c).
 
 **E5b, design under uncertainty.** Real separators process streams with
 scatter, so we make the expected loss over a particle ensemble (inlet
@@ -377,6 +380,52 @@ for two discordant pairs: the direction is consistent but this comparison
 cannot establish it. Decisiveness here also means 0 failures in 40 draws,
 which bounds the per-restitution failure rate at about 7.5% rather than at
 zero.
+
+## 4c. The control, and a claim we withdrew
+
+Through most of this project the answer to "Nelder-Mead matches Adam on
+held-out purity" was that the ensemble objective is a different problem, and
+that it needs a gradient through many trajectories at once. That was never
+measured. Nobody had run a gradient-free method on the ensemble objective, so
+the sentence carrying the argument for gradients was an assertion sitting next
+to a table full of measurements.
+
+We ran the control. Same warm start, same training draw, same held-out
+ensemble, same objective, budget matched in particle solves at 14964, which is
+623 gradient-free ensemble evaluations. CMA-ES was swept over three initial
+step sizes and three seeds rather than given one hardcoded configuration, since
+`e5_cma_grid.py` had already measured a 24x spread across that grid.
+
+| method | ensemble objective | held-out | 5th percentile |
+|---|---|---|---|
+| warm start (E5 point design) | 7.3e-2 | 199/200 | +0.07 m |
+| Adam, published `lr = 0.004` | 1.83e-2 | 200/200 | +0.426 m |
+| Adam, best of 5 learning rates | 1.21e-2 | 200/200 | +0.600 m |
+| CMA-ES, best of 9 | **5.77e-3** | 200/200 | **+0.657 m** |
+| Nelder-Mead, best of 2 | 2.04e-2 | 186/200 | -0.044 m |
+
+The claim does not survive. CMA-ES reaches a better ensemble design than Adam
+at a matched budget, on the objective and on the tail, on every one of its nine
+grid runs; its median still beats Adam's best. Because that first comparison
+gave CMA-ES nine configurations and Adam the single published learning rate, we
+then swept Adam over five rates fixed before the run. The ordering does not
+change, and the sweep turns up something else: `lr = 0.004` is not Adam's best
+here, `lr = 0.001` is.
+
+So the sentence is withdrawn from the README, the studies page and section 3.
+What buys the robustness is optimising the ensemble objective at all; the
+gradient is not what makes that possible. Nelder-Mead is genuinely worse, so
+this is not a gradient-free win in general, it is CMA-ES suiting a
+24-dimensional box with a good warm start.
+
+What survives is narrower and worth stating plainly. The gradient reaches its
+ensemble design in 80 iterations, and the saltation adjoint is what makes those
+80 iterations correct at all: the same loop on grid-reset autodiff optimises a
+gradient that is exactly zero. The comparison that would settle the cost
+question is against a reverse-mode saltation adjoint, which this project has
+not built. Until then the honest position is that the gradient is necessary for
+the derivative to exist and to be right, and not demonstrated to be the cheapest
+way to search this particular design space.
 
 ## 5. Related work: how everyone else gets contact gradients
 

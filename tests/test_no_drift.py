@@ -137,6 +137,23 @@ QUOTED = [
     ("CHECKGRAD_checks", lambda v: str(int(v)), [
         ("README.md", "/ {v} checks** across the three gradient endpoints"),
     ]),
+    # The control that withdrew the "gradient pays" claim. These are the
+    # numbers a reader checks the retraction against.
+    ("CTRL_cma_loss", lambda v: f"{v:.2e}".replace("e-03", "e-3"), [
+        ("docs/writeup.md", "| CMA-ES, best of 9 | **{v}**"),
+    ]),
+    ("CTRL_cma_p5", lambda v: f"{v:.3f}", [
+        ("docs/writeup.md", "| **+{v} m**"),
+    ]),
+    ("SWEEP_best_loss", lambda v: f"{v:.2e}".replace("e-02", "e-2"), [
+        ("docs/writeup.md", "| Adam, best of 5 learning rates | {v} |"),
+    ]),
+    ("CTRL_max_evals", str, [
+        ("docs/writeup.md", "{v} gradient-free ensemble evaluations"),
+    ]),
+    ("CTRL_budget_solves", str, [
+        ("docs/writeup.md", "budget matched in particle solves at {v},"),
+    ]),
     # The seeded sweep's headline, previously guarded nowhere.
     ("CHECKGRAD_first_failing_count", str, [
         ("README.md", "({v} of 150 checks across the three endpoints)"),
@@ -356,7 +373,9 @@ SHAPES = [
      "held-out purity over five ensembles"),
     (r"(\d{1,3})\s*(?:of|/)\s*200\b",
      ("E5B_purity_adam", "E5B_purity_cma_es",
-      "E5B_purity_nelder_mead", "E5B_purity_ensemble"),
+      "E5B_purity_nelder_mead", "E5B_purity_ensemble",
+      # the control's own held-out rows on the same 200-particle draw
+      "CTRL_nm_correct"),
      "held-out purity on one 200-particle draw"),
 ]
 

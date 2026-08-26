@@ -114,11 +114,62 @@ from each other.
 Nelder-Mead is five orders behind on the objective and sorts exactly as well
 as Adam, with a *wider* margin. Minimising the point objective further does
 not buy a better separator at this scale. Optimising the ensemble objective
-does separate from Adam, whose margin interval it clears, and it needs a
-gradient through many trajectories at once, which is where the gradient pays
-here rather than in the last four orders of a point fit. It does not separate
+does separate from Adam, whose margin interval it clears. It does not separate
 from Nelder-Mead on the margin: those two intervals overlap, and on this
 ensemble the honest claim stops there.
+
+We used to say the ensemble objective was where the gradient pays, because it
+needs a gradient through many trajectories at once. That was asserted, and when
+we finally measured it the claim did not survive. See
+[the control](#the-control-gradient-free-on-the-ensemble-objective) below: what
+buys the robustness is optimising the ensemble objective at all, not the
+gradient that does it.
+:::
+
+## The control: gradient-free on the ensemble objective
+
+For most of this project the answer to "Nelder-Mead matches Adam on held-out
+purity" was that the ensemble objective is different, and that it needs a
+gradient through many trajectories at once. Nobody had run a gradient-free
+method on the ensemble objective, so the sentence was an assertion. We ran it.
+
+Same warm start as E5b, same training draw, same held-out ensemble, same
+objective. The budget is matched in particle solves: an Adam step issues an
+`apply` and a `vector_jacobian_product` per particle, and the measured
+gradient charge is the reverse pass alone, so a step costs `(1 + charge)` per
+particle. That is {{ CTRL_budget_solves }} solves, or {{ CTRL_max_evals }}
+gradient-free ensemble evaluations. CMA-ES was swept over three initial step
+sizes and three seeds, because `e5_cma_grid.py` had already measured a 24x
+spread across that grid and one hardcoded configuration would have decided the
+result by the protocol. Nelder-Mead got an explicit initial simplex at two
+scales, because scipy's default builds it as `x_i * 1.05`, which from this warm
+start spans four orders of magnitude and freezes the small amplitudes.
+
+| method | ensemble objective | held-out | 5th-percentile margin |
+|---|---|---|---|
+| warm start (E5 point design) | 7.3e-2 | 199/200 | +0.07 m |
+| Adam, published `lr = 0.004` | {{ CTRL_adam_loss }} | 200/200 | +{{ CTRL_adam_p5 }} m |
+| Adam, best of {{ SWEEP_n_lrs }} learning rates | {{ SWEEP_best_loss }} | 200/200 | +{{ SWEEP_best_p5 }} m |
+| **CMA-ES, best of {{ CTRL_cma_grid_n }}** | **{{ CTRL_cma_loss }}** | 200/200 | **+{{ CTRL_cma_p5 }} m** |
+| Nelder-Mead, best of 2 | {{ CTRL_nm_loss }} | {{ CTRL_nm_correct }} | {{ CTRL_nm_p5 }} m |
+
+:::{important}
+The claim did not survive. CMA-ES reaches a better ensemble design than Adam at
+a matched budget, on the objective and on the tail, and it does so on every one
+of its {{ CTRL_cma_grid_n }} grid runs; its median, {{ CTRL_cma_median_loss }},
+still beats Adam's best. Because the first comparison gave CMA-ES nine
+configurations and Adam one, we then swept Adam's learning rate over
+{{ SWEEP_n_lrs }} values fixed before the run. It does not change the ordering,
+and it turns up something else: the published `lr = 0.004` is not Adam's best
+here. `lr = 0.001` reaches {{ SWEEP_best_loss }}.
+
+So the honest statement is that optimising the ensemble objective is what buys
+the robustness, and the gradient is not what makes that possible. Nelder-Mead
+is genuinely worse, so this is not "gradient-free wins"; it is CMA-ES being
+well suited to a 24-dimensional box with a good warm start.
+
+What remains true of the gradient is cost per step, not reachability, and this
+project has not measured that cleanly enough to lead with it.
 :::
 
 ## Robustness and generalization
