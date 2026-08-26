@@ -15,8 +15,8 @@ sys.path.insert(0, str(here / "_ext"))
 project = "impact-adjoint"
 copyright = f"{date.today().year}, Harsh Singh"
 author = "Harsh Singh"
-release = "0.1.3"
-version = "0.1.3"
+release = "0.1.4"
+version = "0.1.4"
 
 extensions = [
     "myst_parser",
