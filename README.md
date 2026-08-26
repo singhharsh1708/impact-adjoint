@@ -161,10 +161,12 @@ at R2 = 0.998.*
 
 ![benchmark](docs/figures/study_optimizers.png)
 *Five random starts, both methods tuned per seed. Per evaluation Adam ends
-about 347x below tuned CMA-ES on the paired per-seed median. Charged at measured wall-clock, where each
-gradient costs 6.8 solves, CMA-ES is ahead on 4 of 5 seeds, which a sign
-test does not resolve at n = 5. Both
-are reported; the reverse-mode adjoint in Future work is what closes it.*
+about 347x below tuned CMA-ES on the paired per-seed median. Charged at
+measured wall-clock, where each gradient now costs 1.61 solves rather than the
+6.8 it cost before the variational step was refactored, Adam is ahead on all 5
+seeds. That reversal is a property of our implementation, not of the methods:
+we made our own gradient cheaper and the accounting followed. Both are
+reported.*
 
 ![robustness](docs/figures/study_robustness.png)
 *Five independent ensembles: 983/1000 vs 997/1000 with non-overlapping
@@ -184,10 +186,10 @@ CPU, dev mode, `dt` 1e-3, `t_final` 2.0 s, four impacts; the container adds
 |---|---|---|---|
 | `apply` | 1.8 ms | 2.3 ms | 8.2 ms |
 | `vector_jacobian_product` | 11.4 ms | 19.8 ms | 64.7 ms |
-| ratio | 6.2× | 8.5× | 7.9× |
+| ratio | 3.3× | 2.8× | 1.8× |
 
 Gradients are forward-variational, so VJP cost grows with parameter count:
-93 µs per parameter, affine out to 581 parameters at R² = 0.998. These are
+15 µs per parameter, affine out to 581 parameters at R² = 0.998. These are
 wall-clock figures from one run on a shared laptop, and repeat runs move them:
 a second run of the same study measured the slope at 83 µs with R² 0.996, an
 11% spread, both recorded in `experiments/scaling_repeats.json`. The affine

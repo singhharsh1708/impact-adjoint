@@ -126,7 +126,7 @@ def bounce(v0y):
     return out["qf"][0]
 
 jax.grad(bounce)(0.5)
-# 0.09037773625811413
+# 0.0903777362581133
 ```
 
 The saltation matrix supplies the missing term at each impact. Exact at any

@@ -12,8 +12,8 @@ not retyped, so this file cannot drift from what was measured.
 | observed order of accuracy (smooth arc vs analytic) | 3.99 |
 | multi-bounce error vs symbolic closed form | 1.35e-12 |
 | worst gradient-vs-FD agreement over 4 probes | 8.13e-09 |
-| VJP marginal cost per parameter | 93.1 us |
-| affine cost model fit | R2 = 0.9976 |
+| VJP marginal cost per parameter | 15 us |
+| affine cost model fit | R2 = 0.9981 |
 | symbolic closed-form oracle, worst Jacobian | 7.1e-12 |
 | scipy reference oracle, worst primal | 1.14e-10 |
 | scipy reference oracle, worst Jacobian vs FD | 4.57e-09 |
@@ -25,9 +25,9 @@ not retyped, so this file cannot drift from what was measured.
 
 | params | apply | vector_jacobian_product | ratio |
 |---|---|---|---|
-| 14 | 1.83 ms | 11.4 ms | 6.22x |
-| 77 | 2.34 ms | 19.8 ms | 8.48x |
-| 581 | 8.24 ms | 64.7 ms | 7.85x |
+| 14 | 2.17 ms | 7.24 ms | 3.34x |
+| 77 | 2.84 ms | 8.02 ms | 2.82x |
+| 581 | 8.59 ms | 15.8 ms | 1.84x |
 
 ## Experiments
 
@@ -35,7 +35,7 @@ not retyped, so this file cannot drift from what was measured.
 |---|---|
 | E3 grid-reset gradient (truth 0.09037774) | 0 |
 | E3 interpolated-event relative error, coarse to fine | 0.00209 to 5.6e-05 |
-| E3 saltation spread over the whole dt sweep | 6.05e-14 |
+| E3 saltation spread over the whole dt sweep | 6.02e-14 |
 | E1 miss, start to final | 1.12 m to 0.0269 m |
 | E4 miss, slow and fast inlet | 0.0216 m, 0.0303 m |
 | E5 final objective, Adam / CMA-ES / Nelder-Mead | 2.25e-07 / 0.00198 / 0.0186 |
@@ -54,11 +54,11 @@ not retyped, so this file cannot drift from what was measured.
 |---|---|
 | benchmark seeds, both methods tuned per seed | 5 |
 | median final: Adam (eval accounting) | 3.44e-07 |
-| median final: Adam (wall-clock accounting) | 0.000729 |
+| median final: Adam (wall-clock accounting) | 4.93e-08 |
 | median final: CMA-ES (tuned) | 0.000315 |
 | median final: Nelder-Mead | 0.99 |
-| CMA / Adam, paired per-seed median (eval, wall) | 347x, 0.159x |
-| CMA / Adam, ratio of medians (unpaired, for reference) | 917x, 0.433x |
+| CMA / Adam, paired per-seed median (eval, wall) | 347x, 669x |
+| CMA / Adam, ratio of medians (unpaired, for reference) | 917x, 6.4e+03x |
 | per-seed eval ratio span | 11.5x to 1.4e+05x |
 | held-out purity, point design | 983/1000 (Wilson 97.29 to 98.94 %) |
 | held-out purity, ensemble design | 997/1000 (Wilson 99.12 to 99.90 %) |

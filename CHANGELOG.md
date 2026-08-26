@@ -31,6 +31,44 @@ entries supersede, and one correction is itself withdrawn further up.
 For what the entry publishes today, read `docs/RESULTS.md`, which is generated
 from the committed artifacts, or the artifacts themselves.
 
+- **The gradient was 4x more expensive than it needed to be, and a study
+  asserted that it should be.** The flow is affine in the state, so the RK4
+  variational update collapses exactly to a fixed 4x4 tangent map; the solver
+  was instead calling `ForwardDiff.jacobian` four times per step to rebuild the
+  same constant matrix and running RK4 on the full sensitivity matrix.
+  Composing the tangent map across a smooth segment and applying it only at
+  events takes the parameter dimension out of the inner loop. A gradient now
+  costs 1.61 forward solves rather than 6.78, the
+  scaling slope is 15 microseconds per parameter
+  rather than 93, and at 581 parameters the VJP is
+  1.8x a forward solve rather than 7.9x. The primal is
+  bitwise unchanged and the sensitivities agree to 6.5e-14 on every status
+  branch.
+- **`study_scaling.py` was gating on the inefficiency.** Its assertion read
+  "VJP per-parameter cost should dominate apply's" and its docstring said
+  measuring that "justifies the claim that a reverse-mode saltation adjoint is
+  the right extension". Both encoded the artifact rather than the physics, and
+  the assertion failed the moment the artifact was removed. It now gates on the
+  property we have.
+- **The wall-clock concession has reversed, and that is about us, not about
+  gradients.** With the gradient at 6.78 solves, CMA-ES was ahead on 4 of 5
+  seeds and we reported the ordering as unresolved. At
+  1.61 solves Adam is ahead on all five. We made
+  our own gradient cheaper and the accounting followed; the pages now say so
+  rather than presenting it as a finding about methods.
+- **The E5b control was re-run, because its budget derives from that charge.**
+  The matched budget fell from 14964 solves to 5040,
+  leaving gradient-free 34% of what it had. CMA-ES still wins: 7.36e-03
+  against Adam's 1.83e-2, held-out 200/200, fifth percentile
+  +0.558 m against +0.426 m. The withdrawal of "E5b is where
+  the gradient pays" therefore survives a threefold tightening of the
+  baseline's budget.
+- A README sentence claimed the 6.8 charge was "measured against the 24 columns
+  its objective actually differentiates". It never was:
+  `vector_jacobian_product` calls `_run(want_sens=True)` and slices afterwards,
+  so it builds every column whatever the cotangent asks for. The charge was
+  also published in prose and collected nowhere, so no guard could reach it.
+
 - **"E5b is where the gradient pays" was false, and is withdrawn.** It was the
   entry's answer to its own most awkward measurement, that Nelder-Mead matches
   Adam on held-out purity, and it rested on nobody having run a gradient-free

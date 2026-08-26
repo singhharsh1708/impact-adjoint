@@ -102,16 +102,28 @@ function step_qX(q, X, dtau, cd, want_sens::Bool)
     if !want_sens
         return qn, X
     end
-    A1 = ForwardDiff.jacobian(z -> flow(z, cd), q)
-    A2 = ForwardDiff.jacobian(z -> flow(z, cd), q2)
-    A3 = ForwardDiff.jacobian(z -> flow(z, cd), q3)
-    A4 = ForwardDiff.jacobian(z -> flow(z, cd), q4)
-    K1 = A1 * X
-    K2 = A2 * (X .+ (dtau / 2) .* K1)
-    K3 = A3 * (X .+ (dtau / 2) .* K2)
-    K4 = A4 * (X .+ dtau .* K3)
-    Xn = X .+ (dtau / 6) .* (K1 .+ 2 .* K2 .+ 2 .* K3 .+ K4)
-    return qn, Xn
+    return qn, tangent_map(dtau, cd) * X
+end
+
+# ∂flow/∂q. The flow is affine in q, so this is a constant: the four
+# ForwardDiff.jacobian calls this replaced all returned the same matrix, and
+# every one of them was evaluated per step per stage.
+flow_jacobian(cd) = [0.0 0.0 1.0 0.0
+                     0.0 0.0 0.0 1.0
+                     0.0 0.0 -cd 0.0
+                     0.0 0.0 0.0 -cd]
+
+# Because ∂flow/∂q is constant, RK4 applied to the variational equation
+# collapses exactly to a fixed linear map: the truncated matrix exponential
+# I + hA + (hA)²/2 + (hA)³/6 + (hA)⁴/24. Propagating that instead of running
+# RK4 on X makes a smooth step cost one 4x4 multiply rather than four
+# 4x(4 x nθ) products, so the per-step cost stops scaling with the parameter
+# count. It is not an approximation: it is the same arithmetic, factored.
+function tangent_map(h, cd)
+    A = flow_jacobian(cd)
+    hA = h .* A
+    hA2 = hA * hA
+    return I + hA + hA2 ./ 2 + (hA2 * hA) ./ 6 + (hA2 * hA2) ./ 24
 end
 
 # Earliest guard crossing within (0, dtau], or NaN. Probes are tested in
@@ -159,6 +171,8 @@ function run_solver(θvec, cd, t_final, dt, max_events::Int, n_samples::Int, v_s
     t = 0.0
     hist_t = [0.0]
     hist_q = [copy(q)]
+    # Accumulated tangent map across the current smooth segment.
+    Pacc = Matrix{Float64}(I, 4, 4)
 
     guard(q, θ) > 0 || error("initial state must start above the terrain")
 
@@ -166,9 +180,19 @@ function run_solver(θvec, cd, t_final, dt, max_events::Int, n_samples::Int, v_s
         dtau = min(dt, t_final - t)
         s_hit = find_crossing(q, X, dtau, cd, θ)
         if isnan(s_hit)
-            q, X = step_qX(q, X, dtau, cd, want_sens)
+            # Smooth step: compose the tangent map instead of applying it to X.
+            # X is only read at events and at exit, and find_crossing passes it
+            # through untouched (want_sens=false), so deferring is exact and
+            # takes the parameter dimension out of the inner loop entirely.
+            q, _ = step_qX(q, X, dtau, cd, false)
+            want_sens && (Pacc = tangent_map(dtau, cd) * Pacc)
             t += dtau
         else
+            # Settle the deferred segment before the event needs X.
+            if want_sens && Pacc !== nothing
+                X = Pacc * X
+                Pacc = Matrix{Float64}(I, 4, 4)
+            end
             # Bisect the step size s ∈ (0, s_hit) to the crossing.
             lo, hi = 0.0, s_hit
             for _ in 1:80
@@ -234,6 +258,10 @@ function run_solver(θvec, cd, t_final, dt, max_events::Int, n_samples::Int, v_s
         push!(hist_t, t)
         push!(hist_q, copy(q))
     end
+
+    # A run can end mid-segment (time limit, or a status set at an event), so
+    # any tangent map still pending has to be applied before X is reported.
+    want_sens && (X = Pacc * X)
 
     traj = zeros(n_samples, 5)
     if n_samples > 0

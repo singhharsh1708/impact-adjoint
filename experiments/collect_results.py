@@ -76,6 +76,9 @@ def main():
         # medians pairs one seed's CMA with another seed's Adam. The median of
         # per-seed ratios is the statistic that respects the pairing.
         ae, aw, cm = bench["adam_eval"][:, -1], bench["adam_wall"][:, -1], bench["cma"][:, -1]
+        # published in prose as "each gradient costs N solves" and previously
+        # collected nowhere, so no guard could reach it
+        r["BENCH_grad_charge_wall"] = round(float(bench["grad_charge_wall"]), 3)
         r["BENCH_paired_ratio_eval"] = float(np.median(cm / ae))
         r["BENCH_paired_ratio_wall"] = float(np.median(cm / aw))
         r["BENCH_eval_ratio_range"] = [float((cm / ae).min()), float((cm / ae).max())]

@@ -2,13 +2,13 @@
   "note": "same machine, separate invocations; the committed scaling_result.npz is run 1",
   "runs": [
     {
-      "us_per_param": 93.1,
-      "r2": 0.9976
+      "us_per_param": 15.0,
+      "r2": 0.9981
     },
     {
-      "us_per_param": 83.0,
-      "r2": 0.9963
+      "us_per_param": 14.4,
+      "r2": 0.9976
     }
   ],
-  "spread_pct": 10.8
+  "spread_pct": 3.9
 }

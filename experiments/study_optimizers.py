@@ -51,11 +51,13 @@ GRAD_CHARGE_EVAL = 2  # units per gradient call, eval-count accounting
 def measure_grad_charge(sim):
     """Wall-clock cost of one gradient, in forward solves, for THIS objective.
 
-    Previously hardcoded at 8.5 from study_scaling.py. That figure is a VJP
-    over every input (77 sensitivity columns); this objective differentiates
-    only the 24 bump amplitudes, so 8.5 over-charged the gradient and
-    understated Adam under wall-clock accounting. Measuring it here against
-    the inputs actually differentiated keeps the two from diverging again.
+    Previously hardcoded at 8.5 from study_scaling.py, and previously explained
+    here as being measured "against the 24 columns this objective actually
+    differentiates". That explanation was wrong: vector_jacobian_product calls
+    _run(want_sens=True) and slices afterwards, so it builds every sensitivity
+    column whatever the cotangent asks for. What this measures is the wall-clock
+    cost of the endpoint as it is actually called, which is the number the
+    budget accounting needs; it was never a per-column figure.
     """
     import time
 

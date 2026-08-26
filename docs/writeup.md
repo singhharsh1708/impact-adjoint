@@ -107,7 +107,7 @@ ForwardDiff dual numbers; the event structure is handled analytically. From the 
 `jax.jvp`, and `jax.jacrev` all work through it.
 
 On cost: the sensitivities are *forward*-variational, so a VJP costs
-O(n_params), measured at 6.2× a forward solve for 14 parameters and 8.5× for
+O(n_params), measured at 3.3× a forward solve for 14 parameters and 2.8× for
 77 (apply 1.8 / 2.3 ms, VJP 11.4 / 19.8 ms warm). That is the right trade at
 tens of design variables. At thousands, the natural extension is a
 reverse-mode saltation adjoint behind the same endpoint.
@@ -352,7 +352,7 @@ the integrator. Gradient agreement with central differences traces the
 expected V in the step size on all four probes, bottoming below 10⁻⁸: a
 wrong analytic gradient would show a flat floor instead of a V, because the
 disagreement would be dominated by the gradient error rather than the step.
-Cost is affine in parameter count (R² = 0.998, 93 microseconds per
+Cost is affine in parameter count (R² = 0.998, 15 microseconds per
 parameter, both wall-clock on one machine and worth about ten percent of run
 to run spread; the affine shape is the part that holds), which is what makes
 the reverse-mode extension a measured argument rather than a preference.
@@ -391,8 +391,8 @@ the sentence carrying the argument for gradients was an assertion sitting next
 to a table full of measurements.
 
 We ran the control. Same warm start, same training draw, same held-out
-ensemble, same objective, budget matched in particle solves at 14964, which is
-623 gradient-free ensemble evaluations. CMA-ES was swept over three initial
+ensemble, same objective, budget matched in particle solves at 5040, which is
+210 gradient-free ensemble evaluations. CMA-ES was swept over three initial
 step sizes and three seeds rather than given one hardcoded configuration, since
 `e5_cma_grid.py` had already measured a 24x spread across that grid.
 
@@ -401,8 +401,8 @@ step sizes and three seeds rather than given one hardcoded configuration, since
 | warm start (E5 point design) | 7.3e-2 | 199/200 | +0.07 m |
 | Adam, published `lr = 0.004` | 1.83e-2 | 200/200 | +0.426 m |
 | Adam, best of 5 learning rates | 1.21e-2 | 200/200 | +0.600 m |
-| CMA-ES, best of 9 | **5.77e-3** | 200/200 | **+0.657 m** |
-| Nelder-Mead, best of 2 | 2.04e-2 | 186/200 | -0.044 m |
+| CMA-ES, best of 9 | **7.36e-3** | 200/200 | **+0.558 m** |
+| Nelder-Mead, best of 2 | 2.67e-2 | 188/200 | -0.005 m |
 
 The claim does not survive. CMA-ES reaches a better ensemble design than Adam
 at a matched budget, on the objective and on the tail, on every one of its nine

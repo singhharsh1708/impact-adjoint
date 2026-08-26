@@ -82,8 +82,8 @@ Exact here means exact for the continuous hybrid system at a fixed event
 topology: across a bounce-count change the objective is genuinely
 discontinuous and there is no derivative to be exact about. The
 sensitivities are forward-variational, so a VJP costs O(n_params):
-measured at 6.2x a forward solve for 14 parameters and 8.5x for 77, and affine
-in parameter count out to 581 (93 microseconds per parameter, R² = 0.998,
+measured at 3.3x a forward solve for 14 parameters and 2.8x for 77, and affine
+in parameter count out to 581 (15 microseconds per parameter, R² = 0.998,
 both wall-clock on one machine and worth about ten percent of run to run
 spread). See
 [verification studies](studies.md). At thousands of design variables the

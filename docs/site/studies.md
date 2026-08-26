@@ -26,11 +26,16 @@ falsification test rather than a spot check: a wrong analytic gradient produces
 a flat floor instead of a V, because the disagreement would be dominated by
 the gradient error rather than by the step.
 
-**Cost scaling.** Affine in parameter count out to 581 parameters, 93
-microseconds per parameter, R² = 0.998. This is what makes the reverse-mode
-extension a measured argument rather than a preference. The slope is
-wall-clock on one shared laptop and moves between runs: a repeat measured 81
-microseconds per parameter at R² = 0.997. The affine shape is what holds.
+**Cost scaling.** Affine in parameter count out to 581 parameters, 15
+microseconds per parameter, R² = 0.998. The slope is wall-clock on one
+shared laptop and moves between runs: a repeat measured 14.4 microseconds per
+parameter at R² = 0.9976, a 3.9%% spread. The affine shape is what holds.
+
+This slope used to be 93 microseconds, and the difference is not a faster
+machine. The flow is affine in the state, so the RK4 variational update
+collapses exactly to a fixed tangent map; propagating that instead of running
+RK4 on the sensitivity matrix takes the parameter dimension out of the inner
+loop. What is left is the per-event work.
 
 ## Optimizer benchmark
 
@@ -53,17 +58,23 @@ statistic is the median of the per-seed ratios, 347x, rather than the
 ratio of the medians; and the per-seed ratios span 12x to 139843x, so
 the direction is unanimous across five seeds but the magnitude is not
 resolvable at this sample size. Nelder-Mead sits a further 3.5 orders behind
-CMA-ES. Charged by measured wall-clock, where each gradient call costs a
-measured 6.8 forward solves, the ordering at this budget is no longer in
-Adam's favour: Adam reaches 7.3e-04 against CMA-ES at 3.2e-04, which is 2.3x
-on the ratio of medians and 6.3x on the paired per-seed median. That is not
-resolved at this sample size: CMA-ES is ahead on 4 of 5 seeds and behind on 1, a sign test gives
-p = 0.375, and a bootstrap interval on the median per-seed ratio spans both
-sides of parity. The honest statement is that under wall-clock accounting the
-ordering is not established at n = 5, not that it reverses. The charge is
-itself a wall-clock measurement on a shared machine, and the scaling study it
-rests on moves about 11% between runs, which is one more reason to read this
-as unresolved rather than as a result.
+CMA-ES.
+
+Charged by measured wall-clock the picture used to be worse for Adam, and this
+is the honest history. When a gradient call cost a measured 6.8 forward solves,
+CMA-ES was ahead on 4 of 5 seeds, a sign test gave p = 0.375, and a bootstrap
+interval on the median per-seed ratio spanned both sides of parity; we reported
+that the wall-clock ordering was unresolved rather than reversed. That 6.8 was
+an artifact of how the solver propagated sensitivities, not a property of
+saltation gradients. The flow is affine in the state, so the RK4 variational
+update collapses to a fixed tangent map that can be composed across a smooth
+segment; with that factoring a gradient costs {{ BENCH_grad_charge_wall }}
+solves and Adam is ahead on all five seeds.
+
+Read that carefully: we made our own gradient cheaper and the accounting
+followed. It is evidence about this implementation, not about gradient methods
+against gradient-free ones, and the E5b control below is where that second
+question actually gets answered.
 
 :::{important}
 The wall-clock accounting is reported rather than hidden. What it exposes is
