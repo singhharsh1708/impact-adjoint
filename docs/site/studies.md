@@ -181,6 +181,12 @@ fifth-percentile margin is +{{ SWEEP_best_p5 }} m against CMA-ES's
 +{{ CTRL_cma_p5 }} m. CMA-ES wins the objective; on the tail the two do not
 separate.
 
+None of this touches E2b, where the gradient is not a faster route to the same
+answer but the only route to any: NUTS calls for a gradient at every one of its
+23,440 leapfrog steps, and no gradient-free method samples that posterior at
+all. The comparisons above are about search on a 24-dimensional design; that
+one is about whether the problem is reachable.
+
 So the honest statement is that optimising the ensemble objective is what buys
 the robustness, and the gradient is not what makes that possible. Nelder-Mead
 is genuinely worse, so this is not "gradient-free wins"; it is CMA-ES being

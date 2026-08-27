@@ -161,7 +161,17 @@ objective is discontinuous at those crossings, which is inherent to contact;
 the fixed-topology gradients on each side are exact, and that is what
 carries Adam through.
 
-**E2 and E2b, calibration (Track 4).** Recover material parameters `(e, μ)`
+**E2 and E2b, calibration (Track 4), and the one place gradients are not
+optional.** Everything else in this section is a gradient method beating
+gradient-free methods by some factor, and section 4c shows that at 24 design
+variables the factor can go the wrong way. E2b is different in kind: NUTS needs
+a gradient at every leapfrog step, and there is no gradient-free substitute for
+it. 23,440 gradients through a contact solver is not a speedup over some other
+way of getting this posterior, it is the difference between having it and not.
+That is the strongest thing we can say for gradients here, and it is worth
+saying before the comparisons that follow.
+
+Recover material parameters `(e, μ)`
 from the *positions of three impacts* observed with 5 mm noise, an
 observable that exists only because of events. Point estimation via the solver's
 VJP recovers `e` to 0.002 and `μ` to 0.009 from a distant start. For the

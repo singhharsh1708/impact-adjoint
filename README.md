@@ -94,7 +94,7 @@ raw `curl` client, unchanged.
 | **E5b**, design under uncertainty | Ensemble objective over inlet and restitution scatter. Held-out purity 199/200 for the point design and 200/200 after refinement on one draw; over five independent ensembles, 983/1000 against 997/1000 with non-overlapping Wilson intervals (McNemar p = 0.0026). The fifth-percentile margin improves 0.05 m to 0.49 m, though the worst case stays inside the wrong bin. |
 | **E6**, zero-shot generalization | Trained on two materials, sorts the whole continuum e ∈ [0.35, 0.875] with **one threshold**. |
 | **E1**, inverse design | Miss **1.12 m → 2.7 cm** through 5 bounces, across bounce-count changes. |
-| **E2/E2b**, calibration | NUTS posterior `e = 0.697 ± 0.007`, `mu = 0.096 ± 0.009`; truth inside both 95% CIs, 0 divergences. |
+| **E2/E2b**, calibration | NUTS posterior `e = 0.697 ± 0.007`, `mu = 0.096 ± 0.009`; truth inside both 95% CIs, 0 divergences. **23,440 gradients through the containerized solver over HTTP**, one per leapfrog step. This is the one result here with no gradient-free substitute: not a speedup, the difference between having the posterior and not. |
 | **E4**, terrain design | One terrain routes two inlet speeds to two cups (miss 2.2 / 3.0 cm). |
 
 ![E3](docs/figures/e3_bias.png)
