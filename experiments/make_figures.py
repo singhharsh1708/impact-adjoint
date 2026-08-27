@@ -1,4 +1,4 @@
-"""Generate the three writeup figures into docs/figures/.
+"""Generate the six writeup figures into docs/figures/.
 
 Style: light-surface paper figures; palette and mark specs follow the repo's
 figure conventions (thin 2px lines, hairline grid, direct labels, one axis).

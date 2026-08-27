@@ -2,7 +2,7 @@
 
 {{ repo_note }}
 
-Seven experiments, each with a committed artifact. Numbers here are mirrored
+Eight experiments, each with a committed artifact. Numbers here are mirrored
 in [results](results.md), which is generated from those artifacts.
 
 ## E3, the failure measured

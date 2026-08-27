@@ -53,6 +53,15 @@
   is ahead on all five seeds under both accountings now. That is evidence about
   this implementation, not about gradient methods against gradient-free ones.
   Both accountings are reported in [studies](studies.md).
+- The gradient is not demonstrated to be the better search method on this
+  problem. At a matched budget on the E5b ensemble objective, tuned CMA-ES
+  reaches a better design than Adam, and on the E5 held-out purity Nelder-Mead
+  matches Adam with a wider margin. What buys the robustness is optimising the
+  ensemble objective, not the gradient that optimises it. See
+  [studies](studies.md).
+- The separator is defined at its own horizon: evaluated at `t_final = 3.0`
+  instead of 2.2, the trained `e = 0.8` particle lands 0.67 m from its target
+  rather than 0.42 mm.
 - Designing environment geometry through contact-driven simulation is not new
   in itself. What we could not find in the literature is design using exact
   event-time sensitivities and targeting per-impact routing rather than a bulk

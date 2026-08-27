@@ -7,7 +7,8 @@ agrees with them, the same property the figures have.
 
     python scripts/make_demo_video.py
 
-Writes docs/demo.mp4. Needs ffmpeg on PATH.
+Writes docs/site/_static/demo.mp4 and its poster docs/figures/demo_poster.png.
+Needs ffmpeg on PATH.
 """
 
 import json
@@ -169,7 +170,11 @@ def main():
 
     truth = R["E3_truth"]
     naive = R["E3_grid_reset_gradient"]
-    adam, cma, nm = R["E5_adam"], R["E5_cma"], R["E5_nelder_mead"]
+    # the card renders study_optimizers.png, which plots the five-seed
+    # medians; captioning it with the single-run E5 values put the
+    # Nelder-Mead label two orders from the line above it
+    adam = R["BENCH_adam_eval_median"]
+    cma, nm = R["BENCH_cma_median"], R["BENCH_nm_median"]
     orders = np.log10(nm / adam)
 
     with writer.saving(fig, str(OUT), dpi=DPI):

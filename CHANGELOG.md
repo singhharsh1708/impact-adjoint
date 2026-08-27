@@ -25,9 +25,46 @@ each published survives.
 Every entry below is a correction made while building this entry, newest
 first, written as "it was X, it is now Y". They are a record of what moved,
 not a statement of the current values: several entries quote figures that
-later entries supersede, and two corrections are themselves withdrawn further
-up. For what the entry publishes today, read `docs/RESULTS.md`, which is
+later entries supersede, and one entry records two corrections of its own that
+were made and then retracted. For what the entry publishes today, read `docs/RESULTS.md`, which is
 generated from the committed artifacts, or the artifacts themselves.
+
+- **The demo video's optimizer card contradicted the figure printed above it.**
+  The card renders `study_optimizers.png`, which plots five-seed medians, but
+  its caption was built from the single-run E5 values, so it said Nelder-Mead
+  ends at 1.9e-02 while the line in the same frame visibly ended near 1e0. The
+  caption reads the benchmark medians now, and the gap it states is 6.5 orders
+  rather than 4.9. The error understated the result, but the card was the one
+  place in the video that disagreed with its own image, and the README embeds
+  a poster tile of it.
+- **Three counts of the studies and experiments were live at once.** The
+  landing page said seven and eight, the studies page six, the experiments page
+  seven, and the changelog named "seven and six" as the pair that was wrong.
+  All now say seven studies and eight experiments, and the studies page records
+  that only six of the seven write an artifact the collector reads.
+- **The studies page still published the withdrawn wall-clock claim in its
+  figure alt text**, which is what a screen reader receives. The body text
+  twenty lines below already stated the reversal.
+- The E5b control table bolded CMA-ES's fifth-percentile cell as a winner. The
+  Adam learning-rate sweep reaches +0.600 m against CMA-ES's +0.558 m, and a
+  paired bootstrap on the shared draw puts the difference at +0.039 m with a
+  95% interval spanning zero. CMA-ES wins the objective; on the tail the two do
+  not separate, and the page says that now.
+- `docs/writeup.md` claimed "none is typed by hand" of a hand-written markdown
+  file. The headline numbers in it are pinned to `results.json` by the drift
+  suite, which is the true and narrower statement.
+- The same file called the shipped method "the saltation adjoint", colliding
+  with the reverse-mode adjoint this project did not build, and said grid-reset
+  autodiff returns a gradient that is "exactly zero". That is true only on flat
+  terrain; E5b optimises bump amplitudes on curved terrain, where the reset
+  normal depends on the design and the gradient is nonzero and wrong.
+- Smaller: the disk breakdown summed to 5.1 GB under a stated 9 GB total; the
+  repro file's skip arithmetic said 40 of 49 where it is 45; a drift-test
+  docstring said CI does not install Sphinx, which it has since done; the
+  figure script's docstring said three figures where it writes six; the
+  artifacts page credited `scaling_repeats.json` to a script that does not
+  write it; and the three scripts backing the section 4c withdrawal had no run
+  command anywhere in the README.
 
 - **The README's performance table failed its own arithmetic.** The refactor
   commit rewrote the ratio row and left the two rows above it at their

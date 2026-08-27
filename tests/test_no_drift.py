@@ -202,7 +202,8 @@ def test_every_figure_source_path_exists():
 
     The docs build enforces this too (the directive warns, and the build runs
     with -W), so this is a fast local duplicate rather than the only guard. It
-    needs Sphinx, which the test job does not install.
+    needs Sphinx, which CI installs, so it skips only for a local install from
+    docs/requirements-repro.txt.
     """
     pytest.importorskip("sphinx", reason="enforced by the docs build instead")
     sys.path.insert(0, str(ROOT / "docs" / "site" / "_ext"))

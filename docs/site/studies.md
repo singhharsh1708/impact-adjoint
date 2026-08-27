@@ -2,9 +2,11 @@
 
 {{ repo_note }}
 
-Six studies that measure the machinery rather than any application. Each
-writes an artifact that `experiments/collect_results.py` reads into
-[results](results.md), so no number is retyped by hand.
+Seven studies that measure the machinery rather than any application. Six of
+them write an artifact that `experiments/collect_results.py` reads into
+[results](results.md), so no number is retyped by hand; the seventh,
+`study_design_table.py`, writes `design_table.json` for the four-row design
+table below.
 
 ## Solver and gradient
 
@@ -45,7 +47,7 @@ methods tuned over a grid per seed, learning rate for Adam and sigma0 for
 CMA-ES.
 
 ```{image} ../figures/study_optimizers.png
-:alt: Median convergence curves with interquartile bands over five random starts under both cost accountings: per evaluation Adam ends about 347 times below tuned CMA-ES on the paired per-seed median, and under measured wall-clock the ordering is not resolved at five seeds.
+:alt: Median convergence curves with interquartile bands over five random starts under both cost accountings: per evaluation Adam ends about 347 times below tuned CMA-ES on the paired per-seed median, and under measured wall-clock Adam is ahead on all five seeds.
 :width: 100%
 ```
 
@@ -162,18 +164,22 @@ start spans four orders of magnitude and freezes the small amplitudes.
 | warm start (E5 point design) | 7.3e-2 | 199/200 | +0.07 m |
 | Adam, published `lr = 0.004` | {{ CTRL_adam_loss }} | 200/200 | +{{ CTRL_adam_p5 }} m |
 | Adam, best of {{ SWEEP_n_lrs }} learning rates | {{ SWEEP_best_loss }} | 200/200 | +{{ SWEEP_best_p5 }} m |
-| **CMA-ES, best of {{ CTRL_cma_grid_n }}** | **{{ CTRL_cma_loss }}** | 200/200 | **+{{ CTRL_cma_p5 }} m** |
+| CMA-ES, best of {{ CTRL_cma_grid_n }} | **{{ CTRL_cma_loss }}** | 200/200 | +{{ CTRL_cma_p5 }} m |
 | Nelder-Mead, best of 2 | {{ CTRL_nm_loss }} | {{ CTRL_nm_correct }} | {{ CTRL_nm_p5 }} m |
 
 :::{important}
-The claim did not survive. CMA-ES reaches a better ensemble design than Adam at
-a matched budget, on the objective and on the tail, and it does so on every one
-of its {{ CTRL_cma_grid_n }} grid runs; its median, {{ CTRL_cma_median_loss }},
-still beats Adam's best. Because the first comparison gave CMA-ES nine
-configurations and Adam one, we then swept Adam's learning rate over
-{{ SWEEP_n_lrs }} values fixed before the run. It does not change the ordering,
-and it turns up something else: the published `lr = 0.004` is not Adam's best
-here. `lr = 0.001` reaches {{ SWEEP_best_loss }}.
+The claim did not survive. CMA-ES reaches a better ensemble design than the
+published Adam run at a matched budget, on the objective and on the tail, and
+it beats that run's objective on every one of its {{ CTRL_cma_grid_n }} grid
+runs; its median, {{ CTRL_cma_median_loss }}, still beats Adam's best. Because
+the first comparison gave CMA-ES nine configurations and Adam one, we then
+swept Adam's learning rate over {{ SWEEP_n_lrs }} values fixed before the run.
+The objective ordering is unchanged, and the sweep turns up two things: the
+published `lr = 0.004` is not Adam's best here, `lr = 0.001` reaches
+{{ SWEEP_best_loss }}; and the tail ordering does not hold up, since that run's
+fifth-percentile margin is +{{ SWEEP_best_p5 }} m against CMA-ES's
++{{ CTRL_cma_p5 }} m. CMA-ES wins the objective; on the tail the two do not
+separate.
 
 So the honest statement is that optimising the ensemble objective is what buys
 the robustness, and the gradient is not what makes that possible. Nelder-Mead

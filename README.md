@@ -150,7 +150,7 @@ optimization loops never consume silently nonphysical states.
 
 ## Verification studies
 
-Beyond the correctness oracles above, six studies measure the machinery
+Beyond the correctness oracles above, seven studies measure the machinery
 itself. Every number is collected into [docs/RESULTS.md](docs/RESULTS.md) by
 `experiments/collect_results.py`, read from the committed artifacts rather
 than retyped.
@@ -212,8 +212,9 @@ per-column figure, and gets 1.61 forward solves.
 > which replays the committed E1 parameter history, and
 > `make_e5_animation.py`, which does re-run its optimization.
 
-Requires Python ≥ 3.12, Docker (for containerized runs), and ~9 GB disk for
-the Docker images (contact-sim ~3.8 GB, score-target ~1.3 GB). Julia itself
+Requires Python ≥ 3.12, Docker (for containerized runs), and ~9 GB of free
+disk for the containerized build (contact-sim ~3.8 GB and score-target
+~1.3 GB as final images, plus buildx cache and intermediate layers). Julia itself
 is bootstrapped automatically by `juliacall`.
 
 ```bash
@@ -234,15 +235,19 @@ python experiments/e2_calibration.py
 python experiments/e4_terrain_design.py
 python experiments/e5_separator.py          # ~30 s warm: 3 optimizers x 900 evals
 python experiments/e5b_robust_separator.py  # ~10 min: ensemble design + purity eval
+python experiments/e5_cma_grid.py
+python experiments/e5b_gradient_free_control.py   # gradient-free on the ensemble objective
+python experiments/e5b_adam_sweep.py              # Adam's learning-rate grid on the same
 python experiments/e6_generalization.py
 
-# verification studies (write the artifacts behind docs/RESULTS.md)
+# verification studies
 python experiments/study_convergence.py
 python experiments/study_gradient_accuracy.py
 python experiments/study_scaling.py
 python experiments/study_optimizers.py          # ~25 min: 5 seeds x tuned grids
 python experiments/study_robustness_stats.py    # ~10 min
 python experiments/study_generalization_stats.py  # ~15 min
+python experiments/study_design_table.py          # per-design intervals for the studies page
 python experiments/make_study_figures.py
 python experiments/collect_results.py
 

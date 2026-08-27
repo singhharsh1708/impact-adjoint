@@ -30,8 +30,9 @@ bugs in Tesseract's AD path
 and two in the Mosaic harness
 ([#126](https://github.com/pasteurlabs/mosaic/pull/126),
 [#141](https://github.com/pasteurlabs/mosaic/pull/141)). Section 7 has the
-detail. Every number below regenerates byte-identically from the committed
-artifacts; none is typed by hand.
+detail. Every number below comes from a committed artifact, and the headline ones are
+pinned to `experiments/results.json` by `tests/test_no_drift.py`, which fails
+if this document drifts from what was measured.
 
 ## 1. The problem: gradients die at events, quietly
 
@@ -427,9 +428,9 @@ this is not a gradient-free win in general, it is CMA-ES suiting a
 24-dimensional box with a good warm start.
 
 What survives is narrower and worth stating plainly. The gradient reaches its
-ensemble design in 80 iterations, and the saltation adjoint is what makes those
-80 iterations correct at all: the same loop on grid-reset autodiff optimises a
-gradient that is exactly zero. The comparison that would settle the cost
+ensemble design in 80 iterations, and the saltation sensitivities are what make
+those 80 iterations correct at all: the same loop on grid-reset autodiff
+optimises a gradient that is missing the event-time term entirely. The comparison that would settle the cost
 question is against a reverse-mode saltation adjoint, which this project has
 not built. Until then the honest position is that the gradient is necessary for
 the derivative to exist and to be right, and not demonstrated to be the cheapest

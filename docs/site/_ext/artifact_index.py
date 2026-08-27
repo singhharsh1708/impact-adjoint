@@ -82,8 +82,9 @@ ARTIFACTS = [
      "Adam over a learning-rate grid on the same objective, so the comparison "
      "is not decided by tuning one arm and not the other."),
     ("experiments/scaling_repeats.json", ["experiments/study_scaling.py"],
-     "The same study measured twice, so the run-to-run spread on the slope is "
-     "a recorded number rather than a claim."),
+     "A hand-recorded log of two separate invocations of study_scaling.py, not "
+     "an output of it, so the run-to-run spread on the slope is a recorded "
+     "number rather than a claim. Run 1 is the committed scaling_result.npz."),
     ("experiments/design_table.json", ["experiments/study_design_table.py"],
      "Per-design purity and fifth-percentile margin with Wilson and bootstrap "
      "intervals, for the four-row table on the studies page."),
