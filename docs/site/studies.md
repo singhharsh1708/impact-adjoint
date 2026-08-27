@@ -181,6 +181,56 @@ fifth-percentile margin is +{{ SWEEP_best_p5 }} m against CMA-ES's
 +{{ CTRL_cma_p5 }} m. CMA-ES wins the objective; on the tail the two do not
 separate.
 
+### Does the concession hold at more design variables?
+
+Twenty-four parameters is where CMA-ES is comfortable, and the cost scaling
+above says the gradient's per-step work does not grow with the parameter count.
+So we re-ran the same comparison at 93.
+
+The experiment only means anything if raising the count raises the dimension
+and not the difficulty, so the design space is nested by construction. A wide
+Gaussian is a positive convolution of narrow ones, so with bump width scaled to
+spacing the published 24-parameter design is an exact interior point of the
+93-parameter box: it reproduces the same trajectory impact for impact, with
+identical status and event counts on all 24 training particles, and the warm
+start moves the objective by 0.4%. Therefore the best achievable loss at 93 is
+no worse than at 24 by construction, and any degradation measured is the
+optimiser failing rather than the problem hardening. The evaluation budget is
+frozen at {{ E5C_max_evals }} ensemble evaluations at both dimensions, and both
+arms' step-size grids are recalibrated by the same measured rule, because a step
+in absolute amplitude units means something different when bumps are four times
+narrower.
+
+| design variables | Adam best | CMA-ES best | CMA / Adam, best | CMA / Adam, median |
+|---|---|---|---|---|
+| 24 | {{ E5C_24_adam_best }} | **{{ E5C_24_cma_best }}** | {{ E5C_24_ratio_best }} | {{ E5C_24_ratio_med }} |
+| 93 | **{{ E5C_93_adam_best }}** | {{ E5C_93_cma_best }} | {{ E5C_93_ratio_best }} | {{ E5C_93_ratio_med }} |
+
+At 93 parameters CMA-ES given {{ E5C_ladder_mult }} times the budget reaches
+{{ E5C_ladder_best }}, still {{ E5C_ladder_ratio }} times Adam's matched-budget
+result, so this is not starvation.
+
+:::{important}
+The concession we published stands at 24 design variables and does not extend
+to 93 on this problem. That is the honest shape of it: gradient-free search
+wins where the design space is small, and stops winning as it grows, which is
+what the cost scaling predicts and is why the gradient is worth having.
+
+The limits matter as much as the result. This is two dimension points on one
+problem instance with one training draw, so it does not estimate a crossover
+dimension and says nothing about other objectives or budget levels. The
+objective has {{ E5C_residuals }} residuals, which caps its local rank whatever
+the parameter count is, so 93 parameters is an over-parameterised design vector
+rather than 93 independent degrees of freedom. A pre-registered middle point at
+47 was dropped on its own gate, not accommodated: the embedded warm start moved
+the objective 10.1% there against a 5% threshold, because 47 bumps do not yet
+represent the 24-bump terrain faithfully.
+
+CMA-ES's best configuration at 24 sat on the edge of its step-size grid, so the
+grid was extended one step, which could only have strengthened the concession
+against us. It did not improve: 1.45e-2 against 6.47e-3.
+:::
+
 None of this touches E2b, where the gradient is not a faster route to the same
 answer but the only route to any: NUTS calls for a gradient at every one of its
 23,440 leapfrog steps, and no gradient-free method samples that posterior at

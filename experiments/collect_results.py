@@ -189,6 +189,22 @@ def main():
         r["CTRL_nm_loss"] = round(float(c["nelder_mead_loss"]), 8)
         r["CTRL_nm_correct"] = f"{int(c['nelder_mead_correct'])}/{int(c['nelder_mead_n'])}"
         r["CTRL_nm_p5"] = round(float(c["nelder_mead_p5"]), 4)
+    e5c_path = E / "e5c_result.npz"
+    if e5c_path.exists():
+        c5 = np.load(e5c_path)
+        r["E5C_max_evals"] = int(c5["max_evals"])
+        r["E5C_residuals"] = int(c5["residuals"])
+        r["E5C_ladder_mult"] = int(c5["ladder_mult"])
+        for nb in c5["nb_grid"]:
+            a, m = c5[f"adam_{nb}_loss"], c5[f"cma_{nb}_loss"]
+            r[f"E5C_{nb}_adam_best"] = round(float(a.min()), 8)
+            r[f"E5C_{nb}_cma_best"] = round(float(m.min()), 8)
+            r[f"E5C_{nb}_ratio_best"] = round(float(m.min() / a.min()), 3)
+            r[f"E5C_{nb}_ratio_med"] = round(float(np.median(m) / np.median(a)), 3)
+        r["E5C_ladder_best"] = round(float(c5["ladder_loss"].min()), 8)
+        r["E5C_ladder_ratio"] = round(
+            float(c5["ladder_loss"].min() / c5[f"adam_{c5['nb_grid'][-1]}_loss"].min()), 2)
+
     sweep_path = E / "e5b_adam_sweep.npz"
     if sweep_path.exists():
         s = np.load(sweep_path)

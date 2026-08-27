@@ -431,6 +431,26 @@ then swept Adam over five rates fixed before the run. The ordering does not
 change, and the sweep turns up something else: `lr = 0.004` is not Adam's best
 here, `lr = 0.001` is.
 
+We then asked whether the concession holds at more design variables, since 24
+is where CMA-ES is comfortable and the gradient's per-step cost does not grow
+with the parameter count. Re-running the same comparison at 93, on a design
+space nested by construction so the 24-parameter design is an exact interior
+point of the larger box:
+
+| design variables | Adam best | CMA-ES best | CMA / Adam |
+|---|---|---|---|
+| 24 | 1.03e-02 | **6.47e-03** | 0.631 |
+| 93 | **3.99e-03** | 1.51e-02 | 3.773 |
+
+At 93 parameters CMA-ES given three times the budget still reaches only
+1.08e-02, 2.71 times Adam's matched-budget
+result, so the reversal is not starvation. The concession stands at 24 design
+variables and does not extend to 93 on this problem. It is two dimension points
+on one problem instance, the objective's 48 residuals cap its
+local rank whatever the parameter count is, and a pre-registered middle point
+at 47 was dropped on its own gate. Details and limits are in
+[studies](https://impact-adjoint.vercel.app/studies).
+
 So the sentence is withdrawn from the README, the studies page and section 3.
 What buys the robustness is optimising the ensemble objective at all; the
 gradient is not what makes that possible. Nelder-Mead is genuinely worse, so

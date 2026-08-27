@@ -29,6 +29,35 @@ later entries supersede, and one entry records two corrections of its own that
 were made and then retracted. For what the entry publishes today, read `docs/RESULTS.md`, which is
 generated from the committed artifacts, or the artifacts themselves.
 
+- **The withdrawn claim turns out to be bounded by dimension, and the bound is
+  measured.** The control that withdrew "E5b is where the gradient pays" ran at
+  24 design variables, which is where CMA-ES is comfortable. Re-run at 93 on a
+  design space nested by construction, so that the 24-parameter design is an
+  exact interior point of the larger box and the best achievable loss cannot be
+  worse, the ordering reverses: CMA-ES is 0.631x Adam at 24
+  and 3.773x the other way at 93, and giving CMA-ES three
+  times the budget still leaves it 2.71x behind. The
+  concession stands at 24 variables and does not extend to 93. It is two
+  dimension points on one problem instance; the objective's
+  48 residuals cap its local rank whatever the parameter
+  count is.
+- Three things in that experiment were designed to stop it flattering us, and
+  two of them fired. A pre-registered middle point at 47 variables was dropped
+  on its own gate rather than accommodated, because the embedded warm start
+  moved the objective 10.1% there against a 5% threshold. CMA-ES's best
+  configuration at 24 sat on the edge of its step-size grid, so the grid was
+  extended one step, which could only have strengthened the concession against
+  us; it did not improve. And the first design of the experiment, at 96 and 192
+  variables with bump width held fixed, was abandoned before it ran: the
+  dictionary's numerical rank saturates near 52 at both, so those are the same
+  problem to precision, and uniform maximum amplitude builds terrain metres
+  taller than the launch height. That version would have manufactured the
+  result it was testing for.
+- The score Tesseract was removed from the gradient arm's objective in the new
+  control. It cost Adam an apply and a VJP per particle per iteration that the
+  budget charged nothing for, and the size of that undercharge shrinks as the
+  parameter count grows, so it would have biased the cross-dimension trend.
+
 - **The demo video's optimizer card contradicted the figure printed above it.**
   The card renders `study_optimizers.png`, which plots five-seed medians, but
   its caption was built from the single-run E5 values, so it said Nelder-Mead

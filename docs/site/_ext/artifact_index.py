@@ -78,6 +78,10 @@ ARTIFACTS = [
      "CMA-ES and Nelder-Mead on the ensemble objective at a budget matched in "
      "particle solves, with the grid each was swept over and the best-so-far "
      "traces."),
+    ("experiments/e5c_result.npz", ["experiments/e5c_dimension_control.py"],
+     "The same control re-run at 93 design variables on a nested design space, "
+     "with the budget frozen and both arms' step-size grids recalibrated, plus "
+     "a three-times-budget ladder for the cost question."),
     ("experiments/e5b_adam_sweep.npz", ["experiments/e5b_adam_sweep.py"],
      "Adam over a learning-rate grid on the same objective, so the comparison "
      "is not decided by tuning one arm and not the other."),
