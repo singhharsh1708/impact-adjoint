@@ -4,7 +4,7 @@ Notable changes to the solver, the experiments, and any number this project
 reports. Corrections are listed as prominently as features: where a published
 figure changed, this says what it was and what it became.
 
-## 0.1.5 (2026-08-27)
+## 0.1.6 (2026-08-29)
 
 ### Superseded releases
 

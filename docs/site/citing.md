@@ -12,7 +12,7 @@ in the repository. There is no preprint and no journal version.
   title   = {impact-adjoint: exact gradients through impact
              events across a Julia and JAX Tesseract boundary},
   year    = {2026},
-  version = {0.1.5},
+  version = {0.1.6},
   license = {Apache-2.0},
   doi     = {10.5281/zenodo.22117930},
   url     = {https://doi.org/10.5281/zenodo.22117930}
@@ -20,12 +20,14 @@ in the repository. There is no preprint and no journal version.
 ```
 
 :::{note}
-Two DOIs exist. Cite the **concept DOI**,
+Cite the **concept DOI**,
 [10.5281/zenodo.22117930](https://doi.org/10.5281/zenodo.22117930), which always
-resolves to the most recent archived release. The **version DOI** for v0.1.5
-specifically is [10.5281/zenodo.22117931](https://doi.org/10.5281/zenodo.22117931),
-and is the one to use if you need to pin the exact code a result came from.
-Both are recorded in `CITATION.cff`.
+resolves to the most recent archived release. Zenodo also mints a **version
+DOI** per release, which is what to use if you need to pin the exact code a
+result came from; the one for v0.1.5 is
+[10.5281/zenodo.22117931](https://doi.org/10.5281/zenodo.22117931), and each
+later release gets its own, listed on the Zenodo record. `CITATION.cff` carries
+the concept DOI.
 :::
 
 ## Licence
